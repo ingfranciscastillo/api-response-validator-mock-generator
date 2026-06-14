@@ -1,0 +1,150 @@
+import SwaggerParser from "@apidevtools/swagger-parser";
+
+export interface ParsedEndpoint {
+	method: string;
+	path: string;
+	summary: string | null;
+	operationId: string | null;
+	parameters: unknown;
+	requestBody: unknown;
+	responses: unknown;
+}
+
+export interface ParsedSpec {
+	title: string;
+	version: string;
+	description: string | null;
+	endpoints: ParsedEndpoint[];
+	tags: string[];
+}
+
+export interface SpecSummary {
+	endpointCount: number;
+	methods: string[];
+	tags: string[];
+}
+
+function normalizeMethod(method: string): string {
+	return method.toLowerCase();
+}
+
+function extractEndpoints(
+	paths: Record<string, Record<string, unknown>> | undefined,
+): ParsedEndpoint[] {
+	if (!paths) return [];
+
+	const endpoints: ParsedEndpoint[] = [];
+	const httpMethods = [
+		"get",
+		"post",
+		"put",
+		"patch",
+		"delete",
+		"options",
+		"head",
+		"trace",
+	];
+
+	for (const [path, pathItem] of Object.entries(paths)) {
+		if (!pathItem || typeof pathItem !== "object") continue;
+
+		for (const [method, operation] of Object.entries(pathItem)) {
+			const normalized = normalizeMethod(method);
+			if (!httpMethods.includes(normalized)) continue;
+			if (!operation || typeof operation !== "object") continue;
+
+			const op = operation as Record<string, unknown>;
+			endpoints.push({
+				method: normalized.toUpperCase(),
+				path,
+				summary: (op.summary as string | null) ?? null,
+				operationId: (op.operationId as string | null) ?? null,
+				parameters: op.parameters ?? null,
+				requestBody: op.requestBody ?? null,
+				responses: op.responses ?? null,
+			});
+		}
+	}
+
+	return endpoints;
+}
+
+function extractTags(
+	paths: Record<string, Record<string, unknown>> | undefined,
+): string[] {
+	if (!paths) return [];
+	const tagSet = new Set<string>();
+
+	for (const pathItem of Object.values(paths)) {
+		if (!pathItem || typeof pathItem !== "object") continue;
+		for (const operation of Object.values(pathItem)) {
+			if (!operation || typeof operation !== "object") continue;
+			const op = operation as Record<string, unknown>;
+			const tags = op.tags as string[] | undefined;
+			if (Array.isArray(tags)) {
+				for (const tag of tags) tagSet.add(tag);
+			}
+		}
+	}
+
+	return [...tagSet].sort();
+}
+
+export function buildSummary(endpoints: ParsedEndpoint[]): SpecSummary {
+	const methodSet = new Set<string>();
+	for (const ep of endpoints) methodSet.add(ep.method);
+
+	const methods = [...methodSet].sort(
+		(a, b) => httpMethodOrder(a) - httpMethodOrder(b),
+	);
+
+	return {
+		endpointCount: endpoints.length,
+		methods,
+		tags: [],
+	};
+}
+
+function httpMethodOrder(method: string): number {
+	const order: Record<string, number> = {
+		GET: 0,
+		POST: 1,
+		PUT: 2,
+		PATCH: 3,
+		DELETE: 4,
+		OPTIONS: 5,
+		HEAD: 6,
+		TRACE: 7,
+	};
+	return order[method] ?? 99;
+}
+
+export async function parseSpec(
+	input: string | Record<string, unknown>,
+): Promise<ParsedSpec> {
+	const spec = typeof input === "string" ? JSON.parse(input) : input;
+
+	const dereferenced = await SwaggerParser.dereference(
+		structuredClone(spec) as unknown as string,
+	);
+
+	const d = dereferenced as unknown as Record<string, unknown>;
+	const info = d.info as Record<string, unknown> | undefined;
+	const paths = d.paths as Record<string, Record<string, unknown>> | undefined;
+
+	const endpoints = extractEndpoints(paths);
+	const tags = extractTags(paths);
+
+	return {
+		title: (info?.title as string) ?? "Untitled Spec",
+		version: (info?.version as string) ?? "1.0.0",
+		description: (info?.description as string | null) ?? null,
+		endpoints,
+		tags,
+	};
+}
+
+export async function parseSpecFromUrl(url: string): Promise<ParsedSpec> {
+	const dereferenced = await SwaggerParser.dereference(url);
+	return parseSpec(dereferenced as unknown as Record<string, unknown>);
+}
