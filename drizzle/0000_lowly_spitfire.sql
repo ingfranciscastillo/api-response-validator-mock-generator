@@ -13,6 +13,20 @@ CREATE TABLE "accounts" (
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "endpoints" (
+	"id" text PRIMARY KEY NOT NULL,
+	"spec_id" text NOT NULL,
+	"spec_version_id" text NOT NULL,
+	"method" text NOT NULL,
+	"path" text NOT NULL,
+	"summary" text,
+	"operation_id" text,
+	"parameters" json,
+	"request_body" json,
+	"responses" json NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "organizations" (
 	"id" text PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
@@ -53,10 +67,22 @@ CREATE TABLE "sessions" (
 	CONSTRAINT "sessions_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint
-CREATE TABLE "todos" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"title" text NOT NULL,
-	"created_at" timestamp DEFAULT now()
+CREATE TABLE "specifications" (
+	"id" text PRIMARY KEY NOT NULL,
+	"name" text NOT NULL,
+	"description" text,
+	"organization_id" text NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "specification_versions" (
+	"id" text PRIMARY KEY NOT NULL,
+	"spec_id" text NOT NULL,
+	"version" integer NOT NULL,
+	"openapi_spec" json NOT NULL,
+	"summary" json,
+	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
@@ -80,12 +106,18 @@ CREATE TABLE "verifications" (
 );
 --> statement-breakpoint
 ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "endpoints" ADD CONSTRAINT "endpoints_spec_id_specifications_id_fk" FOREIGN KEY ("spec_id") REFERENCES "public"."specifications"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "endpoints" ADD CONSTRAINT "endpoints_spec_version_id_specification_versions_id_fk" FOREIGN KEY ("spec_version_id") REFERENCES "public"."specification_versions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "organization_invitations" ADD CONSTRAINT "organization_invitations_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "organization_members" ADD CONSTRAINT "organization_members_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "organization_members" ADD CONSTRAINT "organization_members_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "specifications" ADD CONSTRAINT "specifications_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "specification_versions" ADD CONSTRAINT "specification_versions_spec_id_specifications_id_fk" FOREIGN KEY ("spec_id") REFERENCES "public"."specifications"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "accounts_user_id_idx" ON "accounts" USING btree ("user_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "accounts_provider_account_idx" ON "accounts" USING btree ("provider_id","account_id");--> statement-breakpoint
+CREATE INDEX "endpoint_spec_idx" ON "endpoints" USING btree ("spec_id");--> statement-breakpoint
+CREATE INDEX "endpoint_version_idx" ON "endpoints" USING btree ("spec_version_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "organizations_slug_idx" ON "organizations" USING btree ("slug");--> statement-breakpoint
 CREATE INDEX "org_invites_org_id_idx" ON "organization_invitations" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "org_invites_email_idx" ON "organization_invitations" USING btree ("email");--> statement-breakpoint
@@ -94,5 +126,7 @@ CREATE INDEX "org_members_user_id_idx" ON "organization_members" USING btree ("u
 CREATE UNIQUE INDEX "org_members_org_user_idx" ON "organization_members" USING btree ("organization_id","user_id");--> statement-breakpoint
 CREATE INDEX "sessions_user_id_idx" ON "sessions" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "sessions_token_idx" ON "sessions" USING btree ("token");--> statement-breakpoint
+CREATE INDEX "spec_org_idx" ON "specifications" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "spec_version_spec_idx" ON "specification_versions" USING btree ("spec_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "users_email_idx" ON "users" USING btree ("email");--> statement-breakpoint
 CREATE INDEX "verifications_identifier_idx" ON "verifications" USING btree ("identifier");
