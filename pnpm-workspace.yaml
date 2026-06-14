@@ -6,6 +6,7 @@ trustPolicy: no-downgrade
 trustPolicyExclude:
   - undici-types
   - semver
+  - reselect
 
 onlyBuiltDependencies:
   - esbuild
