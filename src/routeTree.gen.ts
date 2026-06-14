@@ -23,8 +23,10 @@ import { Route as DashboardMocksRouteImport } from './routes/dashboard.mocks'
 import { Route as DashboardValidationWorkspaceRouteImport } from './routes/dashboard.validation.workspace'
 import { Route as DashboardSpecsNewRouteImport } from './routes/dashboard.specs.new'
 import { Route as DashboardSpecsSpecIdRouteImport } from './routes/dashboard.specs.$specId'
+import { Route as DashboardMocksMockIdRouteImport } from './routes/dashboard.mocks.$mockId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as DashboardValidationRunsRunIdRouteImport } from './routes/dashboard.validation.runs.$runId'
+import { Route as ApiPublicMocksMockIdRouteImport } from './routes/api/public/mocks.$mockId'
 import { Route as DashboardSpecsSpecIdEndpointsEndpointIdRouteImport } from './routes/dashboard.specs.$specId.endpoints.$endpointId'
 
 const RegisterRoute = RegisterRouteImport.update({
@@ -98,6 +100,11 @@ const DashboardSpecsSpecIdRoute = DashboardSpecsSpecIdRouteImport.update({
   path: '/$specId',
   getParentRoute: () => DashboardSpecsRoute,
 } as any)
+const DashboardMocksMockIdRoute = DashboardMocksMockIdRouteImport.update({
+  id: '/$mockId',
+  path: '/$mockId',
+  getParentRoute: () => DashboardMocksRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -109,6 +116,11 @@ const DashboardValidationRunsRunIdRoute =
     path: '/runs/$runId',
     getParentRoute: () => DashboardValidationRoute,
   } as any)
+const ApiPublicMocksMockIdRoute = ApiPublicMocksMockIdRouteImport.update({
+  id: '/api/public/mocks/$mockId',
+  path: '/api/public/mocks/$mockId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardSpecsSpecIdEndpointsEndpointIdRoute =
   DashboardSpecsSpecIdEndpointsEndpointIdRouteImport.update({
     id: '/endpoints/$endpointId',
@@ -122,16 +134,18 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/dashboard/mocks': typeof DashboardMocksRoute
+  '/dashboard/mocks': typeof DashboardMocksRouteWithChildren
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/specs': typeof DashboardSpecsRouteWithChildren
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/validation': typeof DashboardValidationRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/dashboard/mocks/$mockId': typeof DashboardMocksMockIdRoute
   '/dashboard/specs/$specId': typeof DashboardSpecsSpecIdRouteWithChildren
   '/dashboard/specs/new': typeof DashboardSpecsNewRoute
   '/dashboard/validation/workspace': typeof DashboardValidationWorkspaceRoute
+  '/api/public/mocks/$mockId': typeof ApiPublicMocksMockIdRoute
   '/dashboard/validation/runs/$runId': typeof DashboardValidationRunsRunIdRoute
   '/dashboard/specs/$specId/endpoints/$endpointId': typeof DashboardSpecsSpecIdEndpointsEndpointIdRoute
 }
@@ -141,16 +155,18 @@ export interface FileRoutesByTo {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/dashboard/mocks': typeof DashboardMocksRoute
+  '/dashboard/mocks': typeof DashboardMocksRouteWithChildren
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/specs': typeof DashboardSpecsRouteWithChildren
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/validation': typeof DashboardValidationRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/dashboard/mocks/$mockId': typeof DashboardMocksMockIdRoute
   '/dashboard/specs/$specId': typeof DashboardSpecsSpecIdRouteWithChildren
   '/dashboard/specs/new': typeof DashboardSpecsNewRoute
   '/dashboard/validation/workspace': typeof DashboardValidationWorkspaceRoute
+  '/api/public/mocks/$mockId': typeof ApiPublicMocksMockIdRoute
   '/dashboard/validation/runs/$runId': typeof DashboardValidationRunsRunIdRoute
   '/dashboard/specs/$specId/endpoints/$endpointId': typeof DashboardSpecsSpecIdEndpointsEndpointIdRoute
 }
@@ -161,16 +177,18 @@ export interface FileRoutesById {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/dashboard/mocks': typeof DashboardMocksRoute
+  '/dashboard/mocks': typeof DashboardMocksRouteWithChildren
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/specs': typeof DashboardSpecsRouteWithChildren
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/validation': typeof DashboardValidationRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/dashboard/mocks/$mockId': typeof DashboardMocksMockIdRoute
   '/dashboard/specs/$specId': typeof DashboardSpecsSpecIdRouteWithChildren
   '/dashboard/specs/new': typeof DashboardSpecsNewRoute
   '/dashboard/validation/workspace': typeof DashboardValidationWorkspaceRoute
+  '/api/public/mocks/$mockId': typeof ApiPublicMocksMockIdRoute
   '/dashboard/validation/runs/$runId': typeof DashboardValidationRunsRunIdRoute
   '/dashboard/specs/$specId/endpoints/$endpointId': typeof DashboardSpecsSpecIdEndpointsEndpointIdRoute
 }
@@ -189,9 +207,11 @@ export interface FileRouteTypes {
     | '/dashboard/team'
     | '/dashboard/validation'
     | '/api/auth/$'
+    | '/dashboard/mocks/$mockId'
     | '/dashboard/specs/$specId'
     | '/dashboard/specs/new'
     | '/dashboard/validation/workspace'
+    | '/api/public/mocks/$mockId'
     | '/dashboard/validation/runs/$runId'
     | '/dashboard/specs/$specId/endpoints/$endpointId'
   fileRoutesByTo: FileRoutesByTo
@@ -208,9 +228,11 @@ export interface FileRouteTypes {
     | '/dashboard/team'
     | '/dashboard/validation'
     | '/api/auth/$'
+    | '/dashboard/mocks/$mockId'
     | '/dashboard/specs/$specId'
     | '/dashboard/specs/new'
     | '/dashboard/validation/workspace'
+    | '/api/public/mocks/$mockId'
     | '/dashboard/validation/runs/$runId'
     | '/dashboard/specs/$specId/endpoints/$endpointId'
   id:
@@ -227,9 +249,11 @@ export interface FileRouteTypes {
     | '/dashboard/team'
     | '/dashboard/validation'
     | '/api/auth/$'
+    | '/dashboard/mocks/$mockId'
     | '/dashboard/specs/$specId'
     | '/dashboard/specs/new'
     | '/dashboard/validation/workspace'
+    | '/api/public/mocks/$mockId'
     | '/dashboard/validation/runs/$runId'
     | '/dashboard/specs/$specId/endpoints/$endpointId'
   fileRoutesById: FileRoutesById
@@ -241,6 +265,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiPublicMocksMockIdRoute: typeof ApiPublicMocksMockIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -343,6 +368,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSpecsSpecIdRouteImport
       parentRoute: typeof DashboardSpecsRoute
     }
+    '/dashboard/mocks/$mockId': {
+      id: '/dashboard/mocks/$mockId'
+      path: '/$mockId'
+      fullPath: '/dashboard/mocks/$mockId'
+      preLoaderRoute: typeof DashboardMocksMockIdRouteImport
+      parentRoute: typeof DashboardMocksRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -357,6 +389,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardValidationRunsRunIdRouteImport
       parentRoute: typeof DashboardValidationRoute
     }
+    '/api/public/mocks/$mockId': {
+      id: '/api/public/mocks/$mockId'
+      path: '/api/public/mocks/$mockId'
+      fullPath: '/api/public/mocks/$mockId'
+      preLoaderRoute: typeof ApiPublicMocksMockIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard/specs/$specId/endpoints/$endpointId': {
       id: '/dashboard/specs/$specId/endpoints/$endpointId'
       path: '/endpoints/$endpointId'
@@ -366,6 +405,18 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface DashboardMocksRouteChildren {
+  DashboardMocksMockIdRoute: typeof DashboardMocksMockIdRoute
+}
+
+const DashboardMocksRouteChildren: DashboardMocksRouteChildren = {
+  DashboardMocksMockIdRoute: DashboardMocksMockIdRoute,
+}
+
+const DashboardMocksRouteWithChildren = DashboardMocksRoute._addFileChildren(
+  DashboardMocksRouteChildren,
+)
 
 interface DashboardSpecsSpecIdRouteChildren {
   DashboardSpecsSpecIdEndpointsEndpointIdRoute: typeof DashboardSpecsSpecIdEndpointsEndpointIdRoute
@@ -407,7 +458,7 @@ const DashboardValidationRouteWithChildren =
   DashboardValidationRoute._addFileChildren(DashboardValidationRouteChildren)
 
 interface DashboardRouteChildren {
-  DashboardMocksRoute: typeof DashboardMocksRoute
+  DashboardMocksRoute: typeof DashboardMocksRouteWithChildren
   DashboardReportsRoute: typeof DashboardReportsRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardSpecsRoute: typeof DashboardSpecsRouteWithChildren
@@ -416,7 +467,7 @@ interface DashboardRouteChildren {
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
-  DashboardMocksRoute: DashboardMocksRoute,
+  DashboardMocksRoute: DashboardMocksRouteWithChildren,
   DashboardReportsRoute: DashboardReportsRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardSpecsRoute: DashboardSpecsRouteWithChildren,
@@ -435,6 +486,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiPublicMocksMockIdRoute: ApiPublicMocksMockIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
