@@ -1,0 +1,14 @@
+minimumReleaseAge: 1440
+strictDepBuilds: true
+blockExoticSubdeps: true
+trustPolicy: no-downgrade
+
+trustPolicyExclude:
+  - undici-types
+  - semver
+
+onlyBuiltDependencies:
+  - esbuild
+
+overrides:
+  "esbuild": "0.28.1"
