@@ -1,0 +1,24 @@
+import { createFileRoute } from "@tanstack/react-router";
+
+export const Route = createFileRoute("/dashboard/specs")({
+	component: SpecsPage,
+});
+
+function SpecsPage() {
+	return (
+		<div className="flex flex-col gap-4">
+			<div>
+				<h2 className="text-2xl font-bold">Specifications</h2>
+				<p className="text-text-secondary mt-1">
+					Manage your API specifications and OpenAPI documents
+				</p>
+			</div>
+			<div className="rounded-lg border border-border bg-surface p-8 text-center">
+				<p className="text-text-tertiary">No specifications yet</p>
+				<p className="text-text-tertiary text-sm mt-1">
+					Upload an OpenAPI spec to get started
+				</p>
+			</div>
+		</div>
+	);
+}
