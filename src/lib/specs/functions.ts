@@ -105,6 +105,24 @@ export const getSpec = createServerFn({ method: "GET", strict: false })
 		return { ...spec, versions };
 	});
 
+export const getEndpoint = createServerFn({ method: "GET", strict: false })
+	.validator((input: { endpointId: string }) => input)
+	.handler(async ({ data }) => {
+		const headers = getRequestHeaders();
+		const session = await auth.api.getSession({ headers });
+		if (!session) throw new Error("Unauthorized");
+
+		const ep = await db
+			.select()
+			.from(endpoint)
+			.where(eq(endpoint.id, data.endpointId))
+			.then((r) => r[0] ?? null);
+
+		if (!ep) throw new Error("Endpoint not found");
+
+		return ep;
+	});
+
 export const getEndpoints = createServerFn({ method: "GET", strict: false })
 	.validator((input: { specVersionId: string }) => input)
 	.handler(async ({ data }) => {

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, ChevronDown, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
-import { EndpointExplorer } from "#/components/specs/endpoint-explorer";
+
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { getEndpoints, getSpec } from "#/lib/specs/functions";
@@ -14,22 +14,19 @@ type SpecData = Awaited<ReturnType<typeof getSpec>>;
 type EndpointData = Awaited<ReturnType<typeof getEndpoints>>[number];
 
 const methodColors: Record<string, string> = {
-	GET: "bg-green-600" as const,
-	POST: "bg-blue-600" as const,
-	PUT: "bg-orange-600" as const,
-	PATCH: "bg-amber-600" as const,
-	DELETE: "bg-red-600" as const,
-	HEAD: "bg-purple-600" as const,
-	OPTIONS: "bg-slate-600" as const,
+	GET: "bg-green-600",
+	POST: "bg-blue-600",
+	PUT: "bg-orange-600",
+	PATCH: "bg-amber-600",
+	DELETE: "bg-red-600",
+	HEAD: "bg-purple-600",
+	OPTIONS: "bg-slate-600",
 };
 
 function SpecDetailPage() {
 	const { specId } = Route.useParams();
 	const [spec, setSpec] = useState<SpecData | null>(null);
 	const [endpoints, setEndpoints] = useState<EndpointData[]>([]);
-	const [selectedEndpoint, setSelectedEndpoint] = useState<EndpointData | null>(
-		null,
-	);
 	const [loading, setLoading] = useState(true);
 	const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
 		{},
@@ -109,69 +106,57 @@ function SpecDetailPage() {
 				</div>
 			</div>
 
-			<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-				<div className="flex flex-col gap-2">
-					<h3 className="text-sm font-medium text-muted-foreground">
-						Endpoints
-					</h3>
-					<div className="rounded-md border">
-						{endpoints.length === 0 ? (
-							<div className="p-4 text-center text-sm text-muted-foreground">
-								No endpoints found
-							</div>
-						) : (
-							<div className="divide-y">
-								{groups.map((group) => (
-									<div key={group.tag}>
-										<button
-											type="button"
-											onClick={() => toggleGroup(group.tag)}
-											className="flex w-full items-center gap-2 bg-muted/30 px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-muted/50"
-										>
-											{expandedGroups[group.tag] ? (
-												<ChevronDown className="size-3" />
-											) : (
-												<ChevronRight className="size-3" />
-											)}
-											{group.tag || "Ungrouped"}
-											<span className="ml-auto">{group.endpoints.length}</span>
-										</button>
-										{expandedGroups[group.tag] !== false && (
-											<div className="divide-y">
-												{group.endpoints.map((ep) => (
-													<button
-														type="button"
-														key={ep.id}
-														onClick={() => setSelectedEndpoint(ep)}
-														className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm hover:bg-muted/50 ${
-															selectedEndpoint?.id === ep.id ? "bg-muted" : ""
-														}`}
-													>
-														<span
-															className={`inline-flex items-center rounded px-1.5 py-0.5 font-mono text-xs text-white ${methodColors[ep.method] ?? "bg-slate-600"}`}
-														>
-															{ep.method}
-														</span>
-														<code className="font-mono text-xs text-muted-foreground truncate">
-															{ep.path}
-														</code>
-													</button>
-												))}
-											</div>
-										)}
-									</div>
-								))}
-							</div>
-						)}
+			<h3 className="text-sm font-medium text-muted-foreground">Endpoints</h3>
+			<div className="rounded-md border">
+				{endpoints.length === 0 ? (
+					<div className="p-4 text-center text-sm text-muted-foreground">
+						No endpoints found
 					</div>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<h3 className="text-sm font-medium text-muted-foreground">
-						Explorer
-					</h3>
-					<EndpointExplorer endpoint={selectedEndpoint} />
-				</div>
+				) : (
+					<div className="divide-y">
+						{groups.map((group) => (
+							<div key={group.tag}>
+								<button
+									type="button"
+									onClick={() => toggleGroup(group.tag)}
+									className="flex w-full items-center gap-2 bg-muted/30 px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-muted/50"
+								>
+									{expandedGroups[group.tag] ? (
+										<ChevronDown className="size-3" />
+									) : (
+										<ChevronRight className="size-3" />
+									)}
+									{group.tag || "Ungrouped"}
+									<span className="ml-auto">{group.endpoints.length}</span>
+								</button>
+								{expandedGroups[group.tag] !== false && (
+									<div className="divide-y">
+										{group.endpoints.map((ep) => (
+											<Link
+												key={ep.id}
+												to="/dashboard/specs/$specId/endpoints/$endpointId"
+												params={{
+													specId,
+													endpointId: ep.id,
+												}}
+												className="flex w-full items-center gap-3 px-3 py-2 text-sm hover:bg-muted/50"
+											>
+												<span
+													className={`inline-flex items-center rounded px-1.5 py-0.5 font-mono text-xs text-white ${methodColors[ep.method] ?? "bg-slate-600"}`}
+												>
+													{ep.method}
+												</span>
+												<code className="truncate font-mono text-xs text-muted-foreground">
+													{ep.path}
+												</code>
+											</Link>
+										))}
+									</div>
+								)}
+							</div>
+						))}
+					</div>
+				)}
 			</div>
 		</div>
 	);

@@ -23,6 +23,7 @@ import { Route as DashboardMocksRouteImport } from './routes/dashboard.mocks'
 import { Route as DashboardSpecsNewRouteImport } from './routes/dashboard.specs.new'
 import { Route as DashboardSpecsSpecIdRouteImport } from './routes/dashboard.specs.$specId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as DashboardSpecsSpecIdEndpointsEndpointIdRouteImport } from './routes/dashboard.specs.$specId.endpoints.$endpointId'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
@@ -94,6 +95,12 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardSpecsSpecIdEndpointsEndpointIdRoute =
+  DashboardSpecsSpecIdEndpointsEndpointIdRouteImport.update({
+    id: '/endpoints/$endpointId',
+    path: '/endpoints/$endpointId',
+    getParentRoute: () => DashboardSpecsSpecIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -108,8 +115,9 @@ export interface FileRoutesByFullPath {
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/validation': typeof DashboardValidationRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/dashboard/specs/$specId': typeof DashboardSpecsSpecIdRoute
+  '/dashboard/specs/$specId': typeof DashboardSpecsSpecIdRouteWithChildren
   '/dashboard/specs/new': typeof DashboardSpecsNewRoute
+  '/dashboard/specs/$specId/endpoints/$endpointId': typeof DashboardSpecsSpecIdEndpointsEndpointIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -124,8 +132,9 @@ export interface FileRoutesByTo {
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/validation': typeof DashboardValidationRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/dashboard/specs/$specId': typeof DashboardSpecsSpecIdRoute
+  '/dashboard/specs/$specId': typeof DashboardSpecsSpecIdRouteWithChildren
   '/dashboard/specs/new': typeof DashboardSpecsNewRoute
+  '/dashboard/specs/$specId/endpoints/$endpointId': typeof DashboardSpecsSpecIdEndpointsEndpointIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -141,8 +150,9 @@ export interface FileRoutesById {
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/validation': typeof DashboardValidationRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/dashboard/specs/$specId': typeof DashboardSpecsSpecIdRoute
+  '/dashboard/specs/$specId': typeof DashboardSpecsSpecIdRouteWithChildren
   '/dashboard/specs/new': typeof DashboardSpecsNewRoute
+  '/dashboard/specs/$specId/endpoints/$endpointId': typeof DashboardSpecsSpecIdEndpointsEndpointIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/dashboard/specs/$specId'
     | '/dashboard/specs/new'
+    | '/dashboard/specs/$specId/endpoints/$endpointId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -177,6 +188,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/dashboard/specs/$specId'
     | '/dashboard/specs/new'
+    | '/dashboard/specs/$specId/endpoints/$endpointId'
   id:
     | '__root__'
     | '/'
@@ -193,6 +205,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/dashboard/specs/$specId'
     | '/dashboard/specs/new'
+    | '/dashboard/specs/$specId/endpoints/$endpointId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -304,16 +317,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/specs/$specId/endpoints/$endpointId': {
+      id: '/dashboard/specs/$specId/endpoints/$endpointId'
+      path: '/endpoints/$endpointId'
+      fullPath: '/dashboard/specs/$specId/endpoints/$endpointId'
+      preLoaderRoute: typeof DashboardSpecsSpecIdEndpointsEndpointIdRouteImport
+      parentRoute: typeof DashboardSpecsSpecIdRoute
+    }
   }
 }
 
+interface DashboardSpecsSpecIdRouteChildren {
+  DashboardSpecsSpecIdEndpointsEndpointIdRoute: typeof DashboardSpecsSpecIdEndpointsEndpointIdRoute
+}
+
+const DashboardSpecsSpecIdRouteChildren: DashboardSpecsSpecIdRouteChildren = {
+  DashboardSpecsSpecIdEndpointsEndpointIdRoute:
+    DashboardSpecsSpecIdEndpointsEndpointIdRoute,
+}
+
+const DashboardSpecsSpecIdRouteWithChildren =
+  DashboardSpecsSpecIdRoute._addFileChildren(DashboardSpecsSpecIdRouteChildren)
+
 interface DashboardSpecsRouteChildren {
-  DashboardSpecsSpecIdRoute: typeof DashboardSpecsSpecIdRoute
+  DashboardSpecsSpecIdRoute: typeof DashboardSpecsSpecIdRouteWithChildren
   DashboardSpecsNewRoute: typeof DashboardSpecsNewRoute
 }
 
 const DashboardSpecsRouteChildren: DashboardSpecsRouteChildren = {
-  DashboardSpecsSpecIdRoute: DashboardSpecsSpecIdRoute,
+  DashboardSpecsSpecIdRoute: DashboardSpecsSpecIdRouteWithChildren,
   DashboardSpecsNewRoute: DashboardSpecsNewRoute,
 }
 
