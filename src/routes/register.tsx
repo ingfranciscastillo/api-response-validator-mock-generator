@@ -1,5 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useForm } from "@tanstack/react-form";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ShieldCheck } from "lucide-react";
+import { useState } from "react";
+import { z } from "zod";
 
 import { Button } from "#/components/ui/button";
 import {
@@ -15,11 +18,37 @@ import { Label } from "#/components/ui/label";
 import { authClient } from "#/lib/auth-client";
 
 export const Route = createFileRoute("/register")({
+	validateSearch: z.object({
+		redirect: z.string().optional(),
+	}),
 	component: RegisterPage,
 });
 
+function FieldError({ errors }: { errors: string[] }) {
+	if (errors.length === 0) return null;
+	return <p className="text-sm text-destructive">{errors.join(", ")}</p>;
+}
+
 function RegisterPage() {
+	const navigate = useNavigate();
+	const { redirect } = Route.useSearch();
 	const { data: session, isPending } = authClient.useSession();
+	const [serverError, setServerError] = useState<string | null>(null);
+
+	const form = useForm({
+		defaultValues: { name: "", email: "", password: "" },
+		onSubmit: async ({ value }) => {
+			setServerError(null);
+			const { error } = await authClient.signUp.email(value);
+			if (error) {
+				setServerError(
+					error.message ?? error.statusText ?? "Registration failed",
+				);
+				return;
+			}
+			navigate({ to: redirect ?? "/dashboard" });
+		},
+	});
 
 	if (isPending) {
 		return (
@@ -30,7 +59,7 @@ function RegisterPage() {
 	}
 
 	if (session?.user) {
-		window.location.href = "/dashboard";
+		navigate({ to: redirect ?? "/dashboard" });
 		return null;
 	}
 
@@ -48,57 +77,117 @@ function RegisterPage() {
 					<form
 						onSubmit={(e) => {
 							e.preventDefault();
-							const formData = new FormData(e.currentTarget);
-							const name = formData.get("name") as string;
-							const email = formData.get("email") as string;
-							const password = formData.get("password") as string;
-							void authClient.signUp.email(
-								{ email, password, name },
-								{
-									onSuccess: () => {
-										window.location.href = "/dashboard";
-									},
-								},
-							);
+							e.stopPropagation();
+							form.handleSubmit();
 						}}
 						className="flex flex-col gap-4"
 					>
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="name">Name</Label>
-							<Input
-								id="name"
-								name="name"
-								type="text"
-								placeholder="Your name"
-								required
-								autoComplete="name"
-							/>
-						</div>
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="email">Email</Label>
-							<Input
-								id="email"
-								name="email"
-								type="email"
-								placeholder="you@example.com"
-								required
-								autoComplete="email"
-							/>
-						</div>
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="password">Password</Label>
-							<Input
-								id="password"
-								name="password"
-								type="password"
-								required
-								autoComplete="new-password"
-								minLength={8}
-							/>
-						</div>
-						<Button type="submit" className="w-full">
-							Create Account
-						</Button>
+						<form.Field
+							name="name"
+							validators={{
+								onChange: ({ value }) =>
+									!value ? "Name is required" : undefined,
+							}}
+						>
+							{(field) => (
+								<div className="flex flex-col gap-2">
+									<Label htmlFor={field.name}>Name</Label>
+									<Input
+										id={field.name}
+										type="text"
+										placeholder="Your name"
+										autoComplete="name"
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+									/>
+									{field.state.meta.isTouched && (
+										<FieldError errors={field.state.meta.errors} />
+									)}
+								</div>
+							)}
+						</form.Field>
+
+						<form.Field
+							name="email"
+							validators={{
+								onChange: ({ value }) =>
+									!value
+										? "Email is required"
+										: !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+											? "Invalid email"
+											: undefined,
+							}}
+						>
+							{(field) => (
+								<div className="flex flex-col gap-2">
+									<Label htmlFor={field.name}>Email</Label>
+									<Input
+										id={field.name}
+										type="email"
+										placeholder="you@example.com"
+										autoComplete="email"
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+									/>
+									{field.state.meta.isTouched && (
+										<FieldError errors={field.state.meta.errors} />
+									)}
+								</div>
+							)}
+						</form.Field>
+
+						<form.Field
+							name="password"
+							validators={{
+								onChange: ({ value }) =>
+									!value
+										? "Password is required"
+										: value.length < 8
+											? "Must be at least 8 characters"
+											: undefined,
+							}}
+						>
+							{(field) => (
+								<div className="flex flex-col gap-2">
+									<Label htmlFor={field.name}>Password</Label>
+									<Input
+										id={field.name}
+										type="password"
+										autoComplete="new-password"
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+									/>
+									{field.state.meta.isTouched && (
+										<FieldError errors={field.state.meta.errors} />
+									)}
+								</div>
+							)}
+						</form.Field>
+
+						{serverError && (
+							<div className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+								{serverError}
+							</div>
+						)}
+
+						<form.Subscribe
+							selector={(state) =>
+								[state.canSubmit, state.isSubmitting] as const
+							}
+						>
+							{([canSubmit, isSubmitting]) => (
+								<Button
+									type="submit"
+									disabled={!canSubmit || isSubmitting}
+									className="w-full"
+								>
+									{isSubmitting ? "Creating account..." : "Create Account"}
+								</Button>
+							)}
+						</form.Subscribe>
 					</form>
 				</CardContent>
 				<CardFooter className="flex flex-col gap-4">

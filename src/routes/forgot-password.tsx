@@ -1,3 +1,4 @@
+import { useForm } from "@tanstack/react-form";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ShieldCheck } from "lucide-react";
 import { useState } from "react";
@@ -19,9 +20,30 @@ export const Route = createFileRoute("/forgot-password")({
 	component: ForgotPasswordPage,
 });
 
+function FieldError({ errors }: { errors: string[] }) {
+	if (errors.length === 0) return null;
+	return <p className="text-sm text-destructive">{errors.join(", ")}</p>;
+}
+
 function ForgotPasswordPage() {
 	const { data: session, isPending } = authClient.useSession();
+	const [serverError, setServerError] = useState<string | null>(null);
 	const [isSubmitted, setIsSubmitted] = useState(false);
+
+	const form = useForm({
+		defaultValues: { email: "" },
+		onSubmit: async ({ value }) => {
+			setServerError(null);
+			const { error } = await authClient.forgetPassword({ email: value.email });
+			if (error) {
+				setServerError(
+					error.message ?? error.statusText ?? "Something went wrong",
+				);
+				return;
+			}
+			setIsSubmitted(true);
+		},
+	});
 
 	if (isPending) {
 		return (
@@ -32,7 +54,6 @@ function ForgotPasswordPage() {
 	}
 
 	if (session?.user) {
-		window.location.href = "/dashboard";
 		return null;
 	}
 
@@ -63,24 +84,62 @@ function ForgotPasswordPage() {
 						<form
 							onSubmit={(e) => {
 								e.preventDefault();
-								setIsSubmitted(true);
+								e.stopPropagation();
+								form.handleSubmit();
 							}}
 							className="flex flex-col gap-4"
 						>
-							<div className="flex flex-col gap-2">
-								<Label htmlFor="email">Email</Label>
-								<Input
-									id="email"
-									name="email"
-									type="email"
-									placeholder="you@example.com"
-									required
-									autoComplete="email"
-								/>
-							</div>
-							<Button type="submit" className="w-full">
-								Send Reset Link
-							</Button>
+							<form.Field
+								name="email"
+								validators={{
+									onChange: ({ value }) =>
+										!value
+											? "Email is required"
+											: !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+												? "Invalid email"
+												: undefined,
+								}}
+							>
+								{(field) => (
+									<div className="flex flex-col gap-2">
+										<Label htmlFor={field.name}>Email</Label>
+										<Input
+											id={field.name}
+											type="email"
+											placeholder="you@example.com"
+											autoComplete="email"
+											value={field.state.value}
+											onBlur={field.handleBlur}
+											onChange={(e) => field.handleChange(e.target.value)}
+										/>
+										{field.state.meta.isTouched && (
+											<FieldError errors={field.state.meta.errors} />
+										)}
+									</div>
+								)}
+							</form.Field>
+
+							{serverError && (
+								<div className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+									{serverError}
+								</div>
+							)}
+
+							<form.Subscribe
+								selector={(state) =>
+									[state.canSubmit, state.isSubmitting] as const
+								}
+							>
+								{([canSubmit, isSubmitting]) => (
+									<Button
+										type="submit"
+										disabled={!canSubmit || isSubmitting}
+										className="w-full"
+									>
+										{isSubmitting ? "Sending..." : "Send Reset Link"}
+									</Button>
+								)}
+							</form.Subscribe>
 						</form>
 					)}
 				</CardContent>

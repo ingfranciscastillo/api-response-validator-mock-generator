@@ -1,5 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useForm } from "@tanstack/react-form";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ShieldCheck } from "lucide-react";
+import { useState } from "react";
 import { z } from "zod";
 
 import { Button } from "#/components/ui/button";
@@ -11,8 +13,13 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card";
+import {
+	Field,
+	FieldError,
+	FieldGroup,
+	FieldLabel,
+} from "#/components/ui/field";
 import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
 import { authClient } from "#/lib/auth-client";
 
 export const Route = createFileRoute("/login")({
@@ -23,8 +30,25 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
+	const navigate = useNavigate();
 	const { redirect } = Route.useSearch();
 	const { data: session, isPending } = authClient.useSession();
+	const [serverError, setServerError] = useState<string | null>(null);
+
+	const form = useForm({
+		defaultValues: { email: "", password: "" },
+		onSubmit: async ({ value }) => {
+			setServerError(null);
+			const { error } = await authClient.signIn.email(value);
+			if (error) {
+				setServerError(
+					error.message ?? error.statusText ?? "Invalid email or password",
+				);
+				return;
+			}
+			navigate({ to: redirect ?? "/dashboard" });
+		},
+	});
 
 	if (isPending) {
 		return (
@@ -35,7 +59,7 @@ function LoginPage() {
 	}
 
 	if (session?.user) {
-		window.location.href = redirect ?? "/dashboard";
+		navigate({ to: redirect ?? "/dashboard" });
 		return null;
 	}
 
@@ -53,44 +77,102 @@ function LoginPage() {
 					<form
 						onSubmit={(e) => {
 							e.preventDefault();
-							const formData = new FormData(e.currentTarget);
-							const email = formData.get("email") as string;
-							const password = formData.get("password") as string;
-							void authClient.signIn.email(
-								{ email, password },
-								{
-									onSuccess: () => {
-										window.location.href = redirect ?? "/dashboard";
-									},
-								},
-							);
+							e.stopPropagation();
+							form.handleSubmit();
 						}}
-						className="flex flex-col gap-4"
 					>
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="email">Email</Label>
-							<Input
-								id="email"
+						<FieldGroup className="gap-4">
+							<form.Field
 								name="email"
-								type="email"
-								placeholder="you@example.com"
-								required
-								autoComplete="email"
-							/>
-						</div>
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="password">Password</Label>
-							<Input
-								id="password"
+								validators={{
+									onChange: ({ value }) =>
+										!value
+											? "Email is required"
+											: !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+												? "Invalid email"
+												: undefined,
+								}}
+							>
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<Field data-invalid={isInvalid}>
+											<FieldLabel htmlFor={field.name}>Email</FieldLabel>
+											<Input
+												id={field.name}
+												type="email"
+												placeholder="you@example.com"
+												autoComplete="email"
+												value={field.state.value}
+												onBlur={field.handleBlur}
+												onChange={(e) => field.handleChange(e.target.value)}
+												aria-invalid={isInvalid}
+											/>
+											<FieldError>
+												{field.state.meta.errors.join(", ")}
+											</FieldError>
+										</Field>
+									);
+								}}
+							</form.Field>
+
+							<form.Field
 								name="password"
-								type="password"
-								required
-								autoComplete="current-password"
-							/>
-						</div>
-						<Button type="submit" className="w-full">
-							Sign In
-						</Button>
+								validators={{
+									onChange: ({ value }) =>
+										!value ? "Password is required" : undefined,
+								}}
+							>
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<Field data-invalid={isInvalid}>
+											<FieldLabel htmlFor={field.name}>Password</FieldLabel>
+											<Input
+												id={field.name}
+												type="password"
+												autoComplete="current-password"
+												value={field.state.value}
+												onBlur={field.handleBlur}
+												onChange={(e) => field.handleChange(e.target.value)}
+												aria-invalid={isInvalid}
+											/>
+											{isInvalid && (
+												<FieldError>
+													{field.state.meta.errors
+														.filter((e): e is string => !!e)
+														.join(", ")}
+												</FieldError>
+											)}
+										</Field>
+									);
+								}}
+							</form.Field>
+
+							{serverError && (
+								<div className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+									{serverError}
+								</div>
+							)}
+
+							<form.Subscribe
+								selector={(state) =>
+									[state.canSubmit, state.isSubmitting] as const
+								}
+							>
+								{([canSubmit, isSubmitting]) => (
+									<Button
+										type="submit"
+										disabled={!canSubmit || isSubmitting}
+										className="w-full"
+									>
+										{isSubmitting ? "Signing in..." : "Sign In"}
+									</Button>
+								)}
+							</form.Subscribe>
+						</FieldGroup>
 					</form>
 				</CardContent>
 				<CardFooter className="flex flex-col gap-4">
