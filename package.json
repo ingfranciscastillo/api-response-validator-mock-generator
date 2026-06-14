@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@apidevtools/swagger-parser": "^12.1.0",
-    "@faker-js/faker": "^10.3.0",
+    "@faker-js/faker": "^10.4.0",
     "@neondatabase/serverless": "^1.1.0",
     "@t3-oss/env-core": "^0.13.10",
     "@tailwindcss/vite": "^4.1.18",
@@ -44,6 +44,7 @@
     "clsx": "^2.1.1",
     "drizzle-kit": "^0.31.9",
     "drizzle-orm": "^0.45.2",
+    "json-schema-faker": "^0.6.2",
     "lucide-react": "^0.577.0",
     "microdiff": "^1.5.0",
     "nitro": "npm:nitro-nightly@latest",
