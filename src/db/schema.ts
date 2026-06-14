@@ -15,3 +15,6 @@ export {
 	specification,
 	specificationVersion,
 } from "./schema/spec";
+
+export * from "./schema/validation";
+export { validationResult, validationRun } from "./schema/validation";

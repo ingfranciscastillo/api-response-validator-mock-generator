@@ -8,6 +8,13 @@
       "when": 1781415592156,
       "tag": "0000_lowly_spitfire",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781475641630,
+      "tag": "0001_fluffy_lady_deathstrike",
+      "breakpoints": true
     }
   ]
 }
