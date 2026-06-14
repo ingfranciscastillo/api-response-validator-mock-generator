@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ShieldCheck } from "lucide-react";
+import { z } from "zod";
 
 import { Button } from "#/components/ui/button";
 import {
@@ -15,10 +16,14 @@ import { Label } from "#/components/ui/label";
 import { authClient } from "#/lib/auth-client";
 
 export const Route = createFileRoute("/login")({
+	validateSearch: z.object({
+		redirect: z.string().optional(),
+	}),
 	component: LoginPage,
 });
 
 function LoginPage() {
+	const { redirect } = Route.useSearch();
 	const { data: session, isPending } = authClient.useSession();
 
 	if (isPending) {
@@ -30,7 +35,7 @@ function LoginPage() {
 	}
 
 	if (session?.user) {
-		window.location.href = "/dashboard";
+		window.location.href = redirect ?? "/dashboard";
 		return null;
 	}
 
@@ -55,7 +60,7 @@ function LoginPage() {
 								{ email, password },
 								{
 									onSuccess: () => {
-										window.location.href = "/dashboard";
+										window.location.href = redirect ?? "/dashboard";
 									},
 								},
 							);

@@ -2,11 +2,13 @@
 
 import { Link } from "@tanstack/react-router";
 import {
+	BarChart,
 	FileText,
 	FlaskConical,
 	LayoutDashboard,
 	Settings,
 	ShieldCheck,
+	Users,
 } from "lucide-react";
 
 import {
@@ -113,6 +115,22 @@ function AppSidebar() {
 									<Link to="/dashboard/settings">
 										<Settings />
 										<span>Settings</span>
+									</Link>
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+							<SidebarMenuItem>
+								<SidebarMenuButton asChild isActive={false} tooltip="Team">
+									<Link to="/dashboard/team">
+										<Users />
+										<span>Team</span>
+									</Link>
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+							<SidebarMenuItem>
+								<SidebarMenuButton asChild isActive={false} tooltip="Reports">
+									<Link to="/dashboard/reports">
+										<BarChart />
+										<span>Reports</span>
 									</Link>
 								</SidebarMenuButton>
 							</SidebarMenuItem>

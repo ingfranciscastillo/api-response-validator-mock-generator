@@ -15,8 +15,10 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardValidationRouteImport } from './routes/dashboard.validation'
+import { Route as DashboardTeamRouteImport } from './routes/dashboard.team'
 import { Route as DashboardSpecsRouteImport } from './routes/dashboard.specs'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
+import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports'
 import { Route as DashboardMocksRouteImport } from './routes/dashboard.mocks'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
@@ -50,6 +52,11 @@ const DashboardValidationRoute = DashboardValidationRouteImport.update({
   path: '/validation',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardTeamRoute = DashboardTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardSpecsRoute = DashboardSpecsRouteImport.update({
   id: '/specs',
   path: '/specs',
@@ -58,6 +65,11 @@ const DashboardSpecsRoute = DashboardSpecsRouteImport.update({
 const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardReportsRoute = DashboardReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardMocksRoute = DashboardMocksRouteImport.update({
@@ -78,8 +90,10 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/dashboard/mocks': typeof DashboardMocksRoute
+  '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/specs': typeof DashboardSpecsRoute
+  '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/validation': typeof DashboardValidationRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -90,8 +104,10 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/dashboard/mocks': typeof DashboardMocksRoute
+  '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/specs': typeof DashboardSpecsRoute
+  '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/validation': typeof DashboardValidationRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -103,8 +119,10 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/dashboard/mocks': typeof DashboardMocksRoute
+  '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/specs': typeof DashboardSpecsRoute
+  '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/validation': typeof DashboardValidationRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -117,8 +135,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/dashboard/mocks'
+    | '/dashboard/reports'
     | '/dashboard/settings'
     | '/dashboard/specs'
+    | '/dashboard/team'
     | '/dashboard/validation'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
@@ -129,8 +149,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/dashboard/mocks'
+    | '/dashboard/reports'
     | '/dashboard/settings'
     | '/dashboard/specs'
+    | '/dashboard/team'
     | '/dashboard/validation'
     | '/api/auth/$'
   id:
@@ -141,8 +163,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/dashboard/mocks'
+    | '/dashboard/reports'
     | '/dashboard/settings'
     | '/dashboard/specs'
+    | '/dashboard/team'
     | '/dashboard/validation'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
@@ -200,6 +224,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardValidationRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/team': {
+      id: '/dashboard/team'
+      path: '/team'
+      fullPath: '/dashboard/team'
+      preLoaderRoute: typeof DashboardTeamRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/specs': {
       id: '/dashboard/specs'
       path: '/specs'
@@ -212,6 +243,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/dashboard/settings'
       preLoaderRoute: typeof DashboardSettingsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/reports': {
+      id: '/dashboard/reports'
+      path: '/reports'
+      fullPath: '/dashboard/reports'
+      preLoaderRoute: typeof DashboardReportsRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/mocks': {
@@ -233,15 +271,19 @@ declare module '@tanstack/react-router' {
 
 interface DashboardRouteChildren {
   DashboardMocksRoute: typeof DashboardMocksRoute
+  DashboardReportsRoute: typeof DashboardReportsRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardSpecsRoute: typeof DashboardSpecsRoute
+  DashboardTeamRoute: typeof DashboardTeamRoute
   DashboardValidationRoute: typeof DashboardValidationRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardMocksRoute: DashboardMocksRoute,
+  DashboardReportsRoute: DashboardReportsRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardSpecsRoute: DashboardSpecsRoute,
+  DashboardTeamRoute: DashboardTeamRoute,
   DashboardValidationRoute: DashboardValidationRoute,
 }
 

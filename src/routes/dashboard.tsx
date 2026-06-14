@@ -1,12 +1,25 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { AppSidebar, AppTopbar } from "#/components/layout";
 import {
 	SidebarInset,
 	SidebarProvider,
 	SidebarTrigger,
 } from "#/components/ui/sidebar";
+import { getSession } from "#/lib/auth.functions";
 
 export const Route = createFileRoute("/dashboard")({
+	beforeLoad: async ({ location }) => {
+		const session = await getSession();
+
+		if (!session?.user) {
+			throw redirect({
+				to: "/login",
+				search: { redirect: location.href },
+			});
+		}
+
+		return { user: session.user };
+	},
 	component: DashboardLayout,
 });
 
