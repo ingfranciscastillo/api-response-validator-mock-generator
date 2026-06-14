@@ -15,3 +15,5 @@ export const {
 	revokeSession,
 	revokeSessions,
 } = authClient;
+
+export const organization = authClient.organization;

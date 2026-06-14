@@ -9,13 +9,43 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardValidationRouteImport } from './routes/dashboard.validation'
+import { Route as DashboardSpecsRouteImport } from './routes/dashboard.specs'
+import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
+import { Route as DashboardMocksRouteImport } from './routes/dashboard.mocks'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardValidationRoute = DashboardValidationRouteImport.update({
+  id: '/validation',
+  path: '/validation',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardSpecsRoute = DashboardSpecsRouteImport.update({
+  id: '/specs',
+  path: '/specs',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardMocksRoute = DashboardMocksRouteImport.update({
+  id: '/mocks',
+  path: '/mocks',
+  getParentRoute: () => DashboardRoute,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
@@ -25,38 +55,111 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/dashboard/mocks': typeof DashboardMocksRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/specs': typeof DashboardSpecsRoute
+  '/dashboard/validation': typeof DashboardValidationRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/dashboard/mocks': typeof DashboardMocksRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/specs': typeof DashboardSpecsRoute
+  '/dashboard/validation': typeof DashboardValidationRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/dashboard/mocks': typeof DashboardMocksRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/specs': typeof DashboardSpecsRoute
+  '/dashboard/validation': typeof DashboardValidationRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/auth/$'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/dashboard/mocks'
+    | '/dashboard/settings'
+    | '/dashboard/specs'
+    | '/dashboard/validation'
+    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/auth/$'
-  id: '__root__' | '/' | '/api/auth/$'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/dashboard/mocks'
+    | '/dashboard/settings'
+    | '/dashboard/specs'
+    | '/dashboard/validation'
+    | '/api/auth/$'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/dashboard/mocks'
+    | '/dashboard/settings'
+    | '/dashboard/specs'
+    | '/dashboard/validation'
+    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRouteWithChildren
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/validation': {
+      id: '/dashboard/validation'
+      path: '/validation'
+      fullPath: '/dashboard/validation'
+      preLoaderRoute: typeof DashboardValidationRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/specs': {
+      id: '/dashboard/specs'
+      path: '/specs'
+      fullPath: '/dashboard/specs'
+      preLoaderRoute: typeof DashboardSpecsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/settings': {
+      id: '/dashboard/settings'
+      path: '/settings'
+      fullPath: '/dashboard/settings'
+      preLoaderRoute: typeof DashboardSettingsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/mocks': {
+      id: '/dashboard/mocks'
+      path: '/mocks'
+      fullPath: '/dashboard/mocks'
+      preLoaderRoute: typeof DashboardMocksRouteImport
+      parentRoute: typeof DashboardRoute
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -68,10 +171,38 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface DashboardRouteChildren {
+  DashboardMocksRoute: typeof DashboardMocksRoute
+  DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardSpecsRoute: typeof DashboardSpecsRoute
+  DashboardValidationRoute: typeof DashboardValidationRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardMocksRoute: DashboardMocksRoute,
+  DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardSpecsRoute: DashboardSpecsRoute,
+  DashboardValidationRoute: DashboardValidationRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRouteWithChildren,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
