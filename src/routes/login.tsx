@@ -22,6 +22,11 @@ import {
 import { Input } from "#/components/ui/input";
 import { authClient } from "#/lib/auth-client";
 
+const loginSchema = z.object({
+	email: z.string().min(1, "Email is required").email("Invalid email"),
+	password: z.string().min(1, "Password is required"),
+});
+
 export const Route = createFileRoute("/login")({
 	validateSearch: z.object({
 		redirect: z.string().optional(),
@@ -37,6 +42,9 @@ function LoginPage() {
 
 	const form = useForm({
 		defaultValues: { email: "", password: "" },
+		validators: {
+			onChange: loginSchema,
+		},
 		onSubmit: async ({ value }) => {
 			setServerError(null);
 			const { error } = await authClient.signIn.email(value);
@@ -64,7 +72,7 @@ function LoginPage() {
 	}
 
 	return (
-		<div className="flex min-h-svh items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+		<div className="flex min-h-svh items-center justify-center bg-linear-to-br from-background to-muted p-4">
 			<Card className="w-full max-w-sm">
 				<CardHeader className="text-center">
 					<div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl bg-accent-blue text-white">
@@ -82,17 +90,7 @@ function LoginPage() {
 						}}
 					>
 						<FieldGroup className="gap-4">
-							<form.Field
-								name="email"
-								validators={{
-									onChange: ({ value }) =>
-										!value
-											? "Email is required"
-											: !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-												? "Invalid email"
-												: undefined,
-								}}
-							>
+							<form.Field name="email">
 								{(field) => {
 									const isInvalid =
 										field.state.meta.isTouched && !field.state.meta.isValid;
@@ -109,21 +107,13 @@ function LoginPage() {
 												onChange={(e) => field.handleChange(e.target.value)}
 												aria-invalid={isInvalid}
 											/>
-											<FieldError>
-												{field.state.meta.errors.join(", ")}
-											</FieldError>
+											<FieldError errors={field.state.meta.errors} />
 										</Field>
 									);
 								}}
 							</form.Field>
 
-							<form.Field
-								name="password"
-								validators={{
-									onChange: ({ value }) =>
-										!value ? "Password is required" : undefined,
-								}}
-							>
+							<form.Field name="password">
 								{(field) => {
 									const isInvalid =
 										field.state.meta.isTouched && !field.state.meta.isValid;
@@ -140,11 +130,7 @@ function LoginPage() {
 												aria-invalid={isInvalid}
 											/>
 											{isInvalid && (
-												<FieldError>
-													{field.state.meta.errors
-														.filter((e): e is string => !!e)
-														.join(", ")}
-												</FieldError>
+												<FieldError errors={field.state.meta.errors} />
 											)}
 										</Field>
 									);

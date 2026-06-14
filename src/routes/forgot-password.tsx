@@ -2,6 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ShieldCheck } from "lucide-react";
 import { useState } from "react";
+import { z } from "zod";
 
 import { Button } from "#/components/ui/button";
 import {
@@ -12,18 +13,22 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card";
+import {
+	Field,
+	FieldError,
+	FieldGroup,
+	FieldLabel,
+} from "#/components/ui/field";
 import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
 import { authClient } from "#/lib/auth-client";
+
+const forgotPasswordSchema = z.object({
+	email: z.string().min(1, "Email is required").email("Invalid email"),
+});
 
 export const Route = createFileRoute("/forgot-password")({
 	component: ForgotPasswordPage,
 });
-
-function FieldError({ errors }: { errors: string[] }) {
-	if (errors.length === 0) return null;
-	return <p className="text-sm text-destructive">{errors.join(", ")}</p>;
-}
 
 function ForgotPasswordPage() {
 	const { data: session, isPending } = authClient.useSession();
@@ -32,9 +37,14 @@ function ForgotPasswordPage() {
 
 	const form = useForm({
 		defaultValues: { email: "" },
+		validators: {
+			onChange: forgotPasswordSchema,
+		},
 		onSubmit: async ({ value }) => {
 			setServerError(null);
-			const { error } = await authClient.forgetPassword({ email: value.email });
+			const { error } = await authClient.requestPasswordReset({
+				email: value.email,
+			});
 			if (error) {
 				setServerError(
 					error.message ?? error.statusText ?? "Something went wrong",
@@ -58,7 +68,7 @@ function ForgotPasswordPage() {
 	}
 
 	return (
-		<div className="flex min-h-svh items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+		<div className="flex min-h-svh items-center justify-center bg-linear-to-br from-background to-muted p-4">
 			<Card className="w-full max-w-sm">
 				<CardHeader className="text-center">
 					<div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl bg-accent-blue text-white">
@@ -87,59 +97,55 @@ function ForgotPasswordPage() {
 								e.stopPropagation();
 								form.handleSubmit();
 							}}
-							className="flex flex-col gap-4"
 						>
-							<form.Field
-								name="email"
-								validators={{
-									onChange: ({ value }) =>
-										!value
-											? "Email is required"
-											: !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-												? "Invalid email"
-												: undefined,
-								}}
-							>
-								{(field) => (
-									<div className="flex flex-col gap-2">
-										<Label htmlFor={field.name}>Email</Label>
-										<Input
-											id={field.name}
-											type="email"
-											placeholder="you@example.com"
-											autoComplete="email"
-											value={field.state.value}
-											onBlur={field.handleBlur}
-											onChange={(e) => field.handleChange(e.target.value)}
-										/>
-										{field.state.meta.isTouched && (
-											<FieldError errors={field.state.meta.errors} />
-										)}
+							<FieldGroup className="gap-4">
+								<form.Field name="email">
+									{(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+										return (
+											<Field data-invalid={isInvalid}>
+												<FieldLabel htmlFor={field.name}>Email</FieldLabel>
+												<Input
+													id={field.name}
+													type="email"
+													placeholder="you@example.com"
+													autoComplete="email"
+													value={field.state.value}
+													onBlur={field.handleBlur}
+													onChange={(e) => field.handleChange(e.target.value)}
+													aria-invalid={isInvalid}
+												/>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+											</Field>
+										);
+									}}
+								</form.Field>
+
+								{serverError && (
+									<div className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+										{serverError}
 									</div>
 								)}
-							</form.Field>
 
-							{serverError && (
-								<div className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-									{serverError}
-								</div>
-							)}
-
-							<form.Subscribe
-								selector={(state) =>
-									[state.canSubmit, state.isSubmitting] as const
-								}
-							>
-								{([canSubmit, isSubmitting]) => (
-									<Button
-										type="submit"
-										disabled={!canSubmit || isSubmitting}
-										className="w-full"
-									>
-										{isSubmitting ? "Sending..." : "Send Reset Link"}
-									</Button>
-								)}
-							</form.Subscribe>
+								<form.Subscribe
+									selector={(state) =>
+										[state.canSubmit, state.isSubmitting] as const
+									}
+								>
+									{([canSubmit, isSubmitting]) => (
+										<Button
+											type="submit"
+											disabled={!canSubmit || isSubmitting}
+											className="w-full"
+										>
+											{isSubmitting ? "Sending..." : "Send Reset Link"}
+										</Button>
+									)}
+								</form.Subscribe>
+							</FieldGroup>
 						</form>
 					)}
 				</CardContent>

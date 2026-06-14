@@ -21,6 +21,7 @@ import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settin
 import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports'
 import { Route as DashboardMocksRouteImport } from './routes/dashboard.mocks'
 import { Route as DashboardSpecsNewRouteImport } from './routes/dashboard.specs.new'
+import { Route as DashboardSpecsSpecIdRouteImport } from './routes/dashboard.specs.$specId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const RegisterRoute = RegisterRouteImport.update({
@@ -83,6 +84,11 @@ const DashboardSpecsNewRoute = DashboardSpecsNewRouteImport.update({
   path: '/new',
   getParentRoute: () => DashboardSpecsRoute,
 } as any)
+const DashboardSpecsSpecIdRoute = DashboardSpecsSpecIdRouteImport.update({
+  id: '/$specId',
+  path: '/$specId',
+  getParentRoute: () => DashboardSpecsRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/validation': typeof DashboardValidationRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/dashboard/specs/$specId': typeof DashboardSpecsSpecIdRoute
   '/dashboard/specs/new': typeof DashboardSpecsNewRoute
 }
 export interface FileRoutesByTo {
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/validation': typeof DashboardValidationRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/dashboard/specs/$specId': typeof DashboardSpecsSpecIdRoute
   '/dashboard/specs/new': typeof DashboardSpecsNewRoute
 }
 export interface FileRoutesById {
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/validation': typeof DashboardValidationRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/dashboard/specs/$specId': typeof DashboardSpecsSpecIdRoute
   '/dashboard/specs/new': typeof DashboardSpecsNewRoute
 }
 export interface FileRouteTypes {
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/dashboard/team'
     | '/dashboard/validation'
     | '/api/auth/$'
+    | '/dashboard/specs/$specId'
     | '/dashboard/specs/new'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
     | '/dashboard/team'
     | '/dashboard/validation'
     | '/api/auth/$'
+    | '/dashboard/specs/$specId'
     | '/dashboard/specs/new'
   id:
     | '__root__'
@@ -180,6 +191,7 @@ export interface FileRouteTypes {
     | '/dashboard/team'
     | '/dashboard/validation'
     | '/api/auth/$'
+    | '/dashboard/specs/$specId'
     | '/dashboard/specs/new'
   fileRoutesById: FileRoutesById
 }
@@ -278,6 +290,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSpecsNewRouteImport
       parentRoute: typeof DashboardSpecsRoute
     }
+    '/dashboard/specs/$specId': {
+      id: '/dashboard/specs/$specId'
+      path: '/$specId'
+      fullPath: '/dashboard/specs/$specId'
+      preLoaderRoute: typeof DashboardSpecsSpecIdRouteImport
+      parentRoute: typeof DashboardSpecsRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -289,10 +308,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface DashboardSpecsRouteChildren {
+  DashboardSpecsSpecIdRoute: typeof DashboardSpecsSpecIdRoute
   DashboardSpecsNewRoute: typeof DashboardSpecsNewRoute
 }
 
 const DashboardSpecsRouteChildren: DashboardSpecsRouteChildren = {
+  DashboardSpecsSpecIdRoute: DashboardSpecsSpecIdRoute,
   DashboardSpecsNewRoute: DashboardSpecsNewRoute,
 }
 

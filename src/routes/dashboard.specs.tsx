@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getSpecs } from "#/lib/specs/functions";
 
@@ -21,7 +22,7 @@ function SpecsPage() {
 			<div className="flex items-center justify-between">
 				<div>
 					<h2 className="text-2xl font-bold">Specifications</h2>
-					<p className="text-text-secondary mt-1">
+					<p className="text-muted-foreground mt-1">
 						Manage your API specifications and OpenAPI documents
 					</p>
 				</div>
@@ -34,33 +35,40 @@ function SpecsPage() {
 			</div>
 
 			{loading ? (
-				<div className="rounded-lg border border-border bg-surface p-8 text-center">
-					<p className="text-text-tertiary">Loading...</p>
+				<div className="rounded-lg border p-8 text-center">
+					<p className="text-muted-foreground">Loading...</p>
 				</div>
 			) : specs.length === 0 ? (
-				<div className="rounded-lg border border-border bg-surface p-8 text-center">
-					<p className="text-text-tertiary">No specifications yet</p>
-					<p className="text-text-tertiary text-sm mt-1">
+				<div className="rounded-lg border p-8 text-center">
+					<p className="text-muted-foreground">No specifications yet</p>
+					<p className="text-muted-foreground text-sm mt-1">
 						Upload an OpenAPI spec to get started
 					</p>
 				</div>
 			) : (
 				<div className="grid gap-4">
 					{specs.map((spec) => (
-						<div
+						<Link
 							key={spec.id}
-							className="rounded-lg border border-border bg-surface p-4"
+							to="/dashboard/specs/$specId"
+							params={{ specId: spec.id }}
+							className="rounded-lg border p-4 hover:bg-muted/50 transition-colors"
 						>
-							<h3 className="font-semibold">{spec.name}</h3>
-							{spec.description && (
-								<p className="text-text-secondary text-sm mt-1">
-									{spec.description}
-								</p>
-							)}
-							<p className="text-text-tertiary text-xs mt-2">
-								Created {new Date(spec.createdAt).toLocaleDateString()}
-							</p>
-						</div>
+							<div className="flex items-center justify-between">
+								<div>
+									<h3 className="font-semibold">{spec.name}</h3>
+									{spec.description && (
+										<p className="text-muted-foreground text-sm mt-1">
+											{spec.description}
+										</p>
+									)}
+									<p className="text-muted-foreground text-xs mt-2">
+										Created {new Date(spec.createdAt).toLocaleDateString()}
+									</p>
+								</div>
+								<ChevronRight className="size-4 text-muted-foreground" />
+							</div>
+						</Link>
 					))}
 				</div>
 			)}
