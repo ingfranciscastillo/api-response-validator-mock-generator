@@ -357,3 +357,35 @@ export const getValidationRun = createServerFn({ method: "GET", strict: false })
 			specName: spec?.name ?? null,
 		};
 	});
+
+export const getEndpointValidationHistory = createServerFn({
+	method: "GET",
+	strict: false,
+})
+	.validator((input: { endpointId: string }) => input)
+	.handler(async ({ data }) => {
+		const headers = getRequestHeaders();
+		const session = await auth.api.getSession({ headers });
+		if (!session) throw new Error("Unauthorized");
+
+		const results = await db
+			.select({
+				id: validationResult.id,
+				runId: validationResult.runId,
+				endpointId: validationResult.endpointId,
+				responseStatusCode: validationResult.responseStatusCode,
+				latencyMs: validationResult.latencyMs,
+				outcome: validationResult.outcome,
+				violations: validationResult.violations,
+				diff: validationResult.diff,
+				responseBody: validationResult.responseBody,
+				requestSnapshot: validationResult.requestSnapshot,
+				createdAt: validationResult.createdAt,
+			})
+			.from(validationResult)
+			.where(eq(validationResult.endpointId, data.endpointId))
+			.orderBy(desc(validationResult.createdAt))
+			.limit(25);
+
+		return results;
+	});

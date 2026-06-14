@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Beaker, FlaskConical } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ArrowLeft, Beaker, Clock, FlaskConical } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { extractSchema } from "#/components/specs/response-schema-panel";
@@ -15,6 +15,7 @@ import {
 } from "#/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { getEndpoint, getSpec } from "#/lib/specs/functions";
+import { getEndpointValidationHistory } from "#/lib/validation/functions";
 
 export const Route = createFileRoute(
 	"/dashboard/specs/$specId/endpoints/$endpointId",
@@ -40,10 +41,15 @@ const methodColors: Record<string, string> = {
 function EndpointDetailPage() {
 	const { specId, endpointId } = Route.useParams();
 	const { tab } = Route.useSearch();
+	const navigate = useNavigate();
 	const [endpoint, setEndpoint] = useState<EndpointData | null>(null);
 	const [specName, setSpecName] = useState<string>("");
 	const [loading, setLoading] = useState(true);
 	const [activeTab, setActiveTab] = useState(tab ?? "request");
+	const [history, setHistory] = useState<
+		Awaited<ReturnType<typeof getEndpointValidationHistory>>
+	>([]);
+	const [historyLoading, setHistoryLoading] = useState(false);
 
 	useEffect(() => {
 		Promise.all([
@@ -59,6 +65,15 @@ function EndpointDetailPage() {
 			})
 			.finally(() => setLoading(false));
 	}, [specId, endpointId]);
+
+	useEffect(() => {
+		if (activeTab !== "history") return;
+		if (history.length > 0) return;
+		setHistoryLoading(true);
+		getEndpointValidationHistory({ data: { endpointId } })
+			.then(setHistory)
+			.finally(() => setHistoryLoading(false));
+	}, [activeTab, endpointId, history.length]);
 
 	if (loading) {
 		return (
@@ -138,13 +153,17 @@ function EndpointDetailPage() {
 					</div>
 				</div>
 				<div className="flex gap-2">
-					<Button variant="outline" asChild>
-						<a
-							href={`/validation/workspace?specId=${specId}&endpointId=${endpointId}`}
-						>
-							<Beaker className="size-4" />
-							Test
-						</a>
+					<Button
+						variant="outline"
+						onClick={() =>
+							navigate({
+								to: "/dashboard/validation/workspace",
+								search: { specId, endpointId },
+							})
+						}
+					>
+						<Beaker className="size-4" />
+						Test
 					</Button>
 					<Button variant="outline" disabled>
 						<FlaskConical className="size-4" />
@@ -302,15 +321,62 @@ function EndpointDetailPage() {
 						<CardHeader>
 							<CardTitle className="text-base">Validation History</CardTitle>
 							<CardDescription>
-								Coming in Phase 2 — view past validation runs and response diffs
-								for this endpoint.
+								Past validation runs and response diffs for this endpoint.
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<p className="text-sm text-muted-foreground">
-								You'll be able to send real requests to this endpoint, validate
-								them against the spec, and review the results over time.
-							</p>
+							{historyLoading ? (
+								<div className="flex items-center justify-center py-8">
+									<div className="size-6 animate-pulse rounded-full bg-muted" />
+								</div>
+							) : history.length === 0 ? (
+								<p className="text-sm text-muted-foreground">
+									No validation runs yet. Use the Test button to send a request
+									to this endpoint.
+								</p>
+							) : (
+								<div className="space-y-2">
+									{history.map((entry) => (
+										<div
+											key={entry.id}
+											className="flex items-center gap-3 rounded-md border p-3 text-sm"
+										>
+											<Badge
+												variant={
+													entry.outcome === "pass"
+														? "default"
+														: entry.outcome === "fail"
+															? "destructive"
+															: "secondary"
+												}
+											>
+												{entry.outcome}
+											</Badge>
+											<span className="font-mono text-xs text-muted-foreground">
+												{entry.responseStatusCode}
+											</span>
+											{entry.latencyMs !== null && (
+												<span className="text-xs text-muted-foreground flex items-center gap-1">
+													<Clock className="size-3" />
+													{entry.latencyMs}ms
+												</span>
+											)}
+											<span className="text-xs text-muted-foreground ml-auto">
+												{new Date(entry.createdAt).toLocaleDateString()}{" "}
+												{new Date(entry.createdAt).toLocaleTimeString()}
+											</span>
+											<Button variant="outline" size="sm" asChild>
+												<Link
+													to="/dashboard/validation/runs/$runId"
+													params={{ runId: entry.runId }}
+												>
+													View Run
+												</Link>
+											</Button>
+										</div>
+									))}
+								</div>
+							)}
 						</CardContent>
 					</Card>
 				</TabsContent>

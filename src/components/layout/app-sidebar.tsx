@@ -22,6 +22,9 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
+	SidebarMenuSub,
+	SidebarMenuSubButton,
+	SidebarMenuSubItem,
 	SidebarSeparator,
 } from "#/components/ui/sidebar";
 import { authClient } from "#/lib/auth-client";
@@ -91,6 +94,15 @@ function AppSidebar() {
 										<span>Validation</span>
 									</Link>
 								</SidebarMenuButton>
+								<SidebarMenuSub>
+									<SidebarMenuSubItem>
+										<SidebarMenuSubButton asChild isActive={false}>
+											<Link to="/dashboard/validation/workspace">
+												<span>Testing Workspace</span>
+											</Link>
+										</SidebarMenuSubButton>
+									</SidebarMenuSubItem>
+								</SidebarMenuSub>
 							</SidebarMenuItem>
 							<SidebarMenuItem>
 								<SidebarMenuButton asChild isActive={false} tooltip="Mocks">

@@ -232,7 +232,7 @@ export function computeDiff(
 
 			if (!breaking && schemaType === "enum" && expectedSchema) {
 				const enumValues = getEnumValues(expectedSchema, entry.path);
-				if (enumValues && !enumValues.includes(entry.value)) {
+				if (enumValues && !enumValues.includes(entry.oldValue)) {
 					breaking = true;
 					category = "enum_violation";
 				}
