@@ -21,6 +21,7 @@ function ReportDetailPage() {
 	useEffect(() => {
 		getReport({ data: { reportId } })
 			.then(setReport)
+			.catch(() => setReport(null))
 			.finally(() => setLoading(false));
 	}, [reportId]);
 
@@ -36,6 +37,32 @@ function ReportDetailPage() {
 		a.download = `${report.name.replace(/\s+/g, "-").toLowerCase()}.html`;
 		a.click();
 		URL.revokeObjectURL(url);
+	};
+
+	const handleDownloadPdf = async () => {
+		if (!report) return;
+		const html = generateHtmlReport(
+			report.data as Parameters<typeof generateHtmlReport>[0],
+		);
+		const { default: html2pdf } = await import("html2pdf.js");
+		const opt = {
+			margin: 0.5,
+			filename: `${report.name.replace(/\s+/g, "-").toLowerCase()}.pdf`,
+			image: { type: "jpeg", quality: 0.98 },
+			html2canvas: { scale: 2, useCORS: true },
+			jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
+		};
+		const container = document.createElement("div");
+		container.innerHTML = html;
+		container.style.position = "absolute";
+		container.style.left = "-9999px";
+		container.style.top = "0";
+		document.body.appendChild(container);
+		await html2pdf()
+			.set(opt as Record<string, unknown>)
+			.from(container)
+			.save();
+		document.body.removeChild(container);
 	};
 
 	const handleDownloadJson = () => {
@@ -128,6 +155,10 @@ function ReportDetailPage() {
 					<Button variant="outline" size="sm" onClick={handleDownloadHtml}>
 						<Download className="size-4" />
 						HTML
+					</Button>
+					<Button variant="outline" size="sm" onClick={handleDownloadPdf}>
+						<Download className="size-4" />
+						PDF
 					</Button>
 				</div>
 			</div>
@@ -233,8 +264,11 @@ function ReportDetailPage() {
 									</tr>
 								</thead>
 								<tbody>
-									{data.endpointSummary.map((ep, i) => (
-										<tr key={i} className="border-b last:border-0">
+									{data.endpointSummary.map((ep) => (
+										<tr
+											key={`${ep.method}-${ep.path}`}
+											className="border-b last:border-0"
+										>
 											<td className="py-2 pr-4 font-medium">{ep.method}</td>
 											<td className="py-2 pr-4 font-mono text-xs">{ep.path}</td>
 											<td className="py-2 text-right">{ep.total}</td>
@@ -272,8 +306,11 @@ function ReportDetailPage() {
 									</tr>
 								</thead>
 								<tbody>
-									{data.topViolations.map((v, i) => (
-										<tr key={i} className="border-b last:border-0">
+									{data.topViolations.map((v) => (
+										<tr
+											key={`${v.type}-${v.severity}`}
+											className="border-b last:border-0"
+										>
 											<td className="py-2 pr-4 font-mono text-xs">{v.type}</td>
 											<td className="py-2 text-right">{v.count}</td>
 											<td className="py-2 text-right capitalize">

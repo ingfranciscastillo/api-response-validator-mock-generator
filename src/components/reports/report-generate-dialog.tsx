@@ -1,7 +1,23 @@
-import { Plus, X } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import { Button } from "#/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
+import {
+	Dialog,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "#/components/ui/dialog";
+import { Input } from "#/components/ui/input";
+import { Label } from "#/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "#/components/ui/select";
+import { Textarea } from "#/components/ui/textarea";
 
 interface ReportGenerateDialogProps {
 	open: boolean;
@@ -24,33 +40,29 @@ export function ReportGenerateDialog({
 	const [description, setDescription] = useState("");
 	const [days, setDays] = useState(30);
 
-	if (!open) return null;
-
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-			<Card className="w-full max-w-md">
-				<CardHeader className="flex flex-row items-center justify-between pb-2">
-					<CardTitle className="text-lg">Generate Report</CardTitle>
-					<Button variant="ghost" size="icon-xs" onClick={onClose}>
-						<X className="size-4" />
-					</Button>
-				</CardHeader>
-				<CardContent className="space-y-4">
+		<Dialog
+			open={open}
+			onOpenChange={(o) => {
+				if (!o) onClose();
+			}}
+		>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>Generate Report</DialogTitle>
+				</DialogHeader>
+				<div className="space-y-4">
 					<div className="space-y-1">
-						<label className="text-sm font-medium">Report Name</label>
-						<input
-							className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+						<Label>Report Name</Label>
+						<Input
 							placeholder="e.g., Weekly Validation Summary"
 							value={name}
 							onChange={(e) => setName(e.target.value)}
 						/>
 					</div>
 					<div className="space-y-1">
-						<label className="text-sm font-medium">
-							Description (optional)
-						</label>
-						<textarea
-							className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+						<Label>Description (optional)</Label>
+						<Textarea
 							placeholder="Brief description of this report"
 							rows={2}
 							value={description}
@@ -58,40 +70,44 @@ export function ReportGenerateDialog({
 						/>
 					</div>
 					<div className="space-y-1">
-						<label className="text-sm font-medium">Date Range (days)</label>
-						<select
-							className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-							value={days}
-							onChange={(e) => setDays(Number(e.target.value))}
+						<Label>Date Range (days)</Label>
+						<Select
+							value={String(days)}
+							onValueChange={(v) => setDays(Number(v))}
 						>
-							<option value={7}>Last 7 days</option>
-							<option value={14}>Last 14 days</option>
-							<option value={30}>Last 30 days</option>
-							<option value={90}>Last 90 days</option>
-						</select>
+							<SelectTrigger>
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="7">Last 7 days</SelectItem>
+								<SelectItem value="14">Last 14 days</SelectItem>
+								<SelectItem value="30">Last 30 days</SelectItem>
+								<SelectItem value="90">Last 90 days</SelectItem>
+							</SelectContent>
+						</Select>
 					</div>
-					<div className="flex justify-end gap-2 pt-2">
-						<Button variant="outline" onClick={onClose} disabled={generating}>
-							Cancel
-						</Button>
-						<Button
-							disabled={!name || generating}
-							onClick={() => {
-								onGenerate({
-									name,
-									description: description || undefined,
-									days,
-								});
-								setName("");
-								setDescription("");
-							}}
-						>
-							<Plus className="size-4" />
-							{generating ? "Generating..." : "Generate"}
-						</Button>
-					</div>
-				</CardContent>
-			</Card>
-		</div>
+				</div>
+				<DialogFooter className="pt-2">
+					<Button variant="outline" onClick={onClose} disabled={generating}>
+						Cancel
+					</Button>
+					<Button
+						disabled={!name || generating}
+						onClick={() => {
+							onGenerate({
+								name,
+								description: description || undefined,
+								days,
+							});
+							setName("");
+							setDescription("");
+						}}
+					>
+						<Plus className="size-4" />
+						{generating ? "Generating..." : "Generate"}
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	);
 }
