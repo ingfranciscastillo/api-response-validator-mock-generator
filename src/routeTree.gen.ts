@@ -36,6 +36,8 @@ import { Route as DashboardSettingsApiKeysRouteImport } from './routes/dashboard
 import { Route as DashboardSettingsAccountRouteImport } from './routes/dashboard/settings/account'
 import { Route as DashboardReportsReportIdRouteImport } from './routes/dashboard/reports/$reportId'
 import { Route as DashboardMocksMockIdRouteImport } from './routes/dashboard/mocks/$mockId'
+import { Route as DashboardDriftNotificationsRouteImport } from './routes/dashboard/drift/notifications'
+import { Route as DashboardDriftMonitoredSpecsRouteImport } from './routes/dashboard/drift/monitored-specs'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as DashboardSpecsSpecIdRouteRouteImport } from './routes/dashboard/specs/$specId/route'
 import { Route as DashboardSpecsSpecIdIndexRouteImport } from './routes/dashboard/specs/$specId/index'
@@ -186,6 +188,18 @@ const DashboardMocksMockIdRoute = DashboardMocksMockIdRouteImport.update({
   path: '/$mockId',
   getParentRoute: () => DashboardMocksRouteRoute,
 } as any)
+const DashboardDriftNotificationsRoute =
+  DashboardDriftNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => DashboardDriftRouteRoute,
+  } as any)
+const DashboardDriftMonitoredSpecsRoute =
+  DashboardDriftMonitoredSpecsRouteImport.update({
+    id: '/monitored-specs',
+    path: '/monitored-specs',
+    getParentRoute: () => DashboardDriftRouteRoute,
+  } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -243,6 +257,8 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/specs/$specId': typeof DashboardSpecsSpecIdRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/dashboard/drift/monitored-specs': typeof DashboardDriftMonitoredSpecsRoute
+  '/dashboard/drift/notifications': typeof DashboardDriftNotificationsRoute
   '/dashboard/mocks/$mockId': typeof DashboardMocksMockIdRoute
   '/dashboard/reports/$reportId': typeof DashboardReportsReportIdRoute
   '/dashboard/settings/account': typeof DashboardSettingsAccountRoute
@@ -272,6 +288,8 @@ export interface FileRoutesByTo {
   '/dashboard/team': typeof DashboardTeamRouteRouteWithChildren
   '/dashboard': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/dashboard/drift/monitored-specs': typeof DashboardDriftMonitoredSpecsRoute
+  '/dashboard/drift/notifications': typeof DashboardDriftNotificationsRoute
   '/dashboard/mocks/$mockId': typeof DashboardMocksMockIdRoute
   '/dashboard/reports/$reportId': typeof DashboardReportsReportIdRoute
   '/dashboard/settings/account': typeof DashboardSettingsAccountRoute
@@ -309,6 +327,8 @@ export interface FileRoutesById {
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/specs/$specId': typeof DashboardSpecsSpecIdRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/dashboard/drift/monitored-specs': typeof DashboardDriftMonitoredSpecsRoute
+  '/dashboard/drift/notifications': typeof DashboardDriftNotificationsRoute
   '/dashboard/mocks/$mockId': typeof DashboardMocksMockIdRoute
   '/dashboard/reports/$reportId': typeof DashboardReportsReportIdRoute
   '/dashboard/settings/account': typeof DashboardSettingsAccountRoute
@@ -347,6 +367,8 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/dashboard/specs/$specId'
     | '/api/auth/$'
+    | '/dashboard/drift/monitored-specs'
+    | '/dashboard/drift/notifications'
     | '/dashboard/mocks/$mockId'
     | '/dashboard/reports/$reportId'
     | '/dashboard/settings/account'
@@ -376,6 +398,8 @@ export interface FileRouteTypes {
     | '/dashboard/team'
     | '/dashboard'
     | '/api/auth/$'
+    | '/dashboard/drift/monitored-specs'
+    | '/dashboard/drift/notifications'
     | '/dashboard/mocks/$mockId'
     | '/dashboard/reports/$reportId'
     | '/dashboard/settings/account'
@@ -412,6 +436,8 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/dashboard/specs/$specId'
     | '/api/auth/$'
+    | '/dashboard/drift/monitored-specs'
+    | '/dashboard/drift/notifications'
     | '/dashboard/mocks/$mockId'
     | '/dashboard/reports/$reportId'
     | '/dashboard/settings/account'
@@ -634,6 +660,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardMocksMockIdRouteImport
       parentRoute: typeof DashboardMocksRouteRoute
     }
+    '/dashboard/drift/notifications': {
+      id: '/dashboard/drift/notifications'
+      path: '/notifications'
+      fullPath: '/dashboard/drift/notifications'
+      preLoaderRoute: typeof DashboardDriftNotificationsRouteImport
+      parentRoute: typeof DashboardDriftRouteRoute
+    }
+    '/dashboard/drift/monitored-specs': {
+      id: '/dashboard/drift/monitored-specs'
+      path: '/monitored-specs'
+      fullPath: '/dashboard/drift/monitored-specs'
+      preLoaderRoute: typeof DashboardDriftMonitoredSpecsRouteImport
+      parentRoute: typeof DashboardDriftRouteRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -687,10 +727,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface DashboardDriftRouteRouteChildren {
+  DashboardDriftMonitoredSpecsRoute: typeof DashboardDriftMonitoredSpecsRoute
+  DashboardDriftNotificationsRoute: typeof DashboardDriftNotificationsRoute
   DashboardDriftIndexRoute: typeof DashboardDriftIndexRoute
 }
 
 const DashboardDriftRouteRouteChildren: DashboardDriftRouteRouteChildren = {
+  DashboardDriftMonitoredSpecsRoute: DashboardDriftMonitoredSpecsRoute,
+  DashboardDriftNotificationsRoute: DashboardDriftNotificationsRoute,
   DashboardDriftIndexRoute: DashboardDriftIndexRoute,
 }
 
