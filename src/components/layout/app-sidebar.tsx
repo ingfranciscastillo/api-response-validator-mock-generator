@@ -7,6 +7,7 @@ import {
 	FlaskConical,
 	LayoutDashboard,
 	Settings,
+	ShieldAlert,
 	ShieldCheck,
 	Users,
 } from "lucide-react";
@@ -109,6 +110,18 @@ function AppSidebar() {
 									<Link to="/dashboard/mocks">
 										<FlaskConical />
 										<span>Mocks</span>
+									</Link>
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+							<SidebarMenuItem>
+								<SidebarMenuButton
+									asChild
+									isActive={false}
+									tooltip="Drift Detection"
+								>
+									<Link to="/dashboard/drift">
+										<ShieldAlert />
+										<span>Drift Detection</span>
 									</Link>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
