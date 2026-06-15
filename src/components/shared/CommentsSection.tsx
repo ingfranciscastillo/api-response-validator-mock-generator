@@ -38,6 +38,7 @@ function CommentsSection({
 	const [loading, setLoading] = useState(true);
 	const [body, setBody] = useState("");
 	const [submitting, setSubmitting] = useState(false);
+	const [submitError, setSubmitError] = useState<string | null>(null);
 
 	const fetchComments = useCallback(async () => {
 		setLoading(true);
@@ -60,6 +61,7 @@ function CommentsSection({
 	const handleSubmit = async () => {
 		if (!body.trim()) return;
 		setSubmitting(true);
+		setSubmitError(null);
 		try {
 			await createComment({
 				data: {
@@ -70,6 +72,10 @@ function CommentsSection({
 			});
 			setBody("");
 			await fetchComments();
+		} catch (err) {
+			setSubmitError(
+				err instanceof Error ? err.message : "Failed to post comment",
+			);
 		} finally {
 			setSubmitting(false);
 		}
@@ -145,6 +151,7 @@ function CommentsSection({
 					</div>
 				)}
 
+				{submitError && <p className="text-xs text-red-500">{submitError}</p>}
 				<div className="flex gap-2 pt-2">
 					<Textarea
 						placeholder="Write a comment..."
