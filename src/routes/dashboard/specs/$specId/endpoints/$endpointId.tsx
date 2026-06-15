@@ -1,7 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Beaker, Clock, FlaskConical } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+	ArrowLeft,
+	Beaker,
+	Clock,
+	FlaskConical,
+	TestTubes,
+} from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
+import { MockCard } from "#/components/mocks/mock-card";
+import { MockGenerationModal } from "#/components/mocks/mock-generation-modal";
 import { CommentsSection } from "#/components/shared/CommentsSection";
 import { extractSchema } from "#/components/specs/response-schema-panel";
 import { SchemaTreeViewer } from "#/components/specs/schema-tree-viewer";
@@ -14,7 +22,10 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card";
+import { EmptyState } from "#/components/ui/empty-state";
+import { Skeleton } from "#/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
+import { getMocks } from "#/lib/mocks/functions";
 import { getEndpoint, getSpec } from "#/lib/specs/functions";
 import { getEndpointValidationHistory } from "#/lib/validation/functions";
 
@@ -51,6 +62,29 @@ function EndpointDetailPage() {
 		Awaited<ReturnType<typeof getEndpointValidationHistory>>
 	>([]);
 	const [historyLoading, setHistoryLoading] = useState(false);
+	const [mockModalOpen, setMockModalOpen] = useState(false);
+	const [mocks, setMocks] = useState<
+		Awaited<ReturnType<typeof getMocks>>["mocks"]
+	>([]);
+	const [mocksLoading, setMocksLoading] = useState(false);
+	const [mocksError, setMocksError] = useState<string | null>(null);
+
+	const fetchMocks = useCallback(() => {
+		setMocksLoading(true);
+		setMocksError(null);
+		getMocks({ data: { endpointId } })
+			.then((data) => setMocks(data.mocks))
+			.catch((err) =>
+				setMocksError(
+					err instanceof Error ? err.message : "Failed to load mocks",
+				),
+			)
+			.finally(() => setMocksLoading(false));
+	}, [endpointId]);
+
+	useEffect(() => {
+		fetchMocks();
+	}, [fetchMocks]);
 
 	useEffect(() => {
 		Promise.all([
@@ -166,7 +200,7 @@ function EndpointDetailPage() {
 						<Beaker className="size-4" />
 						Test
 					</Button>
-					<Button variant="outline" disabled>
+					<Button variant="outline" onClick={() => setMockModalOpen(true)}>
 						<FlaskConical className="size-4" />
 						Generate Mocks
 					</Button>
@@ -301,21 +335,48 @@ function EndpointDetailPage() {
 				</TabsContent>
 
 				<TabsContent value="mocks">
-					<Card>
-						<CardHeader>
-							<CardTitle className="text-base">Mock Generation</CardTitle>
-							<CardDescription>
-								Coming in Phase 3 — generate realistic mock responses from your
-								endpoint schemas.
-							</CardDescription>
-						</CardHeader>
-						<CardContent>
-							<p className="text-sm text-muted-foreground">
-								You'll be able to generate example payloads, edge cases, and
-								error responses with one click, and serve them via public URLs.
-							</p>
-						</CardContent>
-					</Card>
+					<div className="flex flex-col gap-4">
+						<div className="flex items-center justify-between">
+							<h4 className="text-sm font-medium">Generated Mocks</h4>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => setMockModalOpen(true)}
+							>
+								<FlaskConical className="size-3" />
+								Generate Mock
+							</Button>
+						</div>
+
+						{mocksLoading ? (
+							<div className="grid gap-3">
+								{Array.from({ length: 2 }).map((_, i) => (
+									<div key={i} className="rounded-lg border p-4">
+										<div className="space-y-2">
+											<Skeleton className="h-5 w-40" />
+											<Skeleton className="h-4 w-56" />
+										</div>
+									</div>
+								))}
+							</div>
+						) : mocksError ? (
+							<div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+								{mocksError}
+							</div>
+						) : mocks.length === 0 ? (
+							<EmptyState
+								icon={<TestTubes className="size-8" />}
+								title="No mocks generated yet"
+								description="Generate mock responses from this endpoint's response schemas"
+							/>
+						) : (
+							<div className="grid gap-3">
+								{mocks.map((mock) => (
+									<MockCard key={mock.id} mock={mock} />
+								))}
+							</div>
+						)}
+					</div>
 				</TabsContent>
 
 				<TabsContent value="history">
@@ -387,6 +448,14 @@ function EndpointDetailPage() {
 					<CommentsSection entityType="endpoint" entityId={endpointId} />
 				</TabsContent>
 			</Tabs>
+
+			<MockGenerationModal
+				open={mockModalOpen}
+				onOpenChange={setMockModalOpen}
+				onGenerated={fetchMocks}
+				defaultSpecId={specId}
+				defaultEndpointId={endpointId}
+			/>
 		</div>
 	);
 }

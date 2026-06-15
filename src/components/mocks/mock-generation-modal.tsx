@@ -26,12 +26,16 @@ interface MockGenerationModalProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	onGenerated: () => void;
+	defaultSpecId?: string;
+	defaultEndpointId?: string;
 }
 
 export function MockGenerationModal({
 	open,
 	onOpenChange,
 	onGenerated,
+	defaultSpecId,
+	defaultEndpointId,
 }: MockGenerationModalProps) {
 	const [specs, setSpecs] = useState<Awaited<ReturnType<typeof getSpecs>>>([]);
 	const [endpoints, setEndpoints] = useState<
@@ -50,22 +54,42 @@ export function MockGenerationModal({
 	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
-		if (!open) return;
-		getSpecs().then(setSpecs);
-	}, [open]);
+		if (!open) {
+			setSelectedSpecId("");
+			setSelectedEndpointId("");
+			return;
+		}
+		getSpecs().then((allSpecs) => {
+			setSpecs(allSpecs);
+			if (defaultSpecId && allSpecs.some((s) => s.id === defaultSpecId)) {
+				setSelectedSpecId(defaultSpecId);
+			}
+		});
+	}, [open, defaultSpecId]);
 
 	useEffect(() => {
 		if (!selectedSpecId) {
 			setEndpoints([]);
+			setSelectedEndpointId("");
 			return;
 		}
 		getSpec({ data: { specId: selectedSpecId } }).then((spec) => {
 			const versionId = spec?.versions?.[0]?.id;
 			if (versionId) {
-				getEndpoints({ data: { specVersionId: versionId } }).then(setEndpoints);
+				getEndpoints({ data: { specVersionId: versionId } }).then(
+					(allEndpoints) => {
+						setEndpoints(allEndpoints);
+						if (
+							defaultEndpointId &&
+							allEndpoints.some((e) => e.id === defaultEndpointId)
+						) {
+							setSelectedEndpointId(defaultEndpointId);
+						}
+					},
+				);
 			}
 		});
-	}, [selectedSpecId]);
+	}, [selectedSpecId, defaultEndpointId]);
 
 	useEffect(() => {
 		if (!selectedEndpointId) {

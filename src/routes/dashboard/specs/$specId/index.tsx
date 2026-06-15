@@ -1,7 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, ChevronDown, ChevronRight } from "lucide-react";
+import {
+	ArrowLeft,
+	ChevronDown,
+	ChevronRight,
+	FlaskConical,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { MockGenerationModal } from "#/components/mocks/mock-generation-modal";
 import { CommentsSection } from "#/components/shared/CommentsSection";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
@@ -33,6 +39,7 @@ function SpecDetailPage() {
 	const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
 		{},
 	);
+	const [mockModalOpen, setMockModalOpen] = useState(false);
 
 	useEffect(() => {
 		getSpec({ data: { specId } })
@@ -120,6 +127,10 @@ function SpecDetailPage() {
 						{endpoints.length} endpoints
 					</p>
 				</div>
+				<Button variant="outline" onClick={() => setMockModalOpen(true)}>
+					<FlaskConical className="size-4" />
+					Generate Mock
+				</Button>
 			</div>
 
 			<h3 className="text-sm font-medium text-muted-foreground">Endpoints</h3>
@@ -176,6 +187,13 @@ function SpecDetailPage() {
 			</div>
 
 			<CommentsSection entityType="specification" entityId={specId} />
+
+			<MockGenerationModal
+				open={mockModalOpen}
+				onOpenChange={setMockModalOpen}
+				onGenerated={() => {}}
+				defaultSpecId={specId}
+			/>
 		</div>
 	);
 }
