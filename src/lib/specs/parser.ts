@@ -17,6 +17,7 @@ export interface ParsedSpec {
 	description: string | null;
 	endpoints: ParsedEndpoint[];
 	tags: string[];
+	serverUrl: string | null;
 }
 
 export interface SpecSummary {
@@ -131,6 +132,27 @@ function tryParseJsonOrYaml(input: string): Record<string, unknown> {
 	return yaml.load(trimmed) as Record<string, unknown>;
 }
 
+function extractServerUrl(spec: Record<string, unknown>): string | null {
+	const servers = spec.servers as Array<Record<string, unknown>> | undefined;
+	if (servers?.[0]?.url) {
+		let url = String(servers[0].url);
+		if (url.endsWith("/")) url = url.slice(0, -1);
+		return url;
+	}
+
+	const scheme = (spec.schemes as string[] | undefined)?.[0] ?? "https";
+	const host = spec.host as string | undefined;
+	const basePath = (spec.basePath as string | undefined) ?? "";
+	if (host) {
+		const normalized = basePath.endsWith("/")
+			? basePath.slice(0, -1)
+			: basePath;
+		return `${scheme}://${host}${normalized}`;
+	}
+
+	return null;
+}
+
 export async function parseSpec(
 	input: string | Record<string, unknown>,
 ): Promise<ParsedSpec> {
@@ -147,12 +169,15 @@ export async function parseSpec(
 	const endpoints = extractEndpoints(paths);
 	const tags = extractTags(paths);
 
+	const serverUrl = extractServerUrl(d);
+
 	return {
 		title: (info?.title as string) ?? "Untitled Spec",
 		version: (info?.version as string) ?? "1.0.0",
 		description: (info?.description as string | null) ?? null,
 		endpoints,
 		tags,
+		serverUrl,
 	};
 }
 

@@ -156,6 +156,10 @@ function ValidationRunDetailPage() {
 										string,
 										unknown
 									> | null,
+									expectedSchema: result.expectedSchema as Record<
+										string,
+										unknown
+									> | null,
 								} satisfies ValidationResultData
 							}
 						/>

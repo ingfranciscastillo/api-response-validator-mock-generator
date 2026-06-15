@@ -55,6 +55,7 @@ export const endpoint = pgTable(
 		parameters: json("parameters"),
 		requestBody: json("request_body"),
 		responses: json("responses").notNull(),
+		serverUrl: text("server_url"),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 	},
 	(table) => [

@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Button } from "#/components/ui/button";
 import { ValidationRequestBuilder } from "#/components/validation/validation-request-builder";
+import type { ValidationResultData } from "#/components/validation/validation-result-card";
+import { ValidationResultCard } from "#/components/validation/validation-result-card";
 import { getEndpoints, getSpec, getSpecs } from "#/lib/specs/functions";
 
 export const Route = createFileRoute("/dashboard/validation/workspace")({
@@ -37,6 +39,9 @@ function ValidationWorkspacePage() {
 		initialEndpointId ?? "",
 	);
 	const [loadingSpecs, setLoadingSpecs] = useState(true);
+	const [latestResult, setLatestResult] = useState<ValidationResultData | null>(
+		null,
+	);
 
 	useEffect(() => {
 		getSpecs()
@@ -73,47 +78,53 @@ function ValidationWorkspacePage() {
 				<h2 className="text-2xl font-bold">API Testing Workspace</h2>
 			</div>
 
-			<div className="grid grid-cols-[300px_1fr] gap-4">
-				<div className="rounded-md border p-3">
-					<h4 className="text-sm font-medium mb-2">Specification</h4>
-					{loadingSpecs ? (
-						<div className="h-20 animate-pulse rounded bg-muted" />
-					) : (
-						<div className="space-y-1">
-							{specs.map((spec) => (
-								<button
-									key={spec.id}
-									type="button"
-									onClick={() => {
-										setSelectedSpecId(spec.id);
-										setSelectedEndpointId("");
-									}}
-									className={`w-full rounded px-2 py-1.5 text-left text-sm transition-colors ${
-										selectedSpecId === spec.id
-											? "bg-accent text-accent-foreground"
-											: "hover:bg-muted/50"
-									}`}
-								>
-									{spec.name}
-								</button>
-							))}
-							{specs.length === 0 && (
-								<p className="text-xs text-muted-foreground">
-									No specs available
-								</p>
-							)}
-						</div>
-					)}
+			<div className="grid grid-cols-[260px_1fr_380px] gap-4">
+				<div className="rounded-md border p-3 flex flex-col gap-3">
+					<div>
+						<h4 className="text-sm font-medium mb-2">Specification</h4>
+						{loadingSpecs ? (
+							<div className="h-20 animate-pulse rounded bg-muted" />
+						) : (
+							<div className="space-y-1">
+								{specs.map((spec) => (
+									<button
+										key={spec.id}
+										type="button"
+										onClick={() => {
+											setSelectedSpecId(spec.id);
+											setSelectedEndpointId("");
+											setLatestResult(null);
+										}}
+										className={`w-full rounded px-2 py-1.5 text-left text-sm transition-colors ${
+											selectedSpecId === spec.id
+												? "bg-accent text-accent-foreground"
+												: "hover:bg-muted/50"
+										}`}
+									>
+										{spec.name}
+									</button>
+								))}
+								{specs.length === 0 && (
+									<p className="text-xs text-muted-foreground">
+										No specs available
+									</p>
+								)}
+							</div>
+						)}
+					</div>
 
 					{selectedSpecId && endpoints.length > 0 && (
-						<>
-							<h4 className="text-sm font-medium mt-4 mb-2">Endpoints</h4>
+						<div className="flex-1 overflow-auto">
+							<h4 className="text-sm font-medium mb-2">Endpoints</h4>
 							<div className="space-y-1">
 								{endpoints.map((ep) => (
 									<button
 										key={ep.id}
 										type="button"
-										onClick={() => setSelectedEndpointId(ep.id)}
+										onClick={() => {
+											setSelectedEndpointId(ep.id);
+											setLatestResult(null);
+										}}
 										className={`w-full flex items-center gap-2 rounded px-2 py-1.5 text-left text-xs transition-colors ${
 											selectedEndpointId === ep.id
 												? "bg-accent text-accent-foreground"
@@ -129,7 +140,7 @@ function ValidationWorkspacePage() {
 									</button>
 								))}
 							</div>
-						</>
+						</div>
 					)}
 					{selectedSpecId && endpoints.length === 0 && (
 						<p className="text-xs text-muted-foreground mt-2">
@@ -138,16 +149,30 @@ function ValidationWorkspacePage() {
 					)}
 				</div>
 
-				<div>
+				<div className="min-w-0">
 					{selectedEndpoint ? (
 						<ValidationRequestBuilder
 							specId={selectedSpecId}
 							endpointId={selectedEndpointId}
-							initialMethod={selectedEndpoint.method}
+							endpoint={selectedEndpoint}
+							onResult={setLatestResult}
 						/>
 					) : (
 						<div className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
 							Select a specification and endpoint to start testing
+						</div>
+					)}
+				</div>
+
+				<div className="min-w-0">
+					{latestResult ? (
+						<div className="flex flex-col gap-2">
+							<h4 className="text-sm font-medium">Response</h4>
+							<ValidationResultCard result={latestResult} expanded />
+						</div>
+					) : (
+						<div className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground h-full flex items-center justify-center">
+							Send a request to see the response here
 						</div>
 					)}
 				</div>

@@ -55,6 +55,7 @@ export const importSpec = createServerFn({ method: "POST" })
 					parameters: ep.parameters as Record<string, unknown> | null,
 					requestBody: ep.requestBody as Record<string, unknown> | null,
 					responses: ep.responses as Record<string, unknown>,
+					serverUrl: parsed.serverUrl,
 				})),
 			);
 		}

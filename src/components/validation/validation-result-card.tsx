@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
+import { Badge } from "#/components/ui/badge";
 import { Card, CardContent, CardHeader } from "#/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { cn } from "#/lib/utils";
@@ -14,6 +15,7 @@ export interface ValidationResultData {
 	responseStatusCode: number;
 	latencyMs?: number | null;
 	outcome: "pass" | "warning" | "fail";
+	outcomeReason?: string;
 	violations: Array<Record<string, unknown>>;
 	diff?: {
 		entries: Array<Record<string, unknown>>;
@@ -21,6 +23,36 @@ export interface ValidationResultData {
 	} | null;
 	requestSnapshot?: Record<string, unknown> | null;
 	responseBody?: Record<string, unknown> | null;
+	expectedSchema?: Record<string, unknown> | null;
+}
+
+function outcomeReason(result: ValidationResultData): string {
+	if (result.outcomeReason) return result.outcomeReason;
+	if (result.outcome === "pass") {
+		return "Response matches the expected schema";
+	}
+	if (result.outcome === "fail") {
+		return `${result.violations.length} violation(s) found — response does not match the expected schema`;
+	}
+	const hasSchema =
+		result.expectedSchema !== null && result.expectedSchema !== undefined;
+	if (!hasSchema) {
+		return `No schema defined for HTTP ${result.responseStatusCode} in the spec — cannot validate response body`;
+	}
+	const hasBreakingDiff = result.diff?.hasBreaking;
+	if (hasBreakingDiff) {
+		return `Response structure matches schema but has structural differences from the generated mock`;
+	}
+	return "Response structure matches schema but values differ from the expected mock";
+}
+
+function JsonViewer({ data }: { data: unknown }) {
+	const formatted = JSON.stringify(data, null, 2);
+	return (
+		<pre className="rounded bg-muted p-3 text-xs font-mono overflow-auto max-h-80">
+			<code>{formatted}</code>
+		</pre>
+	);
 }
 
 export function ValidationResultCard({
@@ -46,6 +78,16 @@ export function ValidationResultCard({
 			"bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500",
 		fail: "bg-red-500/10 text-red-500 border-red-500",
 	}[result.outcome];
+
+	const reason = outcomeReason(result);
+	const violationCount =
+		result.violations?.filter(
+			(v) => (v as { severity?: string }).severity === "error",
+		).length ?? 0;
+	const warningCount =
+		result.violations?.filter(
+			(v) => (v as { severity?: string }).severity === "warning",
+		).length ?? 0;
 
 	return (
 		<Card>
@@ -87,11 +129,34 @@ export function ValidationResultCard({
 						</span>
 					)}
 				</button>
+				<div className="px-1 pt-1.5 text-xs text-muted-foreground">
+					{reason}
+					{(violationCount > 0 || warningCount > 0) && (
+						<span className="ml-2 space-x-1.5">
+							{violationCount > 0 && (
+								<Badge variant="destructive" className="text-[10px] px-1 py-0">
+									{violationCount} error{violationCount !== 1 ? "s" : ""}
+								</Badge>
+							)}
+							{warningCount > 0 && (
+								<Badge variant="secondary" className="text-[10px] px-1 py-0">
+									{warningCount} warning{warningCount !== 1 ? "s" : ""}
+								</Badge>
+							)}
+						</span>
+					)}
+				</div>
 			</CardHeader>
 			{isExpanded && (
 				<CardContent className="p-3 pt-0 border-t">
-					<Tabs defaultValue="violations">
+					<Tabs defaultValue="body">
 						<TabsList className="mb-2">
+							<TabsTrigger value="body" className="text-xs">
+								Body
+							</TabsTrigger>
+							<TabsTrigger value="schema" className="text-xs">
+								Schema
+							</TabsTrigger>
 							<TabsTrigger value="violations" className="text-xs">
 								Violations ({result.violations.length})
 							</TabsTrigger>
@@ -99,6 +164,26 @@ export function ValidationResultCard({
 								Diff
 							</TabsTrigger>
 						</TabsList>
+						<TabsContent value="body">
+							{result.responseBody ? (
+								<JsonViewer data={result.responseBody} />
+							) : (
+								<div className="text-sm text-muted-foreground italic py-2">
+									No response body
+								</div>
+							)}
+						</TabsContent>
+						<TabsContent value="schema">
+							{result.expectedSchema ? (
+								<div className="rounded border p-3">
+									<SchemaTree schema={result.expectedSchema} depth={0} />
+								</div>
+							) : (
+								<div className="text-sm text-muted-foreground italic py-2">
+									No expected schema for this status code
+								</div>
+							)}
+						</TabsContent>
 						<TabsContent value="violations">
 							<ViolationsList
 								violations={
@@ -131,5 +216,65 @@ export function ValidationResultCard({
 				</CardContent>
 			)}
 		</Card>
+	);
+}
+
+function SchemaTree({
+	schema,
+	depth,
+}: {
+	schema: Record<string, unknown>;
+	depth: number;
+}) {
+	const [expanded, setExpanded] = useState(depth < 2);
+	const entries = Object.entries(schema);
+
+	return (
+		<div>
+			{entries.map(([key, value]) => {
+				const isNested =
+					value !== null && typeof value === "object" && !Array.isArray(value);
+				const isArray = Array.isArray(value);
+				return (
+					<div key={key}>
+						<button
+							type="button"
+							disabled={!isNested && !isArray}
+							onClick={() => setExpanded(!expanded)}
+							className="flex w-full items-center gap-1.5 rounded-sm px-1 py-0.5 text-left text-sm hover:bg-muted/50"
+							style={{ paddingLeft: `${depth * 16 + 4}px` }}
+						>
+							<span className="font-mono text-xs font-medium">{key}</span>
+							<span className="text-xs text-muted-foreground">:</span>
+							{isNested ? (
+								<span className="text-xs text-cyan-600 dark:text-cyan-400 font-mono">
+									{"{...}"}
+								</span>
+							) : isArray ? (
+								<span className="text-xs text-purple-600 dark:text-purple-400 font-mono">
+									[{(value as Array<unknown>).length}]
+								</span>
+							) : (
+								<span className="text-xs text-muted-foreground font-mono">
+									{String(value)}
+								</span>
+							)}
+						</button>
+						{isNested && expanded && (
+							<SchemaTree
+								schema={value as Record<string, unknown>}
+								depth={depth + 1}
+							/>
+						)}
+						{isArray && expanded && (value as Array<unknown>).length > 0 && (
+							<SchemaTree
+								schema={(value as Array<unknown>)[0] as Record<string, unknown>}
+								depth={depth + 1}
+							/>
+						)}
+					</div>
+				);
+			})}
+		</div>
 	);
 }

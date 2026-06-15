@@ -303,6 +303,7 @@ export const runValidation = createServerFn({ method: "POST" })
 					hasBreaking: diffEntries.some((e) => e.breaking === true),
 				},
 			},
+			expectedSchema: schema ? JSON.parse(JSON.stringify(schema)) : null,
 		};
 	});
 
