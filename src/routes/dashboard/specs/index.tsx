@@ -3,7 +3,7 @@ import { ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getSpecs } from "#/lib/specs/functions";
 
-export const Route = createFileRoute("/dashboard/specs")({
+export const Route = createFileRoute("/dashboard/specs/")({
 	component: SpecsPage,
 });
 

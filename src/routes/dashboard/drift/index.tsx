@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { DriftAlertCard } from "#/components/drift/drift-alert-card";
 import { getDriftAlerts, resolveDriftAlert } from "#/lib/drift/functions";
 
-export const Route = createFileRoute("/dashboard/drift")({
+export const Route = createFileRoute("/dashboard/drift/")({
 	component: DriftPage,
 });
 

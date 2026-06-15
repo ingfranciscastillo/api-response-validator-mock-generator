@@ -18,7 +18,7 @@ import { getSpecs } from "#/lib/specs/functions";
 
 type MockRow = typeof mockDataset.$inferSelect;
 
-export const Route = createFileRoute("/dashboard/mocks")({
+export const Route = createFileRoute("/dashboard/mocks/")({
 	component: MocksPage,
 });
 

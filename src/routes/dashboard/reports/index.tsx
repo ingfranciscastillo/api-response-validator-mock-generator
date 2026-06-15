@@ -10,7 +10,7 @@ import {
 	getReports,
 } from "#/lib/reports/functions";
 
-export const Route = createFileRoute("/dashboard/reports")({
+export const Route = createFileRoute("/dashboard/reports/")({
 	component: ReportsPage,
 });
 

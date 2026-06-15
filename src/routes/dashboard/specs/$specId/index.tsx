@@ -7,7 +7,7 @@ import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { getEndpoints, getSpec } from "#/lib/specs/functions";
 
-export const Route = createFileRoute("/dashboard/specs/$specId")({
+export const Route = createFileRoute("/dashboard/specs/$specId/")({
 	component: SpecDetailPage,
 });
 

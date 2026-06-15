@@ -35,6 +35,16 @@ function NewSpecPage() {
 			return;
 		}
 
+		if (importMethod === "paste" && !pasteContent.trim()) {
+			setError("Please paste your specification content");
+			return;
+		}
+
+		if (importMethod === "url" && !url.trim()) {
+			setError("Please enter a specification URL");
+			return;
+		}
+
 		setLoading(true);
 		try {
 			await importSpec({

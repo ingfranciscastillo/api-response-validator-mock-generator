@@ -7,7 +7,7 @@ import { Button } from "#/components/ui/button";
 import { Card, CardContent } from "#/components/ui/card";
 import { getValidationRuns } from "#/lib/validation/functions";
 
-export const Route = createFileRoute("/dashboard/validation")({
+export const Route = createFileRoute("/dashboard/validation/")({
 	component: ValidationPage,
 });
 
