@@ -10,6 +10,8 @@ export {
 } from "./schema/auth";
 export * from "./schema/mocks";
 export { mockDataset, mockServeConfig } from "./schema/mocks";
+export * from "./schema/report";
+export { report } from "./schema/report";
 export * from "./schema/spec";
 export {
 	endpoint,
