@@ -25,7 +25,7 @@ export const importSpec = createServerFn({ method: "POST" })
 		const specId = crypto.randomUUID();
 		const versionId = crypto.randomUUID();
 
-		const summary = buildSummary(parsed.endpoints);
+		const summary = buildSummary(parsed.endpoints, parsed.tags);
 
 		await db.insert(specification).values({
 			id: specId,
@@ -39,7 +39,7 @@ export const importSpec = createServerFn({ method: "POST" })
 			specId,
 			version: 1,
 			openapiSpec: parsed as unknown as Record<string, unknown>,
-			summary: { ...summary, tags: parsed.tags },
+			summary,
 		});
 
 		if (parsed.endpoints.length > 0) {

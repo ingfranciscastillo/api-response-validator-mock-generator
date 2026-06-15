@@ -29,6 +29,7 @@ function SpecDetailPage() {
 	const [spec, setSpec] = useState<SpecData | null>(null);
 	const [endpoints, setEndpoints] = useState<EndpointData[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 	const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
 		{},
 	);
@@ -46,6 +47,9 @@ function SpecDetailPage() {
 			.then((eps) => {
 				setEndpoints(eps);
 			})
+			.catch((err) => {
+				setError(err instanceof Error ? err.message : "Failed to load spec");
+			})
 			.finally(() => setLoading(false));
 	}, [specId]);
 
@@ -53,6 +57,17 @@ function SpecDetailPage() {
 		return (
 			<div className="flex items-center justify-center py-12">
 				<div className="size-8 animate-pulse rounded-full bg-muted" />
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<div className="flex flex-col items-center gap-4 py-12">
+				<p className="text-destructive">{error}</p>
+				<Button asChild>
+					<Link to="/dashboard/specs">Back to specs</Link>
+				</Button>
 			</div>
 		);
 	}

@@ -1,4 +1,5 @@
 import SwaggerParser from "@apidevtools/swagger-parser";
+import yaml from "js-yaml";
 
 export interface ParsedEndpoint {
 	method: string;
@@ -90,7 +91,10 @@ function extractTags(
 	return [...tagSet].sort();
 }
 
-export function buildSummary(endpoints: ParsedEndpoint[]): SpecSummary {
+export function buildSummary(
+	endpoints: ParsedEndpoint[],
+	tags: string[] = [],
+): SpecSummary {
 	const methodSet = new Set<string>();
 	for (const ep of endpoints) methodSet.add(ep.method);
 
@@ -101,7 +105,7 @@ export function buildSummary(endpoints: ParsedEndpoint[]): SpecSummary {
 	return {
 		endpointCount: endpoints.length,
 		methods,
-		tags: [],
+		tags,
 	};
 }
 
@@ -119,10 +123,18 @@ function httpMethodOrder(method: string): number {
 	return order[method] ?? 99;
 }
 
+function tryParseJsonOrYaml(input: string): Record<string, unknown> {
+	const trimmed = input.trim();
+	if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+		return JSON.parse(trimmed);
+	}
+	return yaml.load(trimmed) as Record<string, unknown>;
+}
+
 export async function parseSpec(
 	input: string | Record<string, unknown>,
 ): Promise<ParsedSpec> {
-	const spec = typeof input === "string" ? JSON.parse(input) : input;
+	const spec = typeof input === "string" ? tryParseJsonOrYaml(input) : input;
 
 	const dereferenced = await SwaggerParser.dereference(
 		structuredClone(spec) as unknown as string,

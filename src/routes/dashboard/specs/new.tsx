@@ -1,5 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { Button } from "#/components/ui/button";
+import { Input } from "#/components/ui/input";
+import { Textarea } from "#/components/ui/textarea";
 import { importSpec } from "#/lib/specs/functions";
 
 export const Route = createFileRoute("/dashboard/specs/new")({
@@ -79,12 +82,11 @@ function NewSpecPage() {
 					<label htmlFor="name" className="text-sm font-medium">
 						Name
 					</label>
-					<input
+					<Input
 						id="name"
 						type="text"
 						value={name}
 						onChange={(e) => setName(e.target.value)}
-						className="rounded-md border border-border bg-background px-3 py-2 text-sm"
 						placeholder="My API"
 					/>
 				</div>
@@ -93,12 +95,11 @@ function NewSpecPage() {
 					<label htmlFor="description" className="text-sm font-medium">
 						Description (optional)
 					</label>
-					<input
+					<Input
 						id="description"
 						type="text"
 						value={description}
 						onChange={(e) => setDescription(e.target.value)}
-						className="rounded-md border border-border bg-background px-3 py-2 text-sm"
 						placeholder="API description"
 					/>
 				</div>
@@ -107,22 +108,18 @@ function NewSpecPage() {
 					<label className="text-sm font-medium">Import method</label>
 					<div className="flex gap-2">
 						{(["paste", "file", "url"] as const).map((method) => (
-							<button
+							<Button
 								type="button"
 								key={method}
+								variant={importMethod === method ? "default" : "outline"}
 								onClick={() => setImportMethod(method)}
-								className={`rounded-md px-3 py-1.5 text-sm font-medium ${
-									importMethod === method
-										? "bg-primary text-primary-foreground"
-										: "border border-border bg-background hover:bg-muted"
-								}`}
 							>
 								{method === "paste"
 									? "Paste"
 									: method === "file"
 										? "Upload"
 										: "URL"}
-							</button>
+							</Button>
 						))}
 					</div>
 				</div>
@@ -132,11 +129,11 @@ function NewSpecPage() {
 						<label htmlFor="spec" className="text-sm font-medium">
 							Specification content (JSON or YAML)
 						</label>
-						<textarea
+						<Textarea
 							id="spec"
 							value={pasteContent}
 							onChange={(e) => setPasteContent(e.target.value)}
-							className="min-h-[200px] rounded-md border border-border bg-background px-3 py-2 text-sm font-mono"
+							className="min-h-[200px] font-mono"
 							placeholder='{"openapi": "3.0.0", "info": {...}, "paths": {...}}'
 						/>
 					</div>
@@ -147,12 +144,11 @@ function NewSpecPage() {
 						<label htmlFor="file" className="text-sm font-medium">
 							Upload JSON or YAML file
 						</label>
-						<input
+						<Input
 							id="file"
 							type="file"
 							accept=".json,.yaml,.yml"
 							onChange={handleFileUpload}
-							className="rounded-md border border-border bg-background px-3 py-2 text-sm"
 						/>
 					</div>
 				)}
@@ -162,30 +158,25 @@ function NewSpecPage() {
 						<label htmlFor="url" className="text-sm font-medium">
 							Specification URL
 						</label>
-						<input
+						<Input
 							id="url"
 							type="url"
 							value={url}
 							onChange={(e) => setUrl(e.target.value)}
-							className="rounded-md border border-border bg-background px-3 py-2 text-sm"
 							placeholder="https://example.com/openapi.json"
 						/>
 					</div>
 				)}
 
 				{error && (
-					<div className="rounded-md border border-red-500/50 bg-red-500/10 px-3 py-2 text-sm text-red-600">
+					<div className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
 						{error}
 					</div>
 				)}
 
-				<button
-					type="submit"
-					disabled={loading}
-					className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-				>
+				<Button type="submit" disabled={loading}>
 					{loading ? "Importing..." : "Import Specification"}
-				</button>
+				</Button>
 			</form>
 		</div>
 	);

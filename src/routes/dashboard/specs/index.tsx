@@ -13,10 +13,16 @@ export const Route = createFileRoute("/dashboard/specs/")({
 function SpecsPage() {
 	const [specs, setSpecs] = useState<Awaited<ReturnType<typeof getSpecs>>>([]);
 	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
 		getSpecs()
 			.then(setSpecs)
+			.catch((err) =>
+				setError(
+					err instanceof Error ? err.message : "Failed to load specifications",
+				),
+			)
 			.finally(() => setLoading(false));
 	}, []);
 
@@ -48,6 +54,10 @@ function SpecsPage() {
 							</div>
 						</div>
 					))}
+				</div>
+			) : error ? (
+				<div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+					{error}
 				</div>
 			) : specs.length === 0 ? (
 				<EmptyState
