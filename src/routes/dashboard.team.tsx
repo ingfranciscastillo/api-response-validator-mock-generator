@@ -1,10 +1,20 @@
-import { createFileRoute } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	Link,
+	Outlet,
+	useLocation,
+} from "@tanstack/react-router";
 
 export const Route = createFileRoute("/dashboard/team")({
-	component: TeamPage,
+	component: TeamLayout,
 });
 
-function TeamPage() {
+function TeamLayout() {
+	const location = useLocation();
+	const currentTab = location.pathname.endsWith("/audit-log")
+		? "audit-log"
+		: "members";
+
 	return (
 		<div className="flex flex-col gap-4">
 			<div>
@@ -13,12 +23,29 @@ function TeamPage() {
 					Manage your team members and permissions
 				</p>
 			</div>
-			<div className="rounded-lg border border-border bg-surface p-8 text-center">
-				<p className="text-text-tertiary">No team members yet</p>
-				<p className="text-text-tertiary text-sm mt-1">
-					Invite your first team member to get started
-				</p>
+			<div className="flex gap-4 border-b border-border">
+				<Link
+					to="/dashboard/team/members"
+					className={`pb-2 text-sm font-medium border-b-2 transition-colors ${
+						currentTab === "members"
+							? "border-primary text-foreground"
+							: "border-transparent text-text-tertiary hover:text-foreground"
+					}`}
+				>
+					Members
+				</Link>
+				<Link
+					to="/dashboard/team/audit-log"
+					className={`pb-2 text-sm font-medium border-b-2 transition-colors ${
+						currentTab === "audit-log"
+							? "border-primary text-foreground"
+							: "border-transparent text-text-tertiary hover:text-foreground"
+					}`}
+				>
+					Audit Log
+				</Link>
 			</div>
+			<Outlet />
 		</div>
 	);
 }
