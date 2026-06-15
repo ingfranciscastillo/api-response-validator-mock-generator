@@ -1,3 +1,5 @@
+export * from "./schema/audit";
+export { apiKey, auditLog, comment } from "./schema/audit";
 export * from "./schema/auth";
 export {
 	account,
