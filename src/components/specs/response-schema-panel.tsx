@@ -37,10 +37,12 @@ export function extractSchema(
 	response: Record<string, unknown>,
 ): Record<string, unknown> | null {
 	const content = response.content as Record<string, unknown> | undefined;
-	if (!content) return null;
-	const jsonContent = content["application/json"] as
+	const jsonContent = content?.["application/json"] as
 		| Record<string, unknown>
 		| undefined;
-	if (!jsonContent) return null;
-	return (jsonContent.schema as Record<string, unknown>) ?? null;
+	if (jsonContent?.schema) return jsonContent.schema as Record<string, unknown>;
+
+	if (response.schema) return response.schema as Record<string, unknown>;
+
+	return null;
 }

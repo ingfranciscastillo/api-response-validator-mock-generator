@@ -60,13 +60,17 @@ function extractSchema(
 		(responses?.default as Record<string, unknown> | undefined) ??
 		null;
 	if (!responseSchema) return null;
-	const content = (responseSchema as Record<string, unknown>).content as
-		| Record<string, unknown>
-		| undefined;
+
+	const response = responseSchema as Record<string, unknown>;
+	const content = response.content as Record<string, unknown> | undefined;
 	const jsonContent = content?.["application/json"] as
 		| Record<string, unknown>
 		| undefined;
-	return (jsonContent?.schema as Record<string, unknown>) ?? null;
+	if (jsonContent?.schema) return jsonContent.schema as Record<string, unknown>;
+
+	if (response.schema) return response.schema as Record<string, unknown>;
+
+	return null;
 }
 
 export const validateResponse = createServerFn({ method: "POST" })
