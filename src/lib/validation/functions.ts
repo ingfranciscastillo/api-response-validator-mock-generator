@@ -9,6 +9,7 @@ import {
 } from "@/db/schema";
 import { writeAuditLog } from "@/lib/audit/functions";
 import { requireOrg } from "@/lib/auth/org";
+import { generateMock } from "@/lib/mocks/engine";
 import { validateResponseAgainstSchema } from "./engine";
 import { computeDiff } from "./response-diff";
 
@@ -101,7 +102,11 @@ export const validateResponse = createServerFn({ method: "POST" })
 		}
 
 		const result = validateResponseAgainstSchema(schema, data.responseBody);
-		const diffResult = computeDiff(data.responseBody, null, schema);
+		const diffResult = computeDiff(
+			data.responseBody,
+			await generateMock(schema),
+			schema,
+		);
 
 		return {
 			outcome: result.outcome,
@@ -118,6 +123,8 @@ export const validateResponse = createServerFn({ method: "POST" })
 				entries: diffResult.entries.map((e) => ({
 					type: e.type,
 					path: e.path,
+					value: e.value,
+					oldValue: e.oldValue,
 					breaking: e.breaking,
 					category: e.category,
 				})),
@@ -192,11 +199,23 @@ export const runValidation = createServerFn({ method: "POST" })
 		> = [];
 
 		if (schema) {
-			const diffResult = computeDiff(responseBody, schema, schema);
+			const diffResult = computeDiff(
+				responseBody,
+				await generateMock(schema),
+				schema,
+			);
 			for (const e of diffResult.entries) {
 				diffEntries.push({
 					type: e.type,
 					path: e.path,
+					value:
+						e.value !== undefined
+							? JSON.parse(JSON.stringify(e.value))
+							: undefined,
+					oldValue:
+						e.oldValue !== undefined
+							? JSON.parse(JSON.stringify(e.oldValue))
+							: undefined,
 					breaking: e.breaking,
 					category: e.category,
 				});
