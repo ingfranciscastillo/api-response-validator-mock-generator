@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { History } from "lucide-react";
+import { Ban, History } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback } from "#/components/ui/avatar";
 import { Badge } from "#/components/ui/badge";
@@ -15,16 +15,32 @@ export const Route = createFileRoute("/dashboard/team/audit-log")({
 });
 
 function AuditLogPage() {
-	const [entries, setEntries] = useState<
-		Awaited<ReturnType<typeof listAuditLog>>
-	>({ rows: [], total: 0, page: 1, pageSize: 50, totalPages: 0 });
+	const [entries, setEntries] = useState<{
+		rows: Array<{
+			id: string;
+			workspaceId: string;
+			actorId: string | null;
+			action: string;
+			entityType: string | null;
+			entityId: string | null;
+			metadata: unknown;
+			ipAddress: string | null;
+			createdAt: Date;
+		}>;
+		total: number;
+		page: number;
+		pageSize: number;
+		totalPages: number;
+	}>({ rows: [], total: 0, page: 1, pageSize: 50, totalPages: 0 });
 	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 	const [actionFilter, setActionFilter] = useState("");
 	const [page, setPage] = useState(1);
 	const [pageSize, setPageSize] = useState(50);
 
 	const fetchLogs = () => {
 		setLoading(true);
+		setError(null);
 		listAuditLog({
 			data: {
 				action: actionFilter || undefined,
@@ -32,7 +48,12 @@ function AuditLogPage() {
 				pageSize,
 			},
 		})
-			.then(setEntries)
+			.then((data) => {
+				setEntries(data as typeof entries);
+			})
+			.catch((e) => {
+				setError(e instanceof Error ? e.message : "Failed to load audit log");
+			})
 			.finally(() => setLoading(false));
 	};
 
@@ -55,6 +76,20 @@ function AuditLogPage() {
 				/>
 			</div>
 
+			{error && (
+				<Card>
+					<CardContent className="flex items-center gap-3 py-4">
+						<Ban className="size-5 text-red-500" />
+						<div>
+							<p className="text-sm font-medium text-red-600">
+								Permission Denied
+							</p>
+							<p className="text-xs text-muted-foreground mt-0.5">{error}</p>
+						</div>
+					</CardContent>
+				</Card>
+			)}
+
 			{loading ? (
 				<div className="space-y-2">
 					{Array.from({ length: 5 }).map((_, i) => (
@@ -69,7 +104,7 @@ function AuditLogPage() {
 						</Card>
 					))}
 				</div>
-			) : entries.rows.length === 0 ? (
+			) : error ? null : entries.rows.length === 0 ? (
 				<EmptyState
 					icon={<History className="size-8" />}
 					title="No audit log entries"

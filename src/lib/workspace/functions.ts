@@ -236,6 +236,31 @@ export const listApiKeys = createServerFn({ method: "GET" }).handler(
 	},
 );
 
+export const deleteWorkspace = createServerFn({ method: "POST" })
+	.validator((input: { workspaceId: string }) => input)
+	.handler(async ({ data }) => {
+		const { orgId, userId } = await requireOrg();
+
+		const role = await getUserRole(userId, orgId);
+		requireRole(role, "owner");
+
+		if (data.workspaceId !== orgId) {
+			throw new Error("Workspace ID mismatch");
+		}
+
+		await writeAuditLog({
+			workspaceId: orgId,
+			actorId: userId,
+			action: "workspace.deleted",
+			entityType: "organization",
+			entityId: orgId,
+		});
+
+		await db.delete(organization).where(eq(organization.id, orgId));
+
+		return { success: true };
+	});
+
 export const revokeApiKey = createServerFn({ method: "POST" })
 	.validator((input: { keyId: string }) => input)
 	.handler(async ({ data }) => {
