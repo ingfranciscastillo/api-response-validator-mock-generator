@@ -107,6 +107,16 @@ export const validateResponse = createServerFn({ method: "POST" })
 			await generateMock(schema),
 			schema,
 		);
+		const diffEntries = diffResult.entries
+			.filter((e) => !(e.type === "CHANGE" && e.category === "value_change"))
+			.map((e) => ({
+				type: e.type,
+				path: e.path,
+				value: e.value,
+				oldValue: e.oldValue,
+				breaking: e.breaking,
+				category: e.category,
+			}));
 
 		return {
 			outcome: result.outcome,
@@ -119,15 +129,8 @@ export const validateResponse = createServerFn({ method: "POST" })
 				severity: v.severity,
 			})),
 			diff: {
-				hasBreaking: diffResult.hasBreaking,
-				entries: diffResult.entries.map((e) => ({
-					type: e.type,
-					path: e.path,
-					value: e.value,
-					oldValue: e.oldValue,
-					breaking: e.breaking,
-					category: e.category,
-				})),
+				hasBreaking: diffEntries.some((e) => e.breaking),
+				entries: diffEntries,
 			},
 		};
 	});
@@ -205,6 +208,7 @@ export const runValidation = createServerFn({ method: "POST" })
 				schema,
 			);
 			for (const e of diffResult.entries) {
+				if (e.type === "CHANGE" && e.category === "value_change") continue;
 				diffEntries.push({
 					type: e.type,
 					path: e.path,
