@@ -77,10 +77,49 @@ export const breakingChangeAlert = inngest.createFunction(
 				);
 		});
 
-		await step.run("log-alert", async () => {
-			console.log(
-				`Breaking change alert ${alertId} dispatched to ${channels.length} channel(s)`,
-			);
+		await step.run("dispatch-notifications", async () => {
+			const alert = await db
+				.select()
+				.from(driftAlert)
+				.where(eq(driftAlert.id, alertId))
+				.then((r) => r[0]);
+
+			if (!alert) return;
+
+			const payload = {
+				alertId: alert.id,
+				specId,
+				type: alert.type,
+				severity: alert.severity,
+				summary: alert.summary,
+				detectedAt: alert.detectedAt.toISOString(),
+			};
+
+			for (const channel of channels) {
+				const config = channel.config as Record<string, string>;
+				try {
+					if (channel.type === "webhook" && config.url) {
+						await fetch(config.url, {
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({
+								event: "breaking_change_detected",
+								...payload,
+							}),
+						});
+					} else if (channel.type === "email" && config.email) {
+						console.log(
+							`[email] To: ${config.email}, Subject: Breaking Change Alert - ${alert.summary}`,
+							payload,
+						);
+					}
+				} catch (e) {
+					console.error(
+						`Failed to dispatch to channel ${channel.id} (${channel.type}):`,
+						e,
+					);
+				}
+			}
 		});
 
 		return { dispatched: channels.length };

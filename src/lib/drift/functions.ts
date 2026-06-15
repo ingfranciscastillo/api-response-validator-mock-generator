@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { driftAlert, driftCheck, specificationVersion } from "@/db/schema";
 import { writeAuditLog } from "@/lib/audit/functions";
 import { requireOrg } from "@/lib/auth/org";
+import { inngest } from "@/lib/inngest/client";
 import { compareSpecificationVersions } from "@/lib/specs/compare";
 
 export const getDriftAlerts = createServerFn({ method: "GET" })
@@ -82,6 +83,7 @@ export const checkSpecForDrift = createServerFn({ method: "POST" })
 		);
 
 		let alertsCreated = 0;
+		const createdAlerts: { id: string; severity: string }[] = [];
 		for (const change of comparison.changes.filter((c) => c.breaking)) {
 			const id = crypto.randomUUID();
 			await db.insert(driftAlert).values({
@@ -96,7 +98,19 @@ export const checkSpecForDrift = createServerFn({ method: "POST" })
 				changes: [change] as unknown as Record<string, unknown>[],
 				status: "open",
 			});
+			createdAlerts.push({ id, severity: "high" });
 			alertsCreated++;
+		}
+
+		for (const alert of createdAlerts) {
+			await inngest.send({
+				name: "drift/breaking-change-detected",
+				data: {
+					specId: data.specId,
+					workspaceId: orgId,
+					alertId: alert.id,
+				},
+			});
 		}
 
 		return {
