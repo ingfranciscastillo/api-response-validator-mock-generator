@@ -6,6 +6,7 @@ import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { Card, CardContent } from "#/components/ui/card";
 import { EmptyState } from "#/components/ui/empty-state";
+import { PaginationControls } from "#/components/ui/pagination-controls";
 import { Skeleton } from "#/components/ui/skeleton";
 import { getValidationRuns } from "#/lib/validation/functions";
 
@@ -24,15 +25,26 @@ const triggerLabels: Record<string, string> = {
 	api: "API",
 };
 
+const DEFAULT_PAGE_SIZE = 25;
+
 function ValidationPage() {
 	const [runs, setRuns] = useState<ValidationRun[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [page, setPage] = useState(1);
+	const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+	const [total, setTotal] = useState(0);
+	const [totalPages, setTotalPages] = useState(0);
 
 	useEffect(() => {
-		getValidationRuns({ data: {} })
-			.then((data) => setRuns(data.runs))
+		setLoading(true);
+		getValidationRuns({ data: { page, pageSize } })
+			.then((data) => {
+				setRuns(data.runs);
+				setTotal(data.total);
+				setTotalPages(data.totalPages);
+			})
 			.finally(() => setLoading(false));
-	}, []);
+	}, [page, pageSize]);
 
 	return (
 		<div className="flex flex-col gap-6">
@@ -79,83 +91,96 @@ function ValidationPage() {
 					}
 				/>
 			) : (
-				<div className="space-y-2">
-					{runs.map((run) => (
-						<Link
-							key={run.id}
-							to="/dashboard/validation/runs/$runId"
-							params={{ runId: run.id }}
-							className="block"
-						>
-							<Card className="hover:bg-muted/50 transition-colors">
-								<CardContent className="p-4">
-									<div className="flex items-center gap-4">
-										<Badge variant="secondary" className="shrink-0">
-											{triggerLabels[run.triggerType] ?? run.triggerType}
-										</Badge>
-										<div className="flex-1 min-w-0">
-											<p className="text-sm font-medium truncate">
-												{run.name ?? `Run ${run.id.slice(0, 8)}`}
-											</p>
-											<div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
-												<span>
-													{new Date(run.createdAt).toLocaleDateString()}{" "}
-													{new Date(run.createdAt).toLocaleTimeString()}
-												</span>
-												{run.completedAt && (
-													<span className="flex items-center gap-1">
-														<Clock className="size-3" />
-														{Math.round(
-															(new Date(run.completedAt).getTime() -
-																new Date(run.startedAt).getTime()) /
-																1000,
-														)}
-														s
+				<>
+					<div className="space-y-2">
+						{runs.map((run) => (
+							<Link
+								key={run.id}
+								to="/dashboard/validation/runs/$runId"
+								params={{ runId: run.id }}
+								className="block"
+							>
+								<Card className="hover:bg-muted/50 transition-colors">
+									<CardContent className="p-4">
+										<div className="flex items-center gap-4">
+											<Badge variant="secondary" className="shrink-0">
+												{triggerLabels[run.triggerType] ?? run.triggerType}
+											</Badge>
+											<div className="flex-1 min-w-0">
+												<p className="text-sm font-medium truncate">
+													{run.name ?? `Run ${run.id.slice(0, 8)}`}
+												</p>
+												<div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
+													<span>
+														{new Date(run.createdAt).toLocaleDateString()}{" "}
+														{new Date(run.createdAt).toLocaleTimeString()}
 													</span>
-												)}
+													{run.completedAt && (
+														<span className="flex items-center gap-1">
+															<Clock className="size-3" />
+															{Math.round(
+																(new Date(run.completedAt).getTime() -
+																	new Date(run.startedAt).getTime()) /
+																	1000,
+															)}
+															s
+														</span>
+													)}
+												</div>
 											</div>
+											<Badge
+												variant={
+													run.status === "completed"
+														? "default"
+														: run.status === "failed"
+															? "destructive"
+															: "secondary"
+												}
+												className="shrink-0"
+											>
+												{run.status}
+											</Badge>
 										</div>
-										<Badge
-											variant={
-												run.status === "completed"
-													? "default"
-													: run.status === "failed"
-														? "destructive"
-														: "secondary"
-											}
-											className="shrink-0"
-										>
-											{run.status}
-										</Badge>
-									</div>
-									<div className="flex items-center gap-2 mt-2">
-										<div className="flex items-center gap-1.5 text-xs">
-											<span className="text-green-600 dark:text-green-400 font-medium">
-												{run.passedChecks}
+										<div className="flex items-center gap-2 mt-2">
+											<div className="flex items-center gap-1.5 text-xs">
+												<span className="text-green-600 dark:text-green-400 font-medium">
+													{run.passedChecks}
+												</span>
+												<span className="text-muted-foreground">pass</span>
+											</div>
+											<div className="flex items-center gap-1.5 text-xs">
+												<span className="text-amber-600 dark:text-amber-400 font-medium">
+													{run.warningChecks}
+												</span>
+												<span className="text-muted-foreground">warn</span>
+											</div>
+											<div className="flex items-center gap-1.5 text-xs">
+												<span className="text-red-500 font-medium">
+													{run.failedChecks}
+												</span>
+												<span className="text-muted-foreground">fail</span>
+											</div>
+											<span className="text-xs text-muted-foreground ml-auto">
+												{run.totalChecks} checks
 											</span>
-											<span className="text-muted-foreground">pass</span>
 										</div>
-										<div className="flex items-center gap-1.5 text-xs">
-											<span className="text-amber-600 dark:text-amber-400 font-medium">
-												{run.warningChecks}
-											</span>
-											<span className="text-muted-foreground">warn</span>
-										</div>
-										<div className="flex items-center gap-1.5 text-xs">
-											<span className="text-red-500 font-medium">
-												{run.failedChecks}
-											</span>
-											<span className="text-muted-foreground">fail</span>
-										</div>
-										<span className="text-xs text-muted-foreground ml-auto">
-											{run.totalChecks} checks
-										</span>
-									</div>
-								</CardContent>
-							</Card>
-						</Link>
-					))}
-				</div>
+									</CardContent>
+								</Card>
+							</Link>
+						))}
+					</div>
+					<PaginationControls
+						page={page}
+						totalPages={totalPages}
+						total={total}
+						pageSize={pageSize}
+						onPageChange={setPage}
+						onPageSizeChange={(s) => {
+							setPageSize(s);
+							setPage(1);
+						}}
+					/>
+				</>
 			)}
 		</div>
 	);

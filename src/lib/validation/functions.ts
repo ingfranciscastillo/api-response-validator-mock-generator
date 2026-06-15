@@ -287,6 +287,8 @@ export const getValidationRuns = createServerFn({ method: "GET" })
 			triggerType?: string;
 			dateFrom?: string;
 			dateTo?: string;
+			page?: number;
+			pageSize?: number;
 		}) => input,
 	)
 	.handler(async ({ data }) => {
@@ -310,12 +312,17 @@ export const getValidationRuns = createServerFn({ method: "GET" })
 			conditions.push(lte(validationRun.createdAt, new Date(data.dateTo)));
 		}
 
+		const pageSize = data.pageSize ?? 25;
+		const page = data.page ?? 1;
+		const offset = (page - 1) * pageSize;
+
 		const runs = await db
 			.select()
 			.from(validationRun)
 			.where(and(...conditions))
 			.orderBy(desc(validationRun.createdAt))
-			.limit(50);
+			.limit(pageSize)
+			.offset(offset);
 
 		const total = await db
 			.select({ count: count() })
@@ -323,7 +330,13 @@ export const getValidationRuns = createServerFn({ method: "GET" })
 			.where(and(...conditions))
 			.then((r) => r[0]?.count ?? 0);
 
-		return { runs, total };
+		return {
+			runs,
+			total,
+			page,
+			pageSize,
+			totalPages: Math.ceil(total / pageSize),
+		};
 	});
 
 export const getValidationRun = createServerFn({ method: "GET", strict: false })
