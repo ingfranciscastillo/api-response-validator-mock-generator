@@ -170,7 +170,7 @@ function LoginPage() {
 				<CardFooter className="flex flex-col gap-4">
 					<div className="text-center text-sm text-muted-foreground">
 						<Link
-							to="/forgot-password"
+							to="/reset-password"
 							className="underline-offset-4 underline hover:text-foreground"
 						>
 							Forgot your password?
