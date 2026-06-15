@@ -24,6 +24,7 @@ import { Route as DashboardMocksRouteImport } from './routes/dashboard.mocks'
 import { Route as DashboardValidationWorkspaceRouteImport } from './routes/dashboard.validation.workspace'
 import { Route as DashboardSpecsNewRouteImport } from './routes/dashboard.specs.new'
 import { Route as DashboardSpecsSpecIdRouteImport } from './routes/dashboard.specs.$specId'
+import { Route as DashboardReportsReportIdRouteImport } from './routes/dashboard.reports.$reportId'
 import { Route as DashboardMocksMockIdRouteImport } from './routes/dashboard.mocks.$mockId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as DashboardValidationRunsRunIdRouteImport } from './routes/dashboard.validation.runs.$runId'
@@ -106,6 +107,12 @@ const DashboardSpecsSpecIdRoute = DashboardSpecsSpecIdRouteImport.update({
   path: '/$specId',
   getParentRoute: () => DashboardSpecsRoute,
 } as any)
+const DashboardReportsReportIdRoute =
+  DashboardReportsReportIdRouteImport.update({
+    id: '/$reportId',
+    path: '/$reportId',
+    getParentRoute: () => DashboardReportsRoute,
+  } as any)
 const DashboardMocksMockIdRoute = DashboardMocksMockIdRouteImport.update({
   id: '/$mockId',
   path: '/$mockId',
@@ -141,7 +148,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/dashboard/mocks': typeof DashboardMocksRouteWithChildren
-  '/dashboard/reports': typeof DashboardReportsRoute
+  '/dashboard/reports': typeof DashboardReportsRouteWithChildren
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/specs': typeof DashboardSpecsRouteWithChildren
   '/dashboard/team': typeof DashboardTeamRoute
@@ -149,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/mocks/$mockId': typeof DashboardMocksMockIdRoute
+  '/dashboard/reports/$reportId': typeof DashboardReportsReportIdRoute
   '/dashboard/specs/$specId': typeof DashboardSpecsSpecIdRouteWithChildren
   '/dashboard/specs/new': typeof DashboardSpecsNewRoute
   '/dashboard/validation/workspace': typeof DashboardValidationWorkspaceRoute
@@ -162,7 +170,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/dashboard/mocks': typeof DashboardMocksRouteWithChildren
-  '/dashboard/reports': typeof DashboardReportsRoute
+  '/dashboard/reports': typeof DashboardReportsRouteWithChildren
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/specs': typeof DashboardSpecsRouteWithChildren
   '/dashboard/team': typeof DashboardTeamRoute
@@ -170,6 +178,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/mocks/$mockId': typeof DashboardMocksMockIdRoute
+  '/dashboard/reports/$reportId': typeof DashboardReportsReportIdRoute
   '/dashboard/specs/$specId': typeof DashboardSpecsSpecIdRouteWithChildren
   '/dashboard/specs/new': typeof DashboardSpecsNewRoute
   '/dashboard/validation/workspace': typeof DashboardValidationWorkspaceRoute
@@ -185,7 +194,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/dashboard/mocks': typeof DashboardMocksRouteWithChildren
-  '/dashboard/reports': typeof DashboardReportsRoute
+  '/dashboard/reports': typeof DashboardReportsRouteWithChildren
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/specs': typeof DashboardSpecsRouteWithChildren
   '/dashboard/team': typeof DashboardTeamRoute
@@ -193,6 +202,7 @@ export interface FileRoutesById {
   '/dashboard/': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/mocks/$mockId': typeof DashboardMocksMockIdRoute
+  '/dashboard/reports/$reportId': typeof DashboardReportsReportIdRoute
   '/dashboard/specs/$specId': typeof DashboardSpecsSpecIdRouteWithChildren
   '/dashboard/specs/new': typeof DashboardSpecsNewRoute
   '/dashboard/validation/workspace': typeof DashboardValidationWorkspaceRoute
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/api/auth/$'
     | '/dashboard/mocks/$mockId'
+    | '/dashboard/reports/$reportId'
     | '/dashboard/specs/$specId'
     | '/dashboard/specs/new'
     | '/dashboard/validation/workspace'
@@ -238,6 +249,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/api/auth/$'
     | '/dashboard/mocks/$mockId'
+    | '/dashboard/reports/$reportId'
     | '/dashboard/specs/$specId'
     | '/dashboard/specs/new'
     | '/dashboard/validation/workspace'
@@ -260,6 +272,7 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/api/auth/$'
     | '/dashboard/mocks/$mockId'
+    | '/dashboard/reports/$reportId'
     | '/dashboard/specs/$specId'
     | '/dashboard/specs/new'
     | '/dashboard/validation/workspace'
@@ -385,6 +398,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSpecsSpecIdRouteImport
       parentRoute: typeof DashboardSpecsRoute
     }
+    '/dashboard/reports/$reportId': {
+      id: '/dashboard/reports/$reportId'
+      path: '/$reportId'
+      fullPath: '/dashboard/reports/$reportId'
+      preLoaderRoute: typeof DashboardReportsReportIdRouteImport
+      parentRoute: typeof DashboardReportsRoute
+    }
     '/dashboard/mocks/$mockId': {
       id: '/dashboard/mocks/$mockId'
       path: '/$mockId'
@@ -435,6 +455,17 @@ const DashboardMocksRouteWithChildren = DashboardMocksRoute._addFileChildren(
   DashboardMocksRouteChildren,
 )
 
+interface DashboardReportsRouteChildren {
+  DashboardReportsReportIdRoute: typeof DashboardReportsReportIdRoute
+}
+
+const DashboardReportsRouteChildren: DashboardReportsRouteChildren = {
+  DashboardReportsReportIdRoute: DashboardReportsReportIdRoute,
+}
+
+const DashboardReportsRouteWithChildren =
+  DashboardReportsRoute._addFileChildren(DashboardReportsRouteChildren)
+
 interface DashboardSpecsSpecIdRouteChildren {
   DashboardSpecsSpecIdEndpointsEndpointIdRoute: typeof DashboardSpecsSpecIdEndpointsEndpointIdRoute
 }
@@ -476,7 +507,7 @@ const DashboardValidationRouteWithChildren =
 
 interface DashboardRouteChildren {
   DashboardMocksRoute: typeof DashboardMocksRouteWithChildren
-  DashboardReportsRoute: typeof DashboardReportsRoute
+  DashboardReportsRoute: typeof DashboardReportsRouteWithChildren
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardSpecsRoute: typeof DashboardSpecsRouteWithChildren
   DashboardTeamRoute: typeof DashboardTeamRoute
@@ -486,7 +517,7 @@ interface DashboardRouteChildren {
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardMocksRoute: DashboardMocksRouteWithChildren,
-  DashboardReportsRoute: DashboardReportsRoute,
+  DashboardReportsRoute: DashboardReportsRouteWithChildren,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardSpecsRoute: DashboardSpecsRouteWithChildren,
   DashboardTeamRoute: DashboardTeamRoute,
