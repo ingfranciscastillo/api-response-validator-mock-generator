@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, FlaskConical, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MockPayloadViewer } from "#/components/mocks/mock-payload-viewer";
+import { CommentsSection } from "#/components/shared/CommentsSection";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
@@ -190,6 +191,12 @@ function MockDetailPage() {
 					)}
 				</CardContent>
 			</Card>
+
+			<CommentsSection
+				workspaceId=""
+				entityType="mock_dataset"
+				entityId={mockId}
+			/>
 
 			<Card>
 				<CardHeader>

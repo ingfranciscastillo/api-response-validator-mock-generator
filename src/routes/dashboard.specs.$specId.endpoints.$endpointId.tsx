@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Beaker, Clock, FlaskConical } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
+import { CommentsSection } from "#/components/shared/CommentsSection";
 import { extractSchema } from "#/components/specs/response-schema-panel";
 import { SchemaTreeViewer } from "#/components/specs/schema-tree-viewer";
 import { Badge } from "#/components/ui/badge";
@@ -181,6 +182,7 @@ function EndpointDetailPage() {
 					<TabsTrigger value="responses">Responses</TabsTrigger>
 					<TabsTrigger value="mocks">Mocks</TabsTrigger>
 					<TabsTrigger value="history">Validation History</TabsTrigger>
+					<TabsTrigger value="comments">Comments</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="request">
@@ -379,6 +381,14 @@ function EndpointDetailPage() {
 							)}
 						</CardContent>
 					</Card>
+				</TabsContent>
+
+				<TabsContent value="comments">
+					<CommentsSection
+						workspaceId=""
+						entityType="endpoint"
+						entityId={endpointId}
+					/>
 				</TabsContent>
 			</Tabs>
 		</div>

@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, desc, eq, gte, lte } from "drizzle-orm";
 import { db } from "@/db";
-import { auditLog, comment } from "@/db/schema";
+import { auditLog, comment, user } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { getUserRole, requireRole } from "@/lib/auth/permissions";
 
@@ -34,9 +34,21 @@ export const listComments = createServerFn({ method: "GET" })
 		const session = await auth.api.getSession({ headers });
 		if (!session) throw new Error("Unauthorized");
 
-		return db
-			.select()
+		const rows = await db
+			.select({
+				id: comment.id,
+				workspaceId: comment.workspaceId,
+				authorId: comment.authorId,
+				entityType: comment.entityType,
+				entityId: comment.entityId,
+				body: comment.body,
+				createdAt: comment.createdAt,
+				updatedAt: comment.updatedAt,
+				authorName: user.name,
+				authorImage: user.image,
+			})
 			.from(comment)
+			.leftJoin(user, eq(comment.authorId, user.id))
 			.where(
 				and(
 					eq(comment.entityType, data.entityType),
@@ -45,6 +57,12 @@ export const listComments = createServerFn({ method: "GET" })
 				),
 			)
 			.orderBy(desc(comment.createdAt));
+
+		return rows.map((r) => ({
+			...r,
+			authorName: r.authorName ?? "Unknown",
+			authorImage: r.authorImage ?? null,
+		}));
 	});
 
 export const createComment = createServerFn({ method: "POST" })

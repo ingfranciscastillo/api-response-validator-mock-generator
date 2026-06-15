@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, ChevronDown, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { CommentsSection } from "#/components/shared/CommentsSection";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { getEndpoints, getSpec } from "#/lib/specs/functions";
@@ -158,6 +159,12 @@ function SpecDetailPage() {
 					</div>
 				)}
 			</div>
+
+			<CommentsSection
+				workspaceId=""
+				entityType="specification"
+				entityId={specId}
+			/>
 		</div>
 	);
 }

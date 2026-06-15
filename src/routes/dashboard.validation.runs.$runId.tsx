@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { CommentsSection } from "#/components/shared/CommentsSection";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import type { ValidationResultData } from "#/components/validation/validation-result-card";
@@ -161,6 +162,12 @@ function ValidationRunDetailPage() {
 					))
 				)}
 			</div>
+
+			<CommentsSection
+				workspaceId=""
+				entityType="validation_run"
+				entityId={runId}
+			/>
 		</div>
 	);
 }
