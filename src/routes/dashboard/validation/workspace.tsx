@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Button } from "#/components/ui/button";
 import { ValidationRequestBuilder } from "#/components/validation/validation-request-builder";
-import { getEndpoints, getSpecs } from "#/lib/specs/functions";
+import { getEndpoints, getSpec, getSpecs } from "#/lib/specs/functions";
 
 export const Route = createFileRoute("/dashboard/validation/workspace")({
 	validateSearch: z.object({
@@ -49,19 +49,11 @@ function ValidationWorkspacePage() {
 			setEndpoints([]);
 			return;
 		}
-		getSpecs()
-			.then((list) => {
-				const spec = list.find((s) => s.id === selectedSpecId);
-				if (spec) {
-					const versions_ = (spec as Record<string, unknown>).versions as
-						| Array<Record<string, unknown>>
-						| undefined;
-					const latestVersionId = versions_?.[0]?.id as string | undefined;
-					if (latestVersionId) {
-						return getEndpoints({
-							data: { specVersionId: latestVersionId },
-						});
-					}
+		getSpec({ data: { specId: selectedSpecId } })
+			.then((spec) => {
+				const versionId = spec?.versions?.[0]?.id;
+				if (versionId) {
+					return getEndpoints({ data: { specVersionId: versionId } });
 				}
 				return [] as EndpointData[];
 			})
