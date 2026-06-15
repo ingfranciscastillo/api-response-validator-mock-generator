@@ -24,7 +24,7 @@ function ReportsPage() {
 
 	const fetchReports = () => {
 		setLoading(true);
-		getReports({ data: { organizationId: "" } })
+		getReports()
 			.then(setReports)
 			.finally(() => setLoading(false));
 	};
@@ -41,7 +41,7 @@ function ReportsPage() {
 		setGenerating(true);
 		try {
 			await createReport({
-				data: { organizationId: "", ...data },
+				data: { ...data },
 			});
 			setDialogOpen(false);
 			fetchReports();

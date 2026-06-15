@@ -36,7 +36,7 @@ function MembersPage() {
 
 	const fetchMembers = () => {
 		setLoading(true);
-		listMembers({ data: { organizationId: "" } })
+		listMembers()
 			.then(setMembers)
 			.finally(() => setLoading(false));
 	};
@@ -51,7 +51,6 @@ function MembersPage() {
 		try {
 			await inviteMember({
 				data: {
-					organizationId: "",
 					email: inviteEmail,
 					role: inviteRole,
 				},
@@ -65,14 +64,14 @@ function MembersPage() {
 
 	const handleRoleChange = async (memberId: string, role: string) => {
 		await updateMemberRole({
-			data: { organizationId: "", memberId, role },
+			data: { memberId, role },
 		});
 		fetchMembers();
 	};
 
 	const handleRemove = async (memberId: string) => {
 		await removeMember({
-			data: { organizationId: "", memberId },
+			data: { memberId },
 		});
 		fetchMembers();
 	};

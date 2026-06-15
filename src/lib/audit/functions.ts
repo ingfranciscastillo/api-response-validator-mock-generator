@@ -1,9 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, desc, eq, gte, lte } from "drizzle-orm";
 import { db } from "@/db";
 import { auditLog, comment, user } from "@/db/schema";
-import { auth } from "@/lib/auth";
+import { requireOrg } from "@/lib/auth/org";
 import { getUserRole, requireRole } from "@/lib/auth/permissions";
 
 export async function writeAuditLog(input: {
@@ -30,9 +29,7 @@ export async function writeAuditLog(input: {
 export const listComments = createServerFn({ method: "GET" })
 	.validator((input: { entityType: string; entityId: string }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		await requireOrg();
 
 		const rows = await db
 			.select({
@@ -67,48 +64,38 @@ export const listComments = createServerFn({ method: "GET" })
 
 export const createComment = createServerFn({ method: "POST" })
 	.validator(
-		(input: {
-			workspaceId: string;
-			entityType: string;
-			entityId: string;
-			body: string;
-		}) => input,
+		(input: { entityType: string; entityId: string; body: string }) => input,
 	)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId, userId, ipAddress } = await requireOrg();
 
 		const id = crypto.randomUUID();
 		await db.insert(comment).values({
 			id,
-			workspaceId: data.workspaceId,
-			authorId: session.user.id,
+			workspaceId: orgId,
+			authorId: userId,
 			entityType: data.entityType,
 			entityId: data.entityId,
 			body: data.body,
 		});
 
-		const ip = headers.get("x-forwarded-for") ?? undefined;
 		await writeAuditLog({
-			workspaceId: data.workspaceId,
-			actorId: session.user.id,
+			workspaceId: orgId,
+			actorId: userId,
 			action: "comment.created",
 			entityType: data.entityType,
 			entityId: data.entityId,
 			metadata: { commentId: id },
-			ipAddress: ip,
+			ipAddress,
 		});
 
 		return { id };
 	});
 
 export const deleteComment = createServerFn({ method: "POST" })
-	.validator((input: { commentId: string; workspaceId: string }) => input)
+	.validator((input: { commentId: string }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId, userId, ipAddress } = await requireOrg();
 
 		const existing = await db
 			.select()
@@ -119,9 +106,9 @@ export const deleteComment = createServerFn({ method: "POST" })
 		if (!existing) throw new Error("Comment not found");
 		if (existing.deletedAt) throw new Error("Comment already deleted");
 
-		const isAuthor = existing.authorId === session.user.id;
+		const isAuthor = existing.authorId === userId;
 		if (!isAuthor) {
-			const role = await getUserRole(session.user.id, data.workspaceId);
+			const role = await getUserRole(userId, orgId);
 			requireRole(role, "admin");
 		}
 
@@ -130,15 +117,14 @@ export const deleteComment = createServerFn({ method: "POST" })
 			.set({ deletedAt: new Date() })
 			.where(eq(comment.id, data.commentId));
 
-		const ip = headers.get("x-forwarded-for") ?? undefined;
 		await writeAuditLog({
-			workspaceId: data.workspaceId,
-			actorId: session.user.id,
+			workspaceId: orgId,
+			actorId: userId,
 			action: "comment.deleted",
 			entityType: existing.entityType,
 			entityId: existing.entityId,
 			metadata: { commentId: data.commentId },
-			ipAddress: ip,
+			ipAddress,
 		});
 
 		return { success: true };
@@ -147,7 +133,6 @@ export const deleteComment = createServerFn({ method: "POST" })
 export const listAuditLog = createServerFn({ method: "GET" })
 	.validator(
 		(input: {
-			workspaceId: string;
 			entityType?: string;
 			entityId?: string;
 			actorId?: string;
@@ -159,14 +144,12 @@ export const listAuditLog = createServerFn({ method: "GET" })
 		}) => input,
 	)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId, userId } = await requireOrg();
 
-		const role = await getUserRole(session.user.id, data.workspaceId);
+		const role = await getUserRole(userId, orgId);
 		requireRole(role, "admin");
 
-		const filters = [eq(auditLog.workspaceId, data.workspaceId)];
+		const filters = [eq(auditLog.workspaceId, orgId)];
 
 		if (data.entityType) filters.push(eq(auditLog.entityType, data.entityType));
 		if (data.entityId) filters.push(eq(auditLog.entityId, data.entityId));

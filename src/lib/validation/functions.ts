@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, count, desc, eq, gte, lte } from "drizzle-orm";
 import { db } from "@/db";
 import {
@@ -9,7 +8,7 @@ import {
 	validationRun,
 } from "@/db/schema";
 import { writeAuditLog } from "@/lib/audit/functions";
-import { auth } from "@/lib/auth";
+import { requireOrg } from "@/lib/auth/org";
 import { validateResponseAgainstSchema } from "./engine";
 import { computeDiff } from "./response-diff";
 
@@ -23,9 +22,7 @@ export const sendTestRequest = createServerFn({ method: "POST" })
 		}) => input,
 	)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		await requireOrg();
 
 		const start = Date.now();
 		const response = await fetch(data.url, {
@@ -80,9 +77,7 @@ export const validateResponse = createServerFn({ method: "POST" })
 		}) => input,
 	)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		await requireOrg();
 
 		const ep = await db
 			.select()
@@ -135,7 +130,6 @@ export const runValidation = createServerFn({ method: "POST" })
 		(input: {
 			specId: string;
 			endpointId: string;
-			organizationId: string;
 			url: string;
 			method: string;
 			headers?: Record<string, string>;
@@ -144,9 +138,7 @@ export const runValidation = createServerFn({ method: "POST" })
 		}) => input,
 	)
 	.handler(async ({ data }) => {
-		const reqHeaders = getRequestHeaders();
-		const session = await auth.api.getSession({ headers: reqHeaders });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId, userId, ipAddress } = await requireOrg();
 
 		const start = Date.now();
 		const fetchRes = await fetch(data.url, {
@@ -217,10 +209,9 @@ export const runValidation = createServerFn({ method: "POST" })
 			runId = crypto.randomUUID();
 			const resultId = crypto.randomUUID();
 
-			const ipVal = reqHeaders.get("x-forwarded-for") ?? undefined;
 			await writeAuditLog({
-				workspaceId: data.organizationId,
-				actorId: session.user.id,
+				workspaceId: orgId,
+				actorId: userId,
 				action: "validation.run_completed",
 				entityType: "validation_run",
 				entityId: runId,
@@ -229,12 +220,12 @@ export const runValidation = createServerFn({ method: "POST" })
 					outcome: validationOutcome,
 					statusCode: fetchRes.status,
 				},
-				ipAddress: ipVal,
+				ipAddress,
 			});
 
 			await db.insert(validationRun).values({
 				id: runId,
-				workspaceId: data.organizationId,
+				workspaceId: orgId,
 				specificationId: data.specId,
 				triggerType: "manual",
 				status: "completed",
@@ -244,14 +235,14 @@ export const runValidation = createServerFn({ method: "POST" })
 				failedChecks: validationOutcome === "fail" ? 1 : 0,
 				startedAt: new Date(),
 				completedAt: new Date(),
-				createdBy: session.user.id,
+				createdBy: userId,
 			});
 
 			await db.insert(validationResult).values({
 				id: resultId,
 				runId,
 				endpointId: data.endpointId,
-				workspaceId: data.organizationId,
+				workspaceId: orgId,
 				requestSnapshot: {
 					method: data.method,
 					url: data.url,
@@ -291,7 +282,6 @@ export const runValidation = createServerFn({ method: "POST" })
 export const getValidationRuns = createServerFn({ method: "GET" })
 	.validator(
 		(input: {
-			organizationId: string;
 			specId?: string;
 			status?: string;
 			triggerType?: string;
@@ -300,11 +290,9 @@ export const getValidationRuns = createServerFn({ method: "GET" })
 		}) => input,
 	)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId } = await requireOrg();
 
-		const conditions = [eq(validationRun.workspaceId, data.organizationId)];
+		const conditions = [eq(validationRun.workspaceId, orgId)];
 
 		if (data.specId) {
 			conditions.push(eq(validationRun.specificationId, data.specId));
@@ -341,9 +329,7 @@ export const getValidationRuns = createServerFn({ method: "GET" })
 export const getValidationRun = createServerFn({ method: "GET", strict: false })
 	.validator((input: { runId: string }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		await requireOrg();
 
 		const run = await db
 			.select()
@@ -380,9 +366,7 @@ export const getEndpointValidationHistory = createServerFn({
 })
 	.validator((input: { endpointId: string }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId } = await requireOrg();
 
 		const results = await db
 			.select({
@@ -399,7 +383,12 @@ export const getEndpointValidationHistory = createServerFn({
 				createdAt: validationResult.createdAt,
 			})
 			.from(validationResult)
-			.where(eq(validationResult.endpointId, data.endpointId))
+			.where(
+				and(
+					eq(validationResult.endpointId, data.endpointId),
+					eq(validationResult.workspaceId, orgId),
+				),
+			)
 			.orderBy(desc(validationResult.createdAt))
 			.limit(25);
 

@@ -35,7 +35,6 @@ function MocksPage() {
 		setLoading(true);
 		getMocks({
 			data: {
-				organizationId: "",
 				search: search || undefined,
 				specId: specFilter !== "all" ? specFilter : undefined,
 			},
@@ -49,7 +48,7 @@ function MocksPage() {
 	}, [fetchMocks]);
 
 	useEffect(() => {
-		getSpecs({ data: { organizationId: "" } }).then(setSpecs);
+		getSpecs().then(setSpecs);
 	}, []);
 
 	const handleSearch = () => {

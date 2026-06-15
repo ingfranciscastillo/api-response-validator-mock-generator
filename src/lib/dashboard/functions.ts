@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, count, desc, eq, gte, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
@@ -9,7 +8,7 @@ import {
 	validationResult,
 	validationRun,
 } from "@/db/schema";
-import { auth } from "@/lib/auth";
+import { requireOrg } from "@/lib/auth/org";
 
 export interface DashboardOverview {
 	totalSpecs: number;
@@ -30,24 +29,21 @@ export interface DashboardOverview {
 	}>;
 }
 
-export const getDashboardOverview = createServerFn({ method: "GET" })
-	.validator((input: { organizationId: string }) => input)
-	.handler(async ({ data }): Promise<DashboardOverview> => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+export const getDashboardOverview = createServerFn({ method: "GET" }).handler(
+	async (): Promise<DashboardOverview> => {
+		const { orgId } = await requireOrg();
 
 		const [specs] = await db
 			.select({ count: count() })
 			.from(specification)
-			.where(eq(specification.organizationId, data.organizationId));
+			.where(eq(specification.organizationId, orgId));
 		const totalSpecs = specs?.count ?? 0;
 
 		const [eps] = await db
 			.select({ count: count() })
 			.from(endpoint)
 			.innerJoin(specification, eq(endpoint.specId, specification.id))
-			.where(eq(specification.organizationId, data.organizationId));
+			.where(eq(specification.organizationId, orgId));
 		const totalEndpoints = eps?.count ?? 0;
 
 		const [mocks] = await db
@@ -55,7 +51,7 @@ export const getDashboardOverview = createServerFn({ method: "GET" })
 			.from(mockDataset)
 			.where(
 				and(
-					eq(mockDataset.workspaceId, data.organizationId),
+					eq(mockDataset.workspaceId, orgId),
 					sql`${mockDataset.deletedAt} IS NULL`,
 				),
 			);
@@ -64,7 +60,7 @@ export const getDashboardOverview = createServerFn({ method: "GET" })
 		const [runs] = await db
 			.select({ count: count() })
 			.from(validationRun)
-			.where(eq(validationRun.workspaceId, data.organizationId));
+			.where(eq(validationRun.workspaceId, orgId));
 		const totalRuns = runs?.count ?? 0;
 
 		const [passResult] = await db
@@ -72,7 +68,7 @@ export const getDashboardOverview = createServerFn({ method: "GET" })
 			.from(validationResult)
 			.where(
 				and(
-					eq(validationResult.workspaceId, data.organizationId),
+					eq(validationResult.workspaceId, orgId),
 					eq(validationResult.outcome, "pass"),
 				),
 			);
@@ -81,7 +77,7 @@ export const getDashboardOverview = createServerFn({ method: "GET" })
 			.from(validationResult)
 			.where(
 				and(
-					eq(validationResult.workspaceId, data.organizationId),
+					eq(validationResult.workspaceId, orgId),
 					eq(validationResult.outcome, "fail"),
 				),
 			);
@@ -90,7 +86,7 @@ export const getDashboardOverview = createServerFn({ method: "GET" })
 			.from(validationResult)
 			.where(
 				and(
-					eq(validationResult.workspaceId, data.organizationId),
+					eq(validationResult.workspaceId, orgId),
 					eq(validationResult.outcome, "warning"),
 				),
 			);
@@ -117,7 +113,7 @@ export const getDashboardOverview = createServerFn({ method: "GET" })
 				createdAt: validationRun.createdAt,
 			})
 			.from(validationRun)
-			.where(eq(validationRun.workspaceId, data.organizationId))
+			.where(eq(validationRun.workspaceId, orgId))
 			.orderBy(desc(validationRun.createdAt))
 			.limit(10);
 
@@ -131,7 +127,8 @@ export const getDashboardOverview = createServerFn({ method: "GET" })
 			failRate,
 			recentRuns,
 		};
-	});
+	},
+);
 
 export interface DailyCount {
 	date: string;
@@ -141,11 +138,9 @@ export interface DailyCount {
 }
 
 export const getDashboardCharts = createServerFn({ method: "GET" })
-	.validator((input: { organizationId: string; days?: number }) => input)
+	.validator((input: { days?: number }) => input)
 	.handler(async ({ data }): Promise<{ daily: DailyCount[] }> => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId } = await requireOrg();
 
 		const days = data.days ?? 14;
 		const since = new Date();
@@ -160,7 +155,7 @@ export const getDashboardCharts = createServerFn({ method: "GET" })
 			.from(validationResult)
 			.where(
 				and(
-					eq(validationResult.workspaceId, data.organizationId),
+					eq(validationResult.workspaceId, orgId),
 					gte(validationResult.createdAt, since),
 				),
 			)

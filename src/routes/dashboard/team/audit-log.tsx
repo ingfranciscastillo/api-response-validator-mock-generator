@@ -28,7 +28,6 @@ function AuditLogPage() {
 		setLoading(true);
 		listAuditLog({
 			data: {
-				workspaceId: "",
 				action: actionFilter || undefined,
 				page: 1,
 				pageSize: 50,

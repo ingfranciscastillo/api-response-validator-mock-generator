@@ -163,11 +163,7 @@ function ValidationRunDetailPage() {
 				)}
 			</div>
 
-			<CommentsSection
-				workspaceId=""
-				entityType="validation_run"
-				entityId={runId}
-			/>
+			<CommentsSection entityType="validation_run" entityId={runId} />
 		</div>
 	);
 }

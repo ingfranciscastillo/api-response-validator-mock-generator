@@ -1,10 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeaders } from "@tanstack/react-start/server";
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { endpoint, specification, specificationVersion } from "@/db/schema";
 import { writeAuditLog } from "@/lib/audit/functions";
-import { auth } from "@/lib/auth";
+import { requireOrg } from "@/lib/auth/org";
 import { buildSummary, parseSpec, parseSpecFromUrl } from "./parser";
 
 export const importSpec = createServerFn({ method: "POST" })
@@ -12,15 +11,12 @@ export const importSpec = createServerFn({ method: "POST" })
 		(input: {
 			name: string;
 			description?: string;
-			organizationId: string;
 			specContent?: string;
 			specUrl?: string;
 		}) => input,
 	)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId, userId, ipAddress } = await requireOrg();
 
 		const parsed = data.specUrl
 			? await parseSpecFromUrl(data.specUrl)
@@ -35,7 +31,7 @@ export const importSpec = createServerFn({ method: "POST" })
 			id: specId,
 			name: data.name,
 			description: data.description ?? null,
-			organizationId: data.organizationId,
+			organizationId: orgId,
 		});
 
 		await db.insert(specificationVersion).values({
@@ -63,10 +59,9 @@ export const importSpec = createServerFn({ method: "POST" })
 			);
 		}
 
-		const ip = headers.get("x-forwarded-for") ?? undefined;
 		await writeAuditLog({
-			workspaceId: data.organizationId,
-			actorId: session.user.id,
+			workspaceId: orgId,
+			actorId: userId,
 			action: "spec.imported",
 			entityType: "specification",
 			entityId: specId,
@@ -75,34 +70,28 @@ export const importSpec = createServerFn({ method: "POST" })
 				version: 1,
 				endpointCount: parsed.endpoints.length,
 			},
-			ipAddress: ip,
+			ipAddress,
 		});
 
 		return { specId, versionId, endpointCount: parsed.endpoints.length };
 	});
 
-export const getSpecs = createServerFn({ method: "GET" })
-	.validator((input: { organizationId: string }) => input)
-	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+export const getSpecs = createServerFn({ method: "GET" }).handler(async () => {
+	const { orgId } = await requireOrg();
 
-		const specs = await db
-			.select()
-			.from(specification)
-			.where(eq(specification.organizationId, data.organizationId))
-			.orderBy(desc(specification.updatedAt));
+	const specs = await db
+		.select()
+		.from(specification)
+		.where(eq(specification.organizationId, orgId))
+		.orderBy(desc(specification.updatedAt));
 
-		return specs;
-	});
+	return specs;
+});
 
 export const getSpec = createServerFn({ method: "GET", strict: false })
 	.validator((input: { specId: string }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		await requireOrg();
 
 		const spec = await db
 			.select()
@@ -124,9 +113,7 @@ export const getSpec = createServerFn({ method: "GET", strict: false })
 export const getEndpoint = createServerFn({ method: "GET", strict: false })
 	.validator((input: { endpointId: string }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		await requireOrg();
 
 		const ep = await db
 			.select()
@@ -142,9 +129,7 @@ export const getEndpoint = createServerFn({ method: "GET", strict: false })
 export const getEndpoints = createServerFn({ method: "GET", strict: false })
 	.validator((input: { specVersionId: string }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		await requireOrg();
 
 		const endpoints_ = await db
 			.select()
@@ -158,9 +143,7 @@ export const getEndpoints = createServerFn({ method: "GET", strict: false })
 export const getSpecVersions = createServerFn({ method: "GET" })
 	.validator((input: { specId: string }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		await requireOrg();
 
 		return db
 			.select({

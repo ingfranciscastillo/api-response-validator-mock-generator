@@ -27,11 +27,9 @@ interface Comment {
 }
 
 function CommentsSection({
-	workspaceId,
 	entityType,
 	entityId,
 }: {
-	workspaceId: string;
 	entityType: string;
 	entityId: string;
 }) {
@@ -65,7 +63,6 @@ function CommentsSection({
 		try {
 			await createComment({
 				data: {
-					workspaceId,
 					entityType,
 					entityId,
 					body: body.trim(),
@@ -81,7 +78,7 @@ function CommentsSection({
 	const handleDelete = async (commentId: string) => {
 		try {
 			await deleteComment({
-				data: { commentId, workspaceId },
+				data: { commentId },
 			});
 			await fetchComments();
 		} catch {

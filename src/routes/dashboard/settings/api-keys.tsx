@@ -34,7 +34,7 @@ function ApiKeysPage() {
 
 	const fetchKeys = () => {
 		setLoading(true);
-		listApiKeys({ data: { workspaceId: "" } })
+		listApiKeys()
 			.then((k) => setKeys(k as typeof keys))
 			.finally(() => setLoading(false));
 	};
@@ -48,7 +48,7 @@ function ApiKeysPage() {
 		setCreating(true);
 		try {
 			const result = await createApiKey({
-				data: { workspaceId: "", name: newName, scopes: [newScope] },
+				data: { name: newName, scopes: [newScope] },
 			});
 			setNewKeyRaw(result.rawKey);
 			setNewName("");
@@ -59,7 +59,7 @@ function ApiKeysPage() {
 	};
 
 	const handleRevoke = async (keyId: string) => {
-		await revokeApiKey({ data: { workspaceId: "", keyId } });
+		await revokeApiKey({ data: { keyId } });
 		fetchKeys();
 	};
 

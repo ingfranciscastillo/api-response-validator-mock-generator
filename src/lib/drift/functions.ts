@@ -1,20 +1,17 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { driftAlert, driftCheck, specificationVersion } from "@/db/schema";
 import { writeAuditLog } from "@/lib/audit/functions";
-import { auth } from "@/lib/auth";
+import { requireOrg } from "@/lib/auth/org";
 import { compareSpecificationVersions } from "@/lib/specs/compare";
 
 export const getDriftAlerts = createServerFn({ method: "GET" })
-	.validator((input: { organizationId: string; status?: string }) => input)
+	.validator((input: { status?: string }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId } = await requireOrg();
 
-		const filters = [eq(driftAlert.workspaceId, data.organizationId)];
+		const filters = [eq(driftAlert.workspaceId, orgId)];
 		if (data.status) filters.push(eq(driftAlert.status, data.status));
 
 		return db
@@ -27,14 +24,14 @@ export const getDriftAlerts = createServerFn({ method: "GET" })
 export const resolveDriftAlert = createServerFn({ method: "POST" })
 	.validator((input: { alertId: string }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId, userId, ipAddress } = await requireOrg();
 
 		const alert = await db
 			.select()
 			.from(driftAlert)
-			.where(eq(driftAlert.id, data.alertId))
+			.where(
+				and(eq(driftAlert.id, data.alertId), eq(driftAlert.workspaceId, orgId)),
+			)
 			.then((r) => r[0] ?? null);
 
 		if (!alert) throw new Error("Alert not found");
@@ -44,30 +41,27 @@ export const resolveDriftAlert = createServerFn({ method: "POST" })
 			.set({
 				status: "resolved",
 				resolvedAt: new Date(),
-				resolvedBy: session.user.id,
+				resolvedBy: userId,
 			})
 			.where(eq(driftAlert.id, data.alertId));
 
-		const ip = headers.get("x-forwarded-for") ?? undefined;
 		await writeAuditLog({
 			workspaceId: alert.workspaceId,
-			actorId: session.user.id,
+			actorId: userId,
 			action: "drift.alert.resolved",
 			entityType: "drift_alert",
 			entityId: data.alertId,
 			metadata: { specId: alert.specId, severity: alert.severity },
-			ipAddress: ip,
+			ipAddress,
 		});
 
 		return { success: true };
 	});
 
 export const checkSpecForDrift = createServerFn({ method: "POST" })
-	.validator((input: { specId: string; organizationId: string }) => input)
+	.validator((input: { specId: string }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId } = await requireOrg();
 
 		const versions = await db
 			.select()
@@ -92,7 +86,7 @@ export const checkSpecForDrift = createServerFn({ method: "POST" })
 			const id = crypto.randomUUID();
 			await db.insert(driftAlert).values({
 				id,
-				workspaceId: data.organizationId,
+				workspaceId: orgId,
 				specId: data.specId,
 				fromVersionId: previous.id,
 				toVersionId: latest.id,
@@ -111,36 +105,29 @@ export const checkSpecForDrift = createServerFn({ method: "POST" })
 		};
 	});
 
-export const getDriftChecks = createServerFn({ method: "GET" })
-	.validator((input: { organizationId: string }) => input)
-	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+export const getDriftChecks = createServerFn({ method: "GET" }).handler(
+	async () => {
+		const { orgId } = await requireOrg();
 
 		return db
 			.select()
 			.from(driftCheck)
-			.where(eq(driftCheck.workspaceId, data.organizationId))
+			.where(eq(driftCheck.workspaceId, orgId))
 			.orderBy(desc(driftCheck.createdAt));
-	});
+	},
+);
 
 export const createDriftCheck = createServerFn({ method: "POST" })
-	.validator(
-		(input: { organizationId: string; specId: string; schedule?: string }) =>
-			input,
-	)
+	.validator((input: { specId: string; schedule?: string }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId, userId, ipAddress } = await requireOrg();
 
 		const existing = await db
 			.select()
 			.from(driftCheck)
 			.where(
 				and(
-					eq(driftCheck.workspaceId, data.organizationId),
+					eq(driftCheck.workspaceId, orgId),
 					eq(driftCheck.specId, data.specId),
 				),
 			)
@@ -153,20 +140,20 @@ export const createDriftCheck = createServerFn({ method: "POST" })
 		const id = crypto.randomUUID();
 		await db.insert(driftCheck).values({
 			id,
-			workspaceId: data.organizationId,
+			workspaceId: orgId,
 			specId: data.specId,
 			schedule: data.schedule ?? "0 0 * * *",
 			enabled: true,
 		});
 
 		await writeAuditLog({
-			workspaceId: data.organizationId,
-			actorId: session.user.id,
+			workspaceId: orgId,
+			actorId: userId,
 			action: "drift.check.created",
 			entityType: "drift_check",
 			entityId: id,
 			metadata: { specId: data.specId },
-			ipAddress: headers.get("x-forwarded-for") ?? undefined,
+			ipAddress,
 		});
 
 		return { id };
@@ -177,9 +164,7 @@ export const updateDriftCheck = createServerFn({ method: "POST" })
 		(input: { checkId: string; enabled?: boolean; schedule?: string }) => input,
 	)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId, userId, ipAddress } = await requireOrg();
 
 		const updates: Record<string, unknown> = {};
 		if (data.enabled !== undefined) updates.enabled = data.enabled;
@@ -188,16 +173,18 @@ export const updateDriftCheck = createServerFn({ method: "POST" })
 		await db
 			.update(driftCheck)
 			.set(updates as Partial<typeof driftCheck.$inferInsert>)
-			.where(eq(driftCheck.id, data.checkId));
+			.where(
+				and(eq(driftCheck.id, data.checkId), eq(driftCheck.workspaceId, orgId)),
+			);
 
 		await writeAuditLog({
-			workspaceId: "",
-			actorId: session.user.id,
+			workspaceId: orgId,
+			actorId: userId,
 			action: "drift.check.updated",
 			entityType: "drift_check",
 			entityId: data.checkId,
 			metadata: updates,
-			ipAddress: headers.get("x-forwarded-for") ?? undefined,
+			ipAddress,
 		});
 
 		return { success: true };
@@ -206,14 +193,14 @@ export const updateDriftCheck = createServerFn({ method: "POST" })
 export const deleteDriftCheck = createServerFn({ method: "POST" })
 	.validator((input: { checkId: string }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId, userId, ipAddress } = await requireOrg();
 
 		const check = await db
 			.select()
 			.from(driftCheck)
-			.where(eq(driftCheck.id, data.checkId))
+			.where(
+				and(eq(driftCheck.id, data.checkId), eq(driftCheck.workspaceId, orgId)),
+			)
 			.then((r) => r[0] ?? null);
 
 		if (!check) throw new Error("Drift check not found");
@@ -222,12 +209,12 @@ export const deleteDriftCheck = createServerFn({ method: "POST" })
 
 		await writeAuditLog({
 			workspaceId: check.workspaceId,
-			actorId: session.user.id,
+			actorId: userId,
 			action: "drift.check.deleted",
 			entityType: "drift_check",
 			entityId: data.checkId,
 			metadata: { specId: check.specId },
-			ipAddress: headers.get("x-forwarded-for") ?? undefined,
+			ipAddress,
 		});
 
 		return { success: true };

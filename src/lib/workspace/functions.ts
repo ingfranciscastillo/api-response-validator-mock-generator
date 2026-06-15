@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, desc, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import {
@@ -10,51 +9,43 @@ import {
 	user,
 } from "@/db/schema";
 import { writeAuditLog } from "@/lib/audit/functions";
-import { auth } from "@/lib/auth";
+import { requireOrg } from "@/lib/auth/org";
 import { getUserRole, requireRole } from "@/lib/auth/permissions";
 
 export const inviteMember = createServerFn({ method: "POST" })
-	.validator(
-		(input: { organizationId: string; email: string; role?: string }) => input,
-	)
+	.validator((input: { email: string; role?: string }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId, userId, ipAddress } = await requireOrg();
 
-		const role = await getUserRole(session.user.id, data.organizationId);
+		const role = await getUserRole(userId, orgId);
 		requireRole(role, "admin");
 
 		const id = crypto.randomUUID();
 		await db.insert(organizationInvitation).values({
 			id,
-			organizationId: data.organizationId,
+			organizationId: orgId,
 			email: data.email,
 			role: (data.role ?? "member") as "owner" | "admin" | "member" | "viewer",
 			expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
 			status: "pending",
 		});
 
-		const ip = headers.get("x-forwarded-for") ?? undefined;
 		await writeAuditLog({
-			workspaceId: data.organizationId,
-			actorId: session.user.id,
+			workspaceId: orgId,
+			actorId: userId,
 			action: "member.invited",
 			entityType: "organization",
-			entityId: data.organizationId,
+			entityId: orgId,
 			metadata: { email: data.email, role: data.role },
-			ipAddress: ip,
+			ipAddress,
 		});
 
 		return { id, email: data.email, role: data.role ?? "member" };
 	});
 
-export const listMembers = createServerFn({ method: "GET" })
-	.validator((input: { organizationId: string }) => input)
-	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+export const listMembers = createServerFn({ method: "GET" }).handler(
+	async () => {
+		const { orgId } = await requireOrg();
 
 		const members = await db
 			.select({
@@ -68,23 +59,19 @@ export const listMembers = createServerFn({ method: "GET" })
 			})
 			.from(organizationMember)
 			.innerJoin(user, eq(organizationMember.userId, user.id))
-			.where(eq(organizationMember.organizationId, data.organizationId))
+			.where(eq(organizationMember.organizationId, orgId))
 			.orderBy(organizationMember.createdAt);
 
 		return members;
-	});
+	},
+);
 
 export const updateMemberRole = createServerFn({ method: "POST" })
-	.validator(
-		(input: { organizationId: string; memberId: string; role: string }) =>
-			input,
-	)
+	.validator((input: { memberId: string; role: string }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId, userId, ipAddress } = await requireOrg();
 
-		const role = await getUserRole(session.user.id, data.organizationId);
+		const role = await getUserRole(userId, orgId);
 		requireRole(role, "owner");
 
 		await db
@@ -97,28 +84,25 @@ export const updateMemberRole = createServerFn({ method: "POST" })
 				),
 			);
 
-		const ip = headers.get("x-forwarded-for") ?? undefined;
 		await writeAuditLog({
-			workspaceId: data.organizationId,
-			actorId: session.user.id,
+			workspaceId: orgId,
+			actorId: userId,
 			action: "member.role.updated",
 			entityType: "organization",
-			entityId: data.organizationId,
+			entityId: orgId,
 			metadata: { memberId: data.memberId, role: data.role },
-			ipAddress: ip,
+			ipAddress,
 		});
 
 		return { success: true };
 	});
 
 export const removeMember = createServerFn({ method: "POST" })
-	.validator((input: { organizationId: string; memberId: string }) => input)
+	.validator((input: { memberId: string }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId, userId, ipAddress } = await requireOrg();
 
-		const role = await getUserRole(session.user.id, data.organizationId);
+		const role = await getUserRole(userId, orgId);
 		requireRole(role, "admin");
 
 		await db
@@ -130,35 +114,25 @@ export const removeMember = createServerFn({ method: "POST" })
 				),
 			);
 
-		const ip = headers.get("x-forwarded-for") ?? undefined;
 		await writeAuditLog({
-			workspaceId: data.organizationId,
-			actorId: session.user.id,
+			workspaceId: orgId,
+			actorId: userId,
 			action: "member.removed",
 			entityType: "organization",
-			entityId: data.organizationId,
+			entityId: orgId,
 			metadata: { memberId: data.memberId },
-			ipAddress: ip,
+			ipAddress,
 		});
 
 		return { success: true };
 	});
 
 export const updateWorkspace = createServerFn({ method: "POST" })
-	.validator(
-		(input: {
-			organizationId: string;
-			name?: string;
-			slug?: string;
-			logo?: string;
-		}) => input,
-	)
+	.validator((input: { name?: string; slug?: string; logo?: string }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId, userId, ipAddress } = await requireOrg();
 
-		const role = await getUserRole(session.user.id, data.organizationId);
+		const role = await getUserRole(userId, orgId);
 		requireRole(role, "admin");
 
 		const updateData: Record<string, string> = {};
@@ -169,17 +143,16 @@ export const updateWorkspace = createServerFn({ method: "POST" })
 		await db
 			.update(organization)
 			.set(updateData)
-			.where(eq(organization.id, data.organizationId));
+			.where(eq(organization.id, orgId));
 
-		const ip = headers.get("x-forwarded-for") ?? undefined;
 		await writeAuditLog({
-			workspaceId: data.organizationId,
-			actorId: session.user.id,
+			workspaceId: orgId,
+			actorId: userId,
 			action: "workspace.updated",
 			entityType: "organization",
-			entityId: data.organizationId,
+			entityId: orgId,
 			metadata: updateData,
-			ipAddress: ip,
+			ipAddress,
 		});
 
 		return { success: true };
@@ -187,19 +160,12 @@ export const updateWorkspace = createServerFn({ method: "POST" })
 
 export const createApiKey = createServerFn({ method: "POST" })
 	.validator(
-		(input: {
-			workspaceId: string;
-			name: string;
-			scopes?: string[];
-			expiresAt?: string;
-		}) => input,
+		(input: { name: string; scopes?: string[]; expiresAt?: string }) => input,
 	)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId, userId, ipAddress } = await requireOrg();
 
-		const role = await getUserRole(session.user.id, data.workspaceId);
+		const role = await getUserRole(userId, orgId);
 		requireRole(role, "admin");
 
 		const rawKey = `arv_${crypto.randomUUID().replace(/-/g, "")}`;
@@ -213,37 +179,33 @@ export const createApiKey = createServerFn({ method: "POST" })
 		const id = crypto.randomUUID();
 		await db.insert(apiKey).values({
 			id,
-			workspaceId: data.workspaceId,
+			workspaceId: orgId,
 			name: data.name,
 			keyHash,
 			keyPrefix: rawKey.slice(0, 8),
 			scopes: JSON.stringify(data.scopes ?? []),
 			expiresAt: data.expiresAt ? new Date(data.expiresAt) : null,
-			createdBy: session.user.id,
+			createdBy: userId,
 		});
 
-		const ip = headers.get("x-forwarded-for") ?? undefined;
 		await writeAuditLog({
-			workspaceId: data.workspaceId,
-			actorId: session.user.id,
+			workspaceId: orgId,
+			actorId: userId,
 			action: "api_key.created",
 			entityType: "api_key",
 			entityId: id,
 			metadata: { name: data.name },
-			ipAddress: ip,
+			ipAddress,
 		});
 
 		return { id, rawKey };
 	});
 
-export const listApiKeys = createServerFn({ method: "GET" })
-	.validator((input: { workspaceId: string }) => input)
-	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+export const listApiKeys = createServerFn({ method: "GET" }).handler(
+	async () => {
+		const { orgId, userId, ipAddress } = await requireOrg();
 
-		const role = await getUserRole(session.user.id, data.workspaceId);
+		const role = await getUserRole(userId, orgId);
 		requireRole(role, "admin");
 
 		const keys = await db
@@ -257,7 +219,7 @@ export const listApiKeys = createServerFn({ method: "GET" })
 				createdAt: apiKey.createdAt,
 			})
 			.from(apiKey)
-			.where(eq(apiKey.workspaceId, data.workspaceId))
+			.where(eq(apiKey.workspaceId, orgId))
 			.orderBy(desc(apiKey.createdAt));
 
 		return keys.map((k) => ({
@@ -271,28 +233,26 @@ export const listApiKeys = createServerFn({ method: "GET" })
 			expiresAt: k.expiresAt,
 			createdAt: k.createdAt,
 		}));
-	});
+	},
+);
 
 export const revokeApiKey = createServerFn({ method: "POST" })
-	.validator((input: { workspaceId: string; keyId: string }) => input)
+	.validator((input: { keyId: string }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId, userId, ipAddress } = await requireOrg();
 
-		const role = await getUserRole(session.user.id, data.workspaceId);
+		const role = await getUserRole(userId, orgId);
 		requireRole(role, "admin");
 
 		await db.delete(apiKey).where(eq(apiKey.id, data.keyId));
 
-		const ip = headers.get("x-forwarded-for") ?? undefined;
 		await writeAuditLog({
-			workspaceId: data.workspaceId,
-			actorId: session.user.id,
+			workspaceId: orgId,
+			actorId: userId,
 			action: "api_key.revoked",
 			entityType: "api_key",
 			entityId: data.keyId,
-			ipAddress: ip,
+			ipAddress,
 		});
 
 		return { success: true };

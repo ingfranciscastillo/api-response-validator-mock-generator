@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, eq, ilike, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
@@ -8,16 +7,12 @@ import {
 	specification,
 	validationRun,
 } from "@/db/schema";
-import { auth } from "@/lib/auth";
+import { requireOrg } from "@/lib/auth/org";
 
 export const globalSearch = createServerFn({ method: "GET" })
-	.validator(
-		(input: { organizationId: string; query: string; limit?: number }) => input,
-	)
+	.validator((input: { query: string; limit?: number }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId } = await requireOrg();
 
 		const q = `%${data.query}%`;
 		const limit = data.limit ?? 10;
@@ -43,7 +38,7 @@ export const globalSearch = createServerFn({ method: "GET" })
 			.from(specification)
 			.where(
 				and(
-					eq(specification.organizationId, data.organizationId),
+					eq(specification.organizationId, orgId),
 					ilike(specification.name, q),
 				),
 			)
@@ -79,7 +74,7 @@ export const globalSearch = createServerFn({ method: "GET" })
 			.from(mockDataset)
 			.where(
 				and(
-					eq(mockDataset.workspaceId, data.organizationId),
+					eq(mockDataset.workspaceId, orgId),
 					sql`${mockDataset.deletedAt} IS NULL`,
 					ilike(mockDataset.name, q),
 				),
@@ -103,7 +98,7 @@ export const globalSearch = createServerFn({ method: "GET" })
 			.from(validationRun)
 			.where(
 				and(
-					eq(validationRun.workspaceId, data.organizationId),
+					eq(validationRun.workspaceId, orgId),
 					or(
 						ilike(sql<string>`coalesce(${validationRun.name}, '')`, q),
 						ilike(validationRun.status, q),

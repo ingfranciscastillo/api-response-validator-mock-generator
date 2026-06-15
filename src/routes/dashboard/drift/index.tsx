@@ -19,7 +19,6 @@ function DriftPage() {
 		setLoading(true);
 		getDriftAlerts({
 			data: {
-				organizationId: "",
 				status: filter === "all" ? undefined : filter,
 			},
 		})

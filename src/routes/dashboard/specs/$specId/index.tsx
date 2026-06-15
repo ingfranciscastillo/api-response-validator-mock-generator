@@ -160,11 +160,7 @@ function SpecDetailPage() {
 				)}
 			</div>
 
-			<CommentsSection
-				workspaceId=""
-				entityType="specification"
-				entityId={specId}
-			/>
+			<CommentsSection entityType="specification" entityId={specId} />
 		</div>
 	);
 }

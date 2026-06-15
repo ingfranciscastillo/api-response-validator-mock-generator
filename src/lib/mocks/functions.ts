@@ -1,10 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, desc, eq, like, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { endpoint, mockDataset, mockServeConfig } from "@/db/schema";
 import { writeAuditLog } from "@/lib/audit/functions";
-import { auth } from "@/lib/auth";
+import { requireOrg } from "@/lib/auth/org";
 import {
 	type GenerationRules,
 	generateEdgeCaseMocks,
@@ -24,7 +23,6 @@ export const generateEndpointMock = createServerFn({ method: "POST" })
 			rules?: GenerationRules | null;
 			seed?: number | string | null;
 			save: boolean;
-			organizationId: string;
 		}) => input,
 	)
 	.handler(
@@ -35,9 +33,7 @@ export const generateEndpointMock = createServerFn({ method: "POST" })
 			payload: JsonValue;
 			schema: JsonValue;
 		}> => {
-			const headers = getRequestHeaders();
-			const session = await auth.api.getSession({ headers });
-			if (!session) throw new Error("Unauthorized");
+			const { orgId, userId, ipAddress } = await requireOrg();
 
 			const ep = await db
 				.select()
@@ -72,7 +68,7 @@ export const generateEndpointMock = createServerFn({ method: "POST" })
 
 				await db.insert(mockDataset).values({
 					id: mockId,
-					workspaceId: data.organizationId,
+					workspaceId: orgId,
 					specificationId: data.specId,
 					endpointId: data.endpointId,
 					name: `${ep.method} ${ep.path} — ${data.variantType}`,
@@ -82,15 +78,14 @@ export const generateEndpointMock = createServerFn({ method: "POST" })
 					payload,
 					generationRules: data.rules ?? null,
 					seed: data.seed ? String(data.seed) : null,
-					createdBy: session.user.id,
+					createdBy: userId,
 				});
 			}
 
-			const ip = headers.get("x-forwarded-for") ?? undefined;
 			if (data.save && mockId) {
 				await writeAuditLog({
-					workspaceId: data.organizationId,
-					actorId: session.user.id,
+					workspaceId: orgId,
+					actorId: userId,
 					action: "mock.generated",
 					entityType: "mock_dataset",
 					entityId: mockId,
@@ -99,7 +94,7 @@ export const generateEndpointMock = createServerFn({ method: "POST" })
 						variantType: data.variantType,
 						statusCode: data.statusCode,
 					},
-					ipAddress: ip,
+					ipAddress,
 				});
 			}
 
@@ -117,7 +112,6 @@ export const generateMocksVariant = createServerFn({ method: "POST" })
 			rules?: GenerationRules | null;
 			seed?: number | string | null;
 			save: boolean;
-			organizationId: string;
 		}) => input,
 	)
 	.handler(
@@ -127,9 +121,7 @@ export const generateMocksVariant = createServerFn({ method: "POST" })
 			mockIds: string[];
 			payloads: JsonValue[];
 		}> => {
-			const headers = getRequestHeaders();
-			const session = await auth.api.getSession({ headers });
-			if (!session) throw new Error("Unauthorized");
+			const { orgId, userId, ipAddress } = await requireOrg();
 
 			const ep = await db
 				.select()
@@ -171,7 +163,7 @@ export const generateMocksVariant = createServerFn({ method: "POST" })
 
 					await db.insert(mockDataset).values({
 						id: mockId,
-						workspaceId: data.organizationId,
+						workspaceId: orgId,
 						specificationId: data.specId,
 						endpointId: data.endpointId,
 						name: `${ep.method} ${ep.path} — variant ${i + 1}`,
@@ -180,16 +172,15 @@ export const generateMocksVariant = createServerFn({ method: "POST" })
 						payload: payloads[i],
 						generationRules: data.rules ?? null,
 						seed: data.seed ? String(Number(data.seed) + i) : null,
-						createdBy: session.user.id,
+						createdBy: userId,
 					});
 				}
 			}
 
-			const ipGen = headers.get("x-forwarded-for") ?? undefined;
 			if (data.save && mockIds.length > 0) {
 				await writeAuditLog({
-					workspaceId: data.organizationId,
-					actorId: session.user.id,
+					workspaceId: orgId,
+					actorId: userId,
 					action: "mock.batch_generated",
 					entityType: "mock_dataset",
 					entityId: mockIds[0],
@@ -199,7 +190,7 @@ export const generateMocksVariant = createServerFn({ method: "POST" })
 						endpointId: data.endpointId,
 						statusCode: data.statusCode,
 					},
-					ipAddress: ipGen,
+					ipAddress,
 				});
 			}
 
@@ -214,7 +205,6 @@ export const generateEdgeCaseMocksFn = createServerFn({ method: "POST" })
 			endpointId: string;
 			statusCode: number;
 			save: boolean;
-			organizationId: string;
 		}) => input,
 	)
 	.handler(
@@ -225,9 +215,7 @@ export const generateEdgeCaseMocksFn = createServerFn({ method: "POST" })
 			payloads: JsonValue[];
 			labels: string[];
 		}> => {
-			const headers = getRequestHeaders();
-			const session = await auth.api.getSession({ headers });
-			if (!session) throw new Error("Unauthorized");
+			const { orgId, userId, ipAddress } = await requireOrg();
 
 			const ep = await db
 				.select()
@@ -264,7 +252,7 @@ export const generateEdgeCaseMocksFn = createServerFn({ method: "POST" })
 
 					await db.insert(mockDataset).values({
 						id: mockId,
-						workspaceId: data.organizationId,
+						workspaceId: orgId,
 						specificationId: data.specId,
 						endpointId: data.endpointId,
 						name: `${ep.method} ${ep.path} — edge case`,
@@ -272,16 +260,15 @@ export const generateEdgeCaseMocksFn = createServerFn({ method: "POST" })
 						variantType: "edge_case",
 						variantLabel: labels[i],
 						payload: payloads[i],
-						createdBy: session.user.id,
+						createdBy: userId,
 					});
 				}
 			}
 
-			const ipEdge = headers.get("x-forwarded-for") ?? undefined;
 			if (data.save && mockIds.length > 0) {
 				await writeAuditLog({
-					workspaceId: data.organizationId,
-					actorId: session.user.id,
+					workspaceId: orgId,
+					actorId: userId,
 					action: "mock.edge_cases_generated",
 					entityType: "mock_dataset",
 					entityId: mockIds[0],
@@ -291,7 +278,7 @@ export const generateEdgeCaseMocksFn = createServerFn({ method: "POST" })
 						endpointId: data.endpointId,
 						statusCode: data.statusCode,
 					},
-					ipAddress: ipEdge,
+					ipAddress,
 				});
 			}
 
@@ -304,7 +291,6 @@ export const saveMock = createServerFn({ method: "POST" })
 		(input: {
 			specId: string;
 			endpointId: string;
-			organizationId: string;
 			statusCode: number;
 			variantType: string;
 			variantLabel?: string;
@@ -314,15 +300,13 @@ export const saveMock = createServerFn({ method: "POST" })
 		}) => input,
 	)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId, userId, ipAddress } = await requireOrg();
 
 		const mockId = crypto.randomUUID();
 
 		await db.insert(mockDataset).values({
 			id: mockId,
-			workspaceId: data.organizationId,
+			workspaceId: orgId,
 			specificationId: data.specId,
 			endpointId: data.endpointId,
 			name: data.name,
@@ -331,13 +315,12 @@ export const saveMock = createServerFn({ method: "POST" })
 			variantLabel: data.variantLabel ?? null,
 			payload: data.payload,
 			tags: data.tags ?? null,
-			createdBy: session.user.id,
+			createdBy: userId,
 		});
 
-		const ip = headers.get("x-forwarded-for") ?? undefined;
 		await writeAuditLog({
-			workspaceId: data.organizationId,
-			actorId: session.user.id,
+			workspaceId: orgId,
+			actorId: userId,
 			action: "mock.saved",
 			entityType: "mock_dataset",
 			entityId: mockId,
@@ -346,7 +329,7 @@ export const saveMock = createServerFn({ method: "POST" })
 				variantType: data.variantType,
 				statusCode: data.statusCode,
 			},
-			ipAddress: ip,
+			ipAddress,
 		});
 
 		return { mockId };
@@ -355,7 +338,6 @@ export const saveMock = createServerFn({ method: "POST" })
 export const getMocks = createServerFn({ method: "GET", strict: false })
 	.validator(
 		(input: {
-			organizationId: string;
 			specId?: string;
 			endpointId?: string;
 			variantType?: string;
@@ -363,12 +345,10 @@ export const getMocks = createServerFn({ method: "GET", strict: false })
 		}) => input,
 	)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId } = await requireOrg();
 
 		const conditions = [
-			eq(mockDataset.workspaceId, data.organizationId),
+			eq(mockDataset.workspaceId, orgId),
 			sql`${mockDataset.deletedAt} IS NULL`,
 		];
 
@@ -398,9 +378,7 @@ export const getMocks = createServerFn({ method: "GET", strict: false })
 export const getMock = createServerFn({ method: "GET", strict: false })
 	.validator((input: { mockId: string }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		await requireOrg();
 
 		const mock = await db
 			.select()
@@ -436,9 +414,7 @@ export const updateMock = createServerFn({ method: "POST" })
 		}) => input,
 	)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		await requireOrg();
 
 		const updates: Record<string, unknown> = {};
 		if (data.name !== undefined) updates.name = data.name;
@@ -459,9 +435,7 @@ export const updateMock = createServerFn({ method: "POST" })
 export const deleteMock = createServerFn({ method: "POST" })
 	.validator((input: { mockId: string }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { userId, ipAddress } = await requireOrg();
 
 		const mock = await db
 			.select({ workspaceId: mockDataset.workspaceId })
@@ -476,28 +450,22 @@ export const deleteMock = createServerFn({ method: "POST" })
 			.set({ deletedAt: new Date() })
 			.where(eq(mockDataset.id, data.mockId));
 
-		const ip = headers.get("x-forwarded-for") ?? undefined;
 		await writeAuditLog({
 			workspaceId: mock.workspaceId,
-			actorId: session.user.id,
+			actorId: userId,
 			action: "mock.deleted",
 			entityType: "mock_dataset",
 			entityId: data.mockId,
-			ipAddress: ip,
+			ipAddress,
 		});
 
 		return { success: true };
 	});
 
 export const toggleMockServing = createServerFn({ method: "POST" })
-	.validator(
-		(input: { mockId: string; organizationId: string; isEnabled: boolean }) =>
-			input,
-	)
+	.validator((input: { mockId: string; isEnabled: boolean }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId, userId, ipAddress } = await requireOrg();
 
 		const existing = await db
 			.select()
@@ -513,21 +481,20 @@ export const toggleMockServing = createServerFn({ method: "POST" })
 		} else {
 			await db.insert(mockServeConfig).values({
 				id: crypto.randomUUID(),
-				workspaceId: data.organizationId,
+				workspaceId: orgId,
 				mockDatasetId: data.mockId,
 				isEnabled: data.isEnabled,
 			});
 		}
 
-		const ip = headers.get("x-forwarded-for") ?? undefined;
 		await writeAuditLog({
-			workspaceId: data.organizationId,
-			actorId: session.user.id,
+			workspaceId: orgId,
+			actorId: userId,
 			action: data.isEnabled ? "mock.serving_started" : "mock.serving_stopped",
 			entityType: "mock_serve_config",
 			entityId: data.mockId,
 			metadata: { isEnabled: data.isEnabled },
-			ipAddress: ip,
+			ipAddress,
 		});
 
 		return { success: true };
@@ -537,15 +504,12 @@ export const updateServingConfig = createServerFn({ method: "POST" })
 	.validator(
 		(input: {
 			mockId: string;
-			organizationId: string;
 			latencyMs: number;
 			responseHeadersOverride?: Record<string, string> | null;
 		}) => input,
 	)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId } = await requireOrg();
 
 		const existing = await db
 			.select()
@@ -564,7 +528,7 @@ export const updateServingConfig = createServerFn({ method: "POST" })
 		} else {
 			await db.insert(mockServeConfig).values({
 				id: crypto.randomUUID(),
-				workspaceId: data.organizationId,
+				workspaceId: orgId,
 				mockDatasetId: data.mockId,
 				isEnabled: true,
 				latencyMs: data.latencyMs,

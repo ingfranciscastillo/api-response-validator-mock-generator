@@ -47,7 +47,7 @@ export function MockGenerationModal({
 
 	useEffect(() => {
 		if (!open) return;
-		getSpecs({ data: { organizationId: "" } }).then(setSpecs);
+		getSpecs().then(setSpecs);
 	}, [open]);
 
 	useEffect(() => {
@@ -77,7 +77,6 @@ export function MockGenerationModal({
 					rules:
 						Object.keys(rules.fieldOverrides ?? {}).length > 0 ? rules : null,
 					save: true,
-					organizationId: "",
 				},
 			});
 			onGenerated();

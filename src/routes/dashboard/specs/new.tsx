@@ -51,7 +51,6 @@ function NewSpecPage() {
 				data: {
 					name: name.trim(),
 					description: description.trim() || undefined,
-					organizationId: "",
 					specContent: importMethod === "paste" ? pasteContent : undefined,
 					specUrl: importMethod === "url" ? url : undefined,
 				},

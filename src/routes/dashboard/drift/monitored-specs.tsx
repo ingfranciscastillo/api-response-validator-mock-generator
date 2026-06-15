@@ -34,10 +34,7 @@ function MonitoredSpecsPage() {
 
 	const fetchData = () => {
 		setLoading(true);
-		Promise.all([
-			getDriftChecks({ data: { organizationId: "" } }),
-			getSpecs({ data: { organizationId: "" } }),
-		])
+		Promise.all([getDriftChecks(), getSpecs()])
 			.then(([checksData, specsData]) => {
 				setChecks(checksData);
 				setSpecs(specsData);
@@ -54,7 +51,7 @@ function MonitoredSpecsPage() {
 	const handleToggle = async (specId: string, enable: boolean) => {
 		if (enable) {
 			await createDriftCheck({
-				data: { organizationId: "", specId },
+				data: { specId },
 			});
 		} else {
 			const check = checks.find((c) => c.specId === specId);
@@ -69,7 +66,7 @@ function MonitoredSpecsPage() {
 		setCheckingIds((prev) => new Set(prev).add(specId));
 		try {
 			await checkSpecForDrift({
-				data: { organizationId: "", specId },
+				data: { specId },
 			});
 		} finally {
 			setCheckingIds((prev) => {

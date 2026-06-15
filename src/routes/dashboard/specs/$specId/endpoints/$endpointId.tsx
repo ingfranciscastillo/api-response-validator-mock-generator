@@ -384,11 +384,7 @@ function EndpointDetailPage() {
 				</TabsContent>
 
 				<TabsContent value="comments">
-					<CommentsSection
-						workspaceId=""
-						entityType="endpoint"
-						entityId={endpointId}
-					/>
+					<CommentsSection entityType="endpoint" entityId={endpointId} />
 				</TabsContent>
 			</Tabs>
 		</div>

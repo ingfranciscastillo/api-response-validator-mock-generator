@@ -64,7 +64,6 @@ export function ValidationRequestBuilder({
 				data: {
 					specId,
 					endpointId,
-					organizationId: "",
 					url,
 					method,
 					headers: parsedHeaders,

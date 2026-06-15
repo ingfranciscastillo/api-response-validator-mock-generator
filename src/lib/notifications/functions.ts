@@ -1,28 +1,24 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeaders } from "@tanstack/react-start/server";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { notificationChannel } from "@/db/schema";
-import { auth } from "@/lib/auth";
+import { requireOrg } from "@/lib/auth/org";
 
-export const getNotificationChannels = createServerFn({ method: "GET" })
-	.validator((input: { organizationId: string }) => input)
-	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+export const getNotificationChannels = createServerFn({
+	method: "GET",
+}).handler(async () => {
+	const { orgId } = await requireOrg();
 
-		return db
-			.select()
-			.from(notificationChannel)
-			.where(eq(notificationChannel.workspaceId, data.organizationId))
-			.orderBy(desc(notificationChannel.createdAt));
-	});
+	return db
+		.select()
+		.from(notificationChannel)
+		.where(eq(notificationChannel.workspaceId, orgId))
+		.orderBy(desc(notificationChannel.createdAt));
+});
 
 export const saveNotificationChannel = createServerFn({ method: "POST" })
 	.validator(
 		(input: {
-			organizationId: string;
 			id?: string;
 			name: string;
 			type: string;
@@ -31,9 +27,7 @@ export const saveNotificationChannel = createServerFn({ method: "POST" })
 		}) => input,
 	)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId } = await requireOrg();
 
 		if (data.id) {
 			await db
@@ -44,14 +38,19 @@ export const saveNotificationChannel = createServerFn({ method: "POST" })
 					config: data.config,
 					enabled: data.enabled ?? true,
 				})
-				.where(eq(notificationChannel.id, data.id));
+				.where(
+					and(
+						eq(notificationChannel.id, data.id),
+						eq(notificationChannel.workspaceId, orgId),
+					),
+				);
 			return { id: data.id };
 		}
 
 		const id = crypto.randomUUID();
 		await db.insert(notificationChannel).values({
 			id,
-			workspaceId: data.organizationId,
+			workspaceId: orgId,
 			name: data.name,
 			type: data.type,
 			config: data.config,
@@ -63,12 +62,15 @@ export const saveNotificationChannel = createServerFn({ method: "POST" })
 export const deleteNotificationChannel = createServerFn({ method: "POST" })
 	.validator((input: { channelId: string }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId } = await requireOrg();
 
 		await db
 			.delete(notificationChannel)
-			.where(eq(notificationChannel.id, data.channelId));
+			.where(
+				and(
+					eq(notificationChannel.id, data.channelId),
+					eq(notificationChannel.workspaceId, orgId),
+				),
+			);
 		return { success: true };
 	});

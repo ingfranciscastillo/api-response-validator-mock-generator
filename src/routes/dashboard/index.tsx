@@ -27,10 +27,7 @@ function DashboardIndexPage() {
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
-		Promise.all([
-			getDashboardOverview({ data: { organizationId: "" } }),
-			getDashboardCharts({ data: { organizationId: "" } }),
-		])
+		Promise.all([getDashboardOverview(), getDashboardCharts()])
 			.then(([ov, charts]) => {
 				setOverview(ov);
 				setChartData(charts);

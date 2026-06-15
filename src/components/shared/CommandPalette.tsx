@@ -64,7 +64,7 @@ function CommandPalette() {
 			setLoading(true);
 			try {
 				const res = await globalSearch({
-					data: { organizationId: "", query: query.trim() },
+					data: { query: query.trim() },
 				});
 				setResults(res);
 			} catch {

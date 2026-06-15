@@ -12,7 +12,7 @@ function SpecsPage() {
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
-		getSpecs({ data: { organizationId: "" } })
+		getSpecs()
 			.then(setSpecs)
 			.finally(() => setLoading(false));
 	}, []);

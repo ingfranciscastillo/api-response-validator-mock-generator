@@ -53,7 +53,7 @@ function NotificationsPage() {
 
 	const fetchChannels = () => {
 		setLoading(true);
-		getNotificationChannels({ data: { organizationId: "" } })
+		getNotificationChannels()
 			.then(setChannels)
 			.finally(() => setLoading(false));
 	};
@@ -77,7 +77,6 @@ function NotificationsPage() {
 				formType === "webhook" ? { url: formUrl } : { email: formEmail };
 			await saveNotificationChannel({
 				data: {
-					organizationId: "",
 					name: formName,
 					type: formType,
 					config: config as Record<string, unknown>,
@@ -98,7 +97,6 @@ function NotificationsPage() {
 		await saveNotificationChannel({
 			data: {
 				id: channel.id,
-				organizationId: "",
 				name: channel.name,
 				type: channel.type,
 				config: channel.config as Record<string, unknown>,

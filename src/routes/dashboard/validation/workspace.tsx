@@ -39,7 +39,7 @@ function ValidationWorkspacePage() {
 	const [loadingSpecs, setLoadingSpecs] = useState(true);
 
 	useEffect(() => {
-		getSpecs({ data: { organizationId: "" } })
+		getSpecs()
 			.then(setSpecs)
 			.finally(() => setLoadingSpecs(false));
 	}, []);
@@ -49,7 +49,7 @@ function ValidationWorkspacePage() {
 			setEndpoints([]);
 			return;
 		}
-		getSpecs({ data: { organizationId: "" } })
+		getSpecs()
 			.then((list) => {
 				const spec = list.find((s) => s.id === selectedSpecId);
 				if (spec) {

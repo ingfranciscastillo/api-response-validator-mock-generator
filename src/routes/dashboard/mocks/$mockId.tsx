@@ -51,7 +51,7 @@ function MockDetailPage() {
 
 	const handleToggleServing = async (isEnabled: boolean) => {
 		await toggleMockServing({
-			data: { mockId, organizationId: "", isEnabled },
+			data: { mockId, isEnabled },
 		});
 		setData((prev) =>
 			prev
@@ -75,7 +75,7 @@ function MockDetailPage() {
 
 	const handleUpdateLatency = async () => {
 		await updateServingConfig({
-			data: { mockId, organizationId: "", latencyMs },
+			data: { mockId, latencyMs },
 		});
 	};
 
@@ -192,11 +192,7 @@ function MockDetailPage() {
 				</CardContent>
 			</Card>
 
-			<CommentsSection
-				workspaceId=""
-				entityType="mock_dataset"
-				entityId={mockId}
-			/>
+			<CommentsSection entityType="mock_dataset" entityId={mockId} />
 
 			<Card>
 				<CardHeader>

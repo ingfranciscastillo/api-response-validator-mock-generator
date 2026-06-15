@@ -1,15 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeaders } from "@tanstack/react-start/server";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { report } from "@/db/schema";
-import { auth } from "@/lib/auth";
+import { requireOrg } from "@/lib/auth/org";
 import { generateValidationSummary } from "./generator";
 
 export const createReport = createServerFn({ method: "POST" })
 	.validator(
 		(input: {
-			organizationId: string;
 			name: string;
 			description?: string;
 			type?: string;
@@ -18,12 +16,10 @@ export const createReport = createServerFn({ method: "POST" })
 		}) => input,
 	)
 	.handler(async ({ data }): Promise<{ id: string }> => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId, userId } = await requireOrg();
 
 		const reportData = await generateValidationSummary(
-			data.organizationId,
+			orgId,
 			data.runIds,
 			data.days ?? 30,
 		);
@@ -31,25 +27,22 @@ export const createReport = createServerFn({ method: "POST" })
 		const id = crypto.randomUUID();
 		await db.insert(report).values({
 			id,
-			workspaceId: data.organizationId,
+			workspaceId: orgId,
 			name: data.name,
 			description: data.description ?? null,
 			type: data.type ?? "validation-summary",
 			config: { runIds: data.runIds ?? null, days: data.days ?? 30 },
 			data: reportData as unknown as Record<string, unknown>,
 			status: "ready",
-			generatedBy: session.user.id,
+			generatedBy: userId,
 		});
 
 		return { id };
 	});
 
-export const getReports = createServerFn({ method: "GET" })
-	.validator((input: { organizationId: string }) => input)
-	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+export const getReports = createServerFn({ method: "GET" }).handler(
+	async () => {
+		const { orgId } = await requireOrg();
 
 		return db
 			.select({
@@ -61,21 +54,20 @@ export const getReports = createServerFn({ method: "GET" })
 				createdAt: report.createdAt,
 			})
 			.from(report)
-			.where(eq(report.workspaceId, data.organizationId))
+			.where(eq(report.workspaceId, orgId))
 			.orderBy(desc(report.createdAt));
-	});
+	},
+);
 
 export const getReport = createServerFn({ method: "GET" })
 	.validator((input: { reportId: string }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId } = await requireOrg();
 
 		const row = await db
 			.select()
 			.from(report)
-			.where(eq(report.id, data.reportId))
+			.where(and(eq(report.id, data.reportId), eq(report.workspaceId, orgId)))
 			.then((r) => r[0] ?? null);
 
 		if (!row) throw new Error("Report not found");
@@ -98,10 +90,10 @@ export const getReport = createServerFn({ method: "GET" })
 export const deleteReport = createServerFn({ method: "POST" })
 	.validator((input: { reportId: string }) => input)
 	.handler(async ({ data }) => {
-		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
-		if (!session) throw new Error("Unauthorized");
+		const { orgId } = await requireOrg();
 
-		await db.delete(report).where(eq(report.id, data.reportId));
+		await db
+			.delete(report)
+			.where(and(eq(report.id, data.reportId), eq(report.workspaceId, orgId)));
 		return { success: true };
 	});

@@ -34,7 +34,7 @@ function WorkspacePage() {
 		setSaving(true);
 		try {
 			await updateWorkspace({
-				data: { organizationId: "", name, slug },
+				data: { name, slug },
 			});
 			setSaved(true);
 			setTimeout(() => setSaved(false), 2000);

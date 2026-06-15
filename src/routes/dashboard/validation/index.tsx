@@ -27,7 +27,7 @@ function ValidationPage() {
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
-		getValidationRuns({ data: { organizationId: "" } })
+		getValidationRuns({ data: {} })
 			.then((data) => setRuns(data.runs))
 			.finally(() => setLoading(false));
 	}, []);
