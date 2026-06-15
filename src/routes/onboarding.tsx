@@ -19,7 +19,7 @@ import {
 	FieldLabel,
 } from "#/components/ui/field";
 import { Input } from "#/components/ui/input";
-import { authClient, organization } from "#/lib/auth-client";
+import { authClient, getSession, organization } from "#/lib/auth-client";
 
 const onboardingSchema = z.object({
 	name: z.string().min(1, "Workspace name is required"),
@@ -64,6 +64,7 @@ function OnboardingPage() {
 			}
 			if (data) {
 				await organization.setActive({ organizationId: data.id });
+				await getSession();
 			}
 			navigate({ to: "/dashboard" });
 		},

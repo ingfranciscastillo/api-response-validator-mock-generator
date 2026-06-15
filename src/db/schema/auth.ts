@@ -33,6 +33,10 @@ export const session = pgTable(
 		token: text("token").notNull().unique(),
 		ipAddress: text("ip_address"),
 		userAgent: text("user_agent"),
+		activeOrganizationId: text("active_organization_id").references(
+			() => organization.id,
+			{ onDelete: "set null" },
+		),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 		updatedAt: timestamp("updated_at").notNull().defaultNow(),
 	},
