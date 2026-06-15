@@ -29,6 +29,13 @@
       "when": 1781480838893,
       "tag": "0003_petite_shinobi_shaw",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1781540000000,
+      "tag": "0004_drift_notification",
+      "breakpoints": true
     }
   ]
 }
