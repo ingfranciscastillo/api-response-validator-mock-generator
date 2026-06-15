@@ -19,6 +19,10 @@ export const Route = createFileRoute("/dashboard")({
 			});
 		}
 
+		if (!session.session.activeOrganizationId) {
+			throw redirect({ to: "/onboarding" });
+		}
+
 		return { user: session.user };
 	},
 	component: DashboardLayout,

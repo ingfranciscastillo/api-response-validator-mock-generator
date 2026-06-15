@@ -1,17 +1,28 @@
 "use client";
 
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
 	BarChart,
+	ChevronsUpDown,
 	FileText,
 	FlaskConical,
 	LayoutDashboard,
+	Plus,
 	Settings,
 	ShieldAlert,
 	ShieldCheck,
 	Users,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "#/components/ui/dropdown-menu";
 import {
 	Sidebar,
 	SidebarContent,
@@ -28,33 +39,91 @@ import {
 	SidebarMenuSubItem,
 	SidebarSeparator,
 } from "#/components/ui/sidebar";
-import { authClient } from "#/lib/auth-client";
+import { authClient, organization } from "#/lib/auth-client";
+
+type Org = {
+	id: string;
+	name: string;
+	slug: string;
+	logo: string | null;
+};
 
 function AppSidebar() {
+	const navigate = useNavigate();
 	const { data: session } = authClient.useSession();
+	const [orgs, setOrgs] = useState<Org[]>([]);
+
+	const activeOrgId = session?.session?.activeOrganizationId;
+
+	useEffect(() => {
+		organization.list().then(({ data }) => {
+			if (data) setOrgs(data as Org[]);
+		});
+	}, []);
+
+	const activeOrg = orgs.find((o) => o.id === activeOrgId);
+
+	const handleSwitchOrg = async (orgId: string) => {
+		await organization.setActive({ organizationId: orgId });
+		navigate({ to: "/dashboard" });
+	};
 
 	return (
 		<Sidebar collapsible="icon">
 			<SidebarHeader>
 				<SidebarMenu>
 					<SidebarMenuItem>
-						<SidebarMenuButton
-							asChild
-							size="lg"
-							className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-						>
-							<Link to="/dashboard">
-								<div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-accent-blue text-white">
-									<ShieldCheck className="size-4" />
-								</div>
-								<div className="grid flex-1 text-left text-sm leading-tight">
-									<span className="truncate font-semibold">API Validator</span>
-									<span className="truncate text-xs text-text-tertiary">
-										Mock Generator
-									</span>
-								</div>
-							</Link>
-						</SidebarMenuButton>
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<SidebarMenuButton
+									size="lg"
+									className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+								>
+									<div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-accent-blue text-white">
+										<ShieldCheck className="size-4" />
+									</div>
+									<div className="grid flex-1 text-left text-sm leading-tight">
+										<span className="truncate font-semibold">
+											{activeOrg?.name ?? "Workspace"}
+										</span>
+										<span className="truncate text-xs text-text-tertiary">
+											{activeOrg?.slug ?? ""}
+										</span>
+									</div>
+									<ChevronsUpDown className="ml-auto size-4" />
+								</SidebarMenuButton>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent
+								align="start"
+								className="w-(--sidebar-width) rounded-lg"
+							>
+								<DropdownMenuLabel className="text-xs text-text-tertiary">
+									Workspaces
+								</DropdownMenuLabel>
+								{orgs.map((org) => (
+									<DropdownMenuItem
+										key={org.id}
+										onClick={() => handleSwitchOrg(org.id)}
+										className="gap-2 p-2"
+									>
+										<div className="flex size-6 items-center justify-center rounded-md border bg-background">
+											<ShieldCheck className="size-3" />
+										</div>
+										{org.name}
+									</DropdownMenuItem>
+								))}
+								<DropdownMenuSeparator />
+								<DropdownMenuItem
+									onClick={() => navigate({ to: "/onboarding" })}
+									className="gap-2 p-2"
+								>
+									<div className="flex size-6 items-center justify-center rounded-md border bg-background">
+										<Plus className="size-3" />
+									</div>
+									Create workspace
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
 					</SidebarMenuItem>
 				</SidebarMenu>
 			</SidebarHeader>

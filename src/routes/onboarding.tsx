@@ -1,6 +1,6 @@
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ShieldCheck } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Building2 } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
 
@@ -9,7 +9,6 @@ import {
 	Card,
 	CardContent,
 	CardDescription,
-	CardFooter,
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card";
@@ -20,45 +19,53 @@ import {
 	FieldLabel,
 } from "#/components/ui/field";
 import { Input } from "#/components/ui/input";
-import { authClient } from "#/lib/auth-client";
+import { authClient, organization } from "#/lib/auth-client";
 
-const registerSchema = z.object({
-	name: z.string().min(1, "Name is required"),
-	email: z.string().min(1, "Email is required").email("Invalid email"),
-	password: z
+const onboardingSchema = z.object({
+	name: z.string().min(1, "Workspace name is required"),
+	slug: z
 		.string()
-		.min(1, "Password is required")
-		.min(8, "Must be at least 8 characters"),
+		.min(1, "Slug is required")
+		.regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens"),
 });
 
-export const Route = createFileRoute("/register")({
-	validateSearch: z.object({
-		redirect: z.string().optional(),
-	}),
-	component: RegisterPage,
+function toSlug(value: string): string {
+	return value
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-+|-+$/g, "");
+}
+
+export const Route = createFileRoute("/onboarding")({
+	component: OnboardingPage,
 });
 
-function RegisterPage() {
+function OnboardingPage() {
 	const navigate = useNavigate();
-	const { redirect } = Route.useSearch();
 	const { data: session, isPending } = authClient.useSession();
 	const [serverError, setServerError] = useState<string | null>(null);
 
 	const form = useForm({
-		defaultValues: { name: "", email: "", password: "" },
+		defaultValues: { name: "", slug: "" },
 		validators: {
-			onChange: registerSchema,
+			onChange: onboardingSchema,
 		},
 		onSubmit: async ({ value }) => {
 			setServerError(null);
-			const { error } = await authClient.signUp.email(value);
+			const { data, error } = await organization.create({
+				name: value.name,
+				slug: value.slug,
+			});
 			if (error) {
 				setServerError(
-					error.message ?? error.statusText ?? "Registration failed",
+					error.message ?? error.statusText ?? "Failed to create workspace",
 				);
 				return;
 			}
-			navigate({ to: "/onboarding" });
+			if (data) {
+				await organization.setActive({ organizationId: data.id });
+			}
+			navigate({ to: "/dashboard" });
 		},
 	});
 
@@ -70,8 +77,8 @@ function RegisterPage() {
 		);
 	}
 
-	if (session?.user) {
-		navigate({ to: redirect ?? "/dashboard" });
+	if (!session?.user) {
+		navigate({ to: "/login" });
 		return null;
 	}
 
@@ -80,10 +87,12 @@ function RegisterPage() {
 			<Card className="w-full max-w-sm">
 				<CardHeader className="text-center">
 					<div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl bg-accent-blue text-white">
-						<ShieldCheck className="size-6" />
+						<Building2 className="size-6" />
 					</div>
-					<CardTitle className="text-2xl">Create an account</CardTitle>
-					<CardDescription>Enter your details to get started</CardDescription>
+					<CardTitle className="text-2xl">Create your workspace</CardTitle>
+					<CardDescription>
+						Name your workspace to get started. You can change this later.
+					</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<form
@@ -100,16 +109,20 @@ function RegisterPage() {
 										field.state.meta.isTouched && !field.state.meta.isValid;
 									return (
 										<Field data-invalid={isInvalid}>
-											<FieldLabel htmlFor={field.name}>Name</FieldLabel>
+											<FieldLabel htmlFor={field.name}>
+												Workspace Name
+											</FieldLabel>
 											<Input
 												id={field.name}
-												type="text"
-												placeholder="Your name"
-												autoComplete="name"
+												placeholder="My Workspace"
 												value={field.state.value}
 												onBlur={field.handleBlur}
-												onChange={(e) => field.handleChange(e.target.value)}
+												onChange={(e) => {
+													field.handleChange(e.target.value);
+													form.setFieldValue("slug", toSlug(e.target.value));
+												}}
 												aria-invalid={isInvalid}
+												autoFocus
 											/>
 											{isInvalid && (
 												<FieldError errors={field.state.meta.errors} />
@@ -119,45 +132,21 @@ function RegisterPage() {
 								}}
 							</form.Field>
 
-							<form.Field name="email">
+							<form.Field name="slug">
 								{(field) => {
 									const isInvalid =
 										field.state.meta.isTouched && !field.state.meta.isValid;
 									return (
 										<Field data-invalid={isInvalid}>
-											<FieldLabel htmlFor={field.name}>Email</FieldLabel>
+											<FieldLabel htmlFor={field.name}>Slug</FieldLabel>
 											<Input
 												id={field.name}
-												type="email"
-												placeholder="you@example.com"
-												autoComplete="email"
+												placeholder="my-workspace"
 												value={field.state.value}
 												onBlur={field.handleBlur}
-												onChange={(e) => field.handleChange(e.target.value)}
-												aria-invalid={isInvalid}
-											/>
-											{isInvalid && (
-												<FieldError errors={field.state.meta.errors} />
-											)}
-										</Field>
-									);
-								}}
-							</form.Field>
-
-							<form.Field name="password">
-								{(field) => {
-									const isInvalid =
-										field.state.meta.isTouched && !field.state.meta.isValid;
-									return (
-										<Field data-invalid={isInvalid}>
-											<FieldLabel htmlFor={field.name}>Password</FieldLabel>
-											<Input
-												id={field.name}
-												type="password"
-												autoComplete="new-password"
-												value={field.state.value}
-												onBlur={field.handleBlur}
-												onChange={(e) => field.handleChange(e.target.value)}
+												onChange={(e) =>
+													field.handleChange(toSlug(e.target.value))
+												}
 												aria-invalid={isInvalid}
 											/>
 											{isInvalid && (
@@ -185,24 +174,15 @@ function RegisterPage() {
 										disabled={!canSubmit || isSubmitting}
 										className="w-full"
 									>
-										{isSubmitting ? "Creating account..." : "Create Account"}
+										{isSubmitting
+											? "Creating workspace..."
+											: "Create Workspace"}
 									</Button>
 								)}
 							</form.Subscribe>
 						</FieldGroup>
 					</form>
 				</CardContent>
-				<CardFooter className="flex flex-col gap-4">
-					<div className="text-center text-sm text-muted-foreground">
-						Already have an account?{" "}
-						<Link
-							to="/login"
-							className="underline-offset-4 underline hover:text-foreground"
-						>
-							Sign in
-						</Link>
-					</div>
-				</CardFooter>
 			</Card>
 		</div>
 	);

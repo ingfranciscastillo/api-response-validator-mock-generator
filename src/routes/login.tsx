@@ -20,7 +20,7 @@ import {
 	FieldLabel,
 } from "#/components/ui/field";
 import { Input } from "#/components/ui/input";
-import { authClient } from "#/lib/auth-client";
+import { authClient, organization } from "#/lib/auth-client";
 
 const loginSchema = z.object({
 	email: z.string().min(1, "Email is required").email("Invalid email"),
@@ -54,6 +54,12 @@ function LoginPage() {
 				);
 				return;
 			}
+			const { data: orgs } = await organization.list();
+			if (!orgs || orgs.length === 0) {
+				navigate({ to: "/onboarding" });
+				return;
+			}
+			await organization.setActive({ organizationId: orgs[0].id });
 			navigate({ to: redirect ?? "/dashboard" });
 		},
 	});
