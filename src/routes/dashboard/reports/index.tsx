@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
+import { BarChart3, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ReportCard } from "#/components/reports/report-card";
 import { ReportGenerateDialog } from "#/components/reports/report-generate-dialog";
 import { Button } from "#/components/ui/button";
+import { EmptyState } from "#/components/ui/empty-state";
+import { Skeleton } from "#/components/ui/skeleton";
 import {
 	createReport,
 	deleteReport,
@@ -71,16 +73,22 @@ function ReportsPage() {
 			</div>
 
 			{loading ? (
-				<div className="flex items-center justify-center py-12">
-					<div className="size-8 animate-pulse rounded-full bg-muted" />
+				<div className="space-y-2">
+					{Array.from({ length: 3 }).map((_, i) => (
+						<div key={i} className="rounded-lg border p-4">
+							<div className="space-y-2">
+								<Skeleton className="h-5 w-40" />
+								<Skeleton className="h-4 w-56" />
+							</div>
+						</div>
+					))}
 				</div>
 			) : reports.length === 0 ? (
-				<div className="rounded-lg border border-border bg-surface p-8 text-center">
-					<p className="text-muted-foreground">No reports available</p>
-					<p className="text-muted-foreground text-sm mt-1">
-						Generate your first report to see validation analytics
-					</p>
-				</div>
+				<EmptyState
+					icon={<BarChart3 className="size-8" />}
+					title="No reports available"
+					description="Generate your first report to see validation analytics"
+				/>
 			) : (
 				<div className="grid gap-3">
 					{reports.map((r) => (

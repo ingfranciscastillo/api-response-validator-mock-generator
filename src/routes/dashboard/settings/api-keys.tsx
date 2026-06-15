@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Copy, Key, Trash2 } from "lucide-react";
+import { Copy, Key, KeyRound, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
+import { EmptyState } from "#/components/ui/empty-state";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
 import {
@@ -13,6 +14,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "#/components/ui/select";
+import { Skeleton } from "#/components/ui/skeleton";
 import {
 	createApiKey,
 	listApiKeys,
@@ -147,13 +149,24 @@ function ApiKeysPage() {
 			)}
 
 			{loading ? (
-				<div className="flex items-center justify-center py-12">
-					<div className="size-8 animate-pulse rounded-full bg-muted" />
+				<div className="space-y-2">
+					{Array.from({ length: 2 }).map((_, i) => (
+						<Card key={i}>
+							<CardContent className="py-3">
+								<div className="space-y-1.5">
+									<Skeleton className="h-4 w-32" />
+									<Skeleton className="h-3 w-48" />
+								</div>
+							</CardContent>
+						</Card>
+					))}
 				</div>
 			) : keys.length === 0 ? (
-				<div className="rounded-lg border border-border bg-surface p-8 text-center">
-					<p className="text-text-tertiary">No API keys</p>
-				</div>
+				<EmptyState
+					icon={<KeyRound className="size-8" />}
+					title="No API keys"
+					description="Create an API key to integrate with external tools"
+				/>
 			) : (
 				<div className="space-y-2">
 					{keys.map((key) => (

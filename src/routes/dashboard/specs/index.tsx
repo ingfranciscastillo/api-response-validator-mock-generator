@@ -1,6 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronRight } from "lucide-react";
+import { BookUp, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Button } from "#/components/ui/button";
+import { EmptyState } from "#/components/ui/empty-state";
+import { Skeleton } from "#/components/ui/skeleton";
 import { getSpecs } from "#/lib/specs/functions";
 
 export const Route = createFileRoute("/dashboard/specs/")({
@@ -26,25 +29,40 @@ function SpecsPage() {
 						Manage your API specifications and OpenAPI documents
 					</p>
 				</div>
-				<Link
-					to="/dashboard/specs/new"
-					className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-				>
-					Add Specification
-				</Link>
+				<Button asChild>
+					<Link to="/dashboard/specs/new">
+						<BookUp className="size-4" />
+						Add Specification
+					</Link>
+				</Button>
 			</div>
 
 			{loading ? (
-				<div className="rounded-lg border p-8 text-center">
-					<p className="text-muted-foreground">Loading...</p>
+				<div className="space-y-2">
+					{Array.from({ length: 3 }).map((_, i) => (
+						<div key={i} className="rounded-lg border p-4">
+							<div className="space-y-2">
+								<Skeleton className="h-5 w-48" />
+								<Skeleton className="h-4 w-72" />
+								<Skeleton className="h-3 w-24" />
+							</div>
+						</div>
+					))}
 				</div>
 			) : specs.length === 0 ? (
-				<div className="rounded-lg border p-8 text-center">
-					<p className="text-muted-foreground">No specifications yet</p>
-					<p className="text-muted-foreground text-sm mt-1">
-						Upload an OpenAPI spec to get started
-					</p>
-				</div>
+				<EmptyState
+					icon={<BookUp className="size-8" />}
+					title="No specifications yet"
+					description="Upload an OpenAPI spec to get started"
+					action={
+						<Button asChild>
+							<Link to="/dashboard/specs/new">
+								<BookUp className="size-4" />
+								Add Specification
+							</Link>
+						</Button>
+					}
+				/>
 			) : (
 				<div className="grid gap-4">
 					{specs.map((spec) => (

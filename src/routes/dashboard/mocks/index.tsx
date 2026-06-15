@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { FlaskConical, Search } from "lucide-react";
+import { FlaskConical, Search, TestTubes } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { MockCard } from "#/components/mocks/mock-card";
 import { MockGenerationModal } from "#/components/mocks/mock-generation-modal";
 import { Button } from "#/components/ui/button";
+import { EmptyState } from "#/components/ui/empty-state";
 import { Input } from "#/components/ui/input";
 import {
 	Select,
@@ -12,6 +13,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "#/components/ui/select";
+import { Skeleton } from "#/components/ui/skeleton";
 import type { mockDataset } from "#/db/schema";
 import { getMocks } from "#/lib/mocks/functions";
 import { getSpecs } from "#/lib/specs/functions";
@@ -99,16 +101,22 @@ function MocksPage() {
 			</div>
 
 			{loading ? (
-				<div className="rounded-lg border p-8 text-center">
-					<p className="text-muted-foreground">Loading...</p>
+				<div className="grid gap-3">
+					{Array.from({ length: 3 }).map((_, i) => (
+						<div key={i} className="rounded-lg border p-4">
+							<div className="space-y-2">
+								<Skeleton className="h-5 w-40" />
+								<Skeleton className="h-4 w-56" />
+							</div>
+						</div>
+					))}
 				</div>
 			) : mocks.length === 0 ? (
-				<div className="rounded-lg border p-8 text-center">
-					<p className="text-muted-foreground">No mock datasets yet</p>
-					<p className="text-muted-foreground text-sm mt-1">
-						Generate mocks from your specifications
-					</p>
-				</div>
+				<EmptyState
+					icon={<TestTubes className="size-8" />}
+					title="No mock datasets yet"
+					description="Generate mocks from your specifications"
+				/>
 			) : (
 				<div className="grid gap-3">
 					{mocks.map((mock) => (

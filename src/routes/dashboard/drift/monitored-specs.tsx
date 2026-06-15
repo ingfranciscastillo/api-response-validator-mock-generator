@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Clock, Play, Shield } from "lucide-react";
+import { Clock, Play, ShieldOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
@@ -10,6 +10,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card";
+import { EmptyState } from "#/components/ui/empty-state";
+import { Skeleton } from "#/components/ui/skeleton";
 import { Switch } from "#/components/ui/switch";
 import {
 	checkSpecForDrift,
@@ -90,17 +92,25 @@ function MonitoredSpecsPage() {
 			</div>
 
 			{loading ? (
-				<div className="flex items-center justify-center py-12">
-					<div className="size-8 animate-pulse rounded-full bg-muted" />
+				<div className="space-y-2">
+					{Array.from({ length: 3 }).map((_, i) => (
+						<Card key={i}>
+							<CardContent className="flex items-center justify-between py-3">
+								<div className="space-y-1.5">
+									<Skeleton className="h-4 w-40" />
+									<Skeleton className="h-3 w-56" />
+								</div>
+								<Skeleton className="size-8 rounded-md" />
+							</CardContent>
+						</Card>
+					))}
 				</div>
 			) : specs.length === 0 ? (
-				<div className="rounded-lg border border-border bg-surface p-8 text-center">
-					<Shield className="size-8 mx-auto text-muted-foreground" />
-					<p className="text-muted-foreground mt-3">No specs available</p>
-					<p className="text-muted-foreground text-sm mt-1">
-						Upload an API specification first to enable drift monitoring
-					</p>
-				</div>
+				<EmptyState
+					icon={<ShieldOff className="size-8" />}
+					title="No specs available"
+					description="Upload an API specification first to enable drift monitoring"
+				/>
 			) : (
 				<div className="space-y-2">
 					{specs.map((spec) => {

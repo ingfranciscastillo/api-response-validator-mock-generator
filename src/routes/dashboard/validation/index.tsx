@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Beaker, Clock, FlaskConical } from "lucide-react";
+import { Beaker, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { Card, CardContent } from "#/components/ui/card";
+import { EmptyState } from "#/components/ui/empty-state";
+import { Skeleton } from "#/components/ui/skeleton";
 import { getValidationRuns } from "#/lib/validation/functions";
 
 export const Route = createFileRoute("/dashboard/validation/")({
@@ -50,23 +52,32 @@ function ValidationPage() {
 			</div>
 
 			{loading ? (
-				<div className="flex items-center justify-center py-12">
-					<div className="size-8 animate-pulse rounded-full bg-muted" />
+				<div className="space-y-2">
+					{Array.from({ length: 3 }).map((_, i) => (
+						<Card key={i}>
+							<CardContent className="p-4">
+								<div className="space-y-2">
+									<Skeleton className="h-5 w-32" />
+									<Skeleton className="h-4 w-64" />
+								</div>
+							</CardContent>
+						</Card>
+					))}
 				</div>
 			) : runs.length === 0 ? (
-				<div className="rounded-lg border border-border bg-surface p-8 text-center">
-					<FlaskConical className="size-8 mx-auto text-muted-foreground" />
-					<p className="text-muted-foreground mt-3">No validation runs yet</p>
-					<p className="text-muted-foreground text-sm mt-1">
-						Send a request to an endpoint to start validating
-					</p>
-					<Button asChild className="mt-4">
-						<Link to="/dashboard/validation/workspace">
-							<Beaker className="size-4" />
-							New Validation Run
-						</Link>
-					</Button>
-				</div>
+				<EmptyState
+					icon={<Beaker className="size-8" />}
+					title="No validation runs yet"
+					description="Send a request to an endpoint to start validating"
+					action={
+						<Button asChild>
+							<Link to="/dashboard/validation/workspace">
+								<Beaker className="size-4" />
+								New Validation Run
+							</Link>
+						</Button>
+					}
+				/>
 			) : (
 				<div className="space-y-2">
 					{runs.map((run) => (

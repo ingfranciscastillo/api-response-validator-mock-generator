@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ShieldAlert } from "lucide-react";
+import { ShieldAlert, ShieldOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { DriftAlertCard } from "#/components/drift/drift-alert-card";
+import { EmptyState } from "#/components/ui/empty-state";
+import { Skeleton } from "#/components/ui/skeleton";
 import { getDriftAlerts, resolveDriftAlert } from "#/lib/drift/functions";
 
 export const Route = createFileRoute("/dashboard/drift/")({
@@ -69,17 +71,22 @@ function DriftPage() {
 			</div>
 
 			{loading ? (
-				<div className="flex items-center justify-center py-12">
-					<div className="size-8 animate-pulse rounded-full bg-muted" />
+				<div className="space-y-3">
+					{Array.from({ length: 3 }).map((_, i) => (
+						<div key={i} className="rounded-lg border p-4">
+							<div className="space-y-2">
+								<Skeleton className="h-5 w-48" />
+								<Skeleton className="h-4 w-64" />
+							</div>
+						</div>
+					))}
 				</div>
 			) : alerts.length === 0 ? (
-				<div className="rounded-lg border border-border bg-surface p-8 text-center">
-					<p className="text-muted-foreground">No drift alerts</p>
-					<p className="text-muted-foreground text-sm mt-1">
-						Alerts will appear when breaking changes are detected between spec
-						versions
-					</p>
-				</div>
+				<EmptyState
+					icon={<ShieldOff className="size-8" />}
+					title="No drift alerts"
+					description="Alerts will appear when breaking changes are detected between spec versions"
+				/>
 			) : (
 				<div className="space-y-3">
 					{alerts.map((alert) => (

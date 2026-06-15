@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Mail, UserMinus, UserPlus } from "lucide-react";
+import { Mail, UserMinus, UserPlus, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback } from "#/components/ui/avatar";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { Card, CardContent } from "#/components/ui/card";
+import { EmptyState } from "#/components/ui/empty-state";
 import { Input } from "#/components/ui/input";
 import {
 	Select,
@@ -13,6 +14,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "#/components/ui/select";
+import { Skeleton } from "#/components/ui/skeleton";
 import {
 	inviteMember,
 	listMembers,
@@ -125,13 +127,25 @@ function MembersPage() {
 			)}
 
 			{loading ? (
-				<div className="flex items-center justify-center py-12">
-					<div className="size-8 animate-pulse rounded-full bg-muted" />
+				<div className="space-y-2">
+					{Array.from({ length: 3 }).map((_, i) => (
+						<Card key={i}>
+							<CardContent className="flex items-center gap-3 py-3">
+								<Skeleton className="size-8 rounded-full" />
+								<div className="flex-1 space-y-1.5">
+									<Skeleton className="h-4 w-32" />
+									<Skeleton className="h-3 w-48" />
+								</div>
+							</CardContent>
+						</Card>
+					))}
 				</div>
 			) : members.length === 0 ? (
-				<div className="rounded-lg border border-border bg-surface p-8 text-center">
-					<p className="text-text-tertiary">No team members</p>
-				</div>
+				<EmptyState
+					icon={<Users className="size-8" />}
+					title="No team members"
+					description="Invite members to collaborate on your workspace"
+				/>
 			) : (
 				<div className="space-y-2">
 					{members.map((member) => (

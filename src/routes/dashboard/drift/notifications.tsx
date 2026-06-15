@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Bell, BellOff, Plus, Trash2 } from "lucide-react";
+import { Bell, BellOff, BellPlus, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
@@ -19,6 +19,7 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "#/components/ui/dialog";
+import { EmptyState } from "#/components/ui/empty-state";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
 import {
@@ -28,6 +29,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "#/components/ui/select";
+import { Skeleton } from "#/components/ui/skeleton";
 import { Switch } from "#/components/ui/switch";
 import {
 	deleteNotificationChannel,
@@ -192,17 +194,25 @@ function NotificationsPage() {
 			</div>
 
 			{loading ? (
-				<div className="flex items-center justify-center py-12">
-					<div className="size-8 animate-pulse rounded-full bg-muted" />
+				<div className="space-y-2">
+					{Array.from({ length: 2 }).map((_, i) => (
+						<Card key={i}>
+							<CardContent className="flex items-center gap-3 py-3">
+								<Skeleton className="size-5 rounded-full" />
+								<div className="flex-1 space-y-1.5">
+									<Skeleton className="h-4 w-32" />
+									<Skeleton className="h-3 w-48" />
+								</div>
+							</CardContent>
+						</Card>
+					))}
 				</div>
 			) : channels.length === 0 ? (
-				<div className="rounded-lg border border-border bg-surface p-8 text-center">
-					<Bell className="size-8 mx-auto text-muted-foreground" />
-					<p className="text-muted-foreground mt-3">No notification channels</p>
-					<p className="text-muted-foreground text-sm mt-1">
-						Add a channel to receive alerts when breaking changes are detected
-					</p>
-				</div>
+				<EmptyState
+					icon={<BellPlus className="size-8" />}
+					title="No notification channels"
+					description="Add a channel to receive alerts when breaking changes are detected"
+				/>
 			) : (
 				<div className="space-y-2">
 					{channels.map((channel) => (
