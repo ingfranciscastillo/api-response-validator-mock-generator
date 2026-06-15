@@ -21,6 +21,7 @@ import { Route as DashboardSpecsRouteImport } from './routes/dashboard.specs'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports'
 import { Route as DashboardMocksRouteImport } from './routes/dashboard.mocks'
+import { Route as DashboardDriftRouteImport } from './routes/dashboard.drift'
 import { Route as DashboardValidationWorkspaceRouteImport } from './routes/dashboard.validation.workspace'
 import { Route as DashboardSpecsNewRouteImport } from './routes/dashboard.specs.new'
 import { Route as DashboardSpecsSpecIdRouteImport } from './routes/dashboard.specs.$specId'
@@ -91,6 +92,11 @@ const DashboardMocksRoute = DashboardMocksRouteImport.update({
   path: '/mocks',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardDriftRoute = DashboardDriftRouteImport.update({
+  id: '/drift',
+  path: '/drift',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardValidationWorkspaceRoute =
   DashboardValidationWorkspaceRouteImport.update({
     id: '/workspace',
@@ -147,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/dashboard/drift': typeof DashboardDriftRoute
   '/dashboard/mocks': typeof DashboardMocksRouteWithChildren
   '/dashboard/reports': typeof DashboardReportsRouteWithChildren
   '/dashboard/settings': typeof DashboardSettingsRoute
@@ -169,6 +176,7 @@ export interface FileRoutesByTo {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/dashboard/drift': typeof DashboardDriftRoute
   '/dashboard/mocks': typeof DashboardMocksRouteWithChildren
   '/dashboard/reports': typeof DashboardReportsRouteWithChildren
   '/dashboard/settings': typeof DashboardSettingsRoute
@@ -193,6 +201,7 @@ export interface FileRoutesById {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/dashboard/drift': typeof DashboardDriftRoute
   '/dashboard/mocks': typeof DashboardMocksRouteWithChildren
   '/dashboard/reports': typeof DashboardReportsRouteWithChildren
   '/dashboard/settings': typeof DashboardSettingsRoute
@@ -218,6 +227,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/register'
+    | '/dashboard/drift'
     | '/dashboard/mocks'
     | '/dashboard/reports'
     | '/dashboard/settings'
@@ -240,6 +250,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/register'
+    | '/dashboard/drift'
     | '/dashboard/mocks'
     | '/dashboard/reports'
     | '/dashboard/settings'
@@ -263,6 +274,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/register'
+    | '/dashboard/drift'
     | '/dashboard/mocks'
     | '/dashboard/reports'
     | '/dashboard/settings'
@@ -375,6 +387,13 @@ declare module '@tanstack/react-router' {
       path: '/mocks'
       fullPath: '/dashboard/mocks'
       preLoaderRoute: typeof DashboardMocksRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/drift': {
+      id: '/dashboard/drift'
+      path: '/drift'
+      fullPath: '/dashboard/drift'
+      preLoaderRoute: typeof DashboardDriftRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/validation/workspace': {
@@ -506,6 +525,7 @@ const DashboardValidationRouteWithChildren =
   DashboardValidationRoute._addFileChildren(DashboardValidationRouteChildren)
 
 interface DashboardRouteChildren {
+  DashboardDriftRoute: typeof DashboardDriftRoute
   DashboardMocksRoute: typeof DashboardMocksRouteWithChildren
   DashboardReportsRoute: typeof DashboardReportsRouteWithChildren
   DashboardSettingsRoute: typeof DashboardSettingsRoute
@@ -516,6 +536,7 @@ interface DashboardRouteChildren {
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardDriftRoute: DashboardDriftRoute,
   DashboardMocksRoute: DashboardMocksRouteWithChildren,
   DashboardReportsRoute: DashboardReportsRouteWithChildren,
   DashboardSettingsRoute: DashboardSettingsRoute,
