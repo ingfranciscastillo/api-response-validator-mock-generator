@@ -3,6 +3,7 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, desc, eq, like, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { endpoint, mockDataset, mockServeConfig } from "@/db/schema";
+import { writeAuditLog } from "@/lib/audit/functions";
 import { auth } from "@/lib/auth";
 import {
 	type GenerationRules,
@@ -82,6 +83,23 @@ export const generateEndpointMock = createServerFn({ method: "POST" })
 					generationRules: data.rules ?? null,
 					seed: data.seed ? String(data.seed) : null,
 					createdBy: session.user.id,
+				});
+			}
+
+			const ip = headers.get("x-forwarded-for") ?? undefined;
+			if (data.save && mockId) {
+				await writeAuditLog({
+					workspaceId: data.organizationId,
+					actorId: session.user.id,
+					action: "mock.generated",
+					entityType: "mock_dataset",
+					entityId: mockId,
+					metadata: {
+						endpointId: data.endpointId,
+						variantType: data.variantType,
+						statusCode: data.statusCode,
+					},
+					ipAddress: ip,
 				});
 			}
 
@@ -167,6 +185,24 @@ export const generateMocksVariant = createServerFn({ method: "POST" })
 				}
 			}
 
+			const ipGen = headers.get("x-forwarded-for") ?? undefined;
+			if (data.save && mockIds.length > 0) {
+				await writeAuditLog({
+					workspaceId: data.organizationId,
+					actorId: session.user.id,
+					action: "mock.batch_generated",
+					entityType: "mock_dataset",
+					entityId: mockIds[0],
+					metadata: {
+						count: mockIds.length,
+						mockIds,
+						endpointId: data.endpointId,
+						statusCode: data.statusCode,
+					},
+					ipAddress: ipGen,
+				});
+			}
+
 			return { mockIds, payloads };
 		},
 	);
@@ -241,6 +277,24 @@ export const generateEdgeCaseMocksFn = createServerFn({ method: "POST" })
 				}
 			}
 
+			const ipEdge = headers.get("x-forwarded-for") ?? undefined;
+			if (data.save && mockIds.length > 0) {
+				await writeAuditLog({
+					workspaceId: data.organizationId,
+					actorId: session.user.id,
+					action: "mock.edge_cases_generated",
+					entityType: "mock_dataset",
+					entityId: mockIds[0],
+					metadata: {
+						count: mockIds.length,
+						mockIds,
+						endpointId: data.endpointId,
+						statusCode: data.statusCode,
+					},
+					ipAddress: ipEdge,
+				});
+			}
+
 			return { mockIds, payloads, labels };
 		},
 	);
@@ -278,6 +332,21 @@ export const saveMock = createServerFn({ method: "POST" })
 			payload: data.payload,
 			tags: data.tags ?? null,
 			createdBy: session.user.id,
+		});
+
+		const ip = headers.get("x-forwarded-for") ?? undefined;
+		await writeAuditLog({
+			workspaceId: data.organizationId,
+			actorId: session.user.id,
+			action: "mock.saved",
+			entityType: "mock_dataset",
+			entityId: mockId,
+			metadata: {
+				endpointId: data.endpointId,
+				variantType: data.variantType,
+				statusCode: data.statusCode,
+			},
+			ipAddress: ip,
 		});
 
 		return { mockId };
@@ -394,10 +463,28 @@ export const deleteMock = createServerFn({ method: "POST" })
 		const session = await auth.api.getSession({ headers });
 		if (!session) throw new Error("Unauthorized");
 
+		const mock = await db
+			.select({ workspaceId: mockDataset.workspaceId })
+			.from(mockDataset)
+			.where(eq(mockDataset.id, data.mockId))
+			.then((r) => r[0] ?? null);
+
+		if (!mock) throw new Error("Mock not found");
+
 		await db
 			.update(mockDataset)
 			.set({ deletedAt: new Date() })
 			.where(eq(mockDataset.id, data.mockId));
+
+		const ip = headers.get("x-forwarded-for") ?? undefined;
+		await writeAuditLog({
+			workspaceId: mock.workspaceId,
+			actorId: session.user.id,
+			action: "mock.deleted",
+			entityType: "mock_dataset",
+			entityId: data.mockId,
+			ipAddress: ip,
+		});
 
 		return { success: true };
 	});
@@ -431,6 +518,17 @@ export const toggleMockServing = createServerFn({ method: "POST" })
 				isEnabled: data.isEnabled,
 			});
 		}
+
+		const ip = headers.get("x-forwarded-for") ?? undefined;
+		await writeAuditLog({
+			workspaceId: data.organizationId,
+			actorId: session.user.id,
+			action: data.isEnabled ? "mock.serving_started" : "mock.serving_stopped",
+			entityType: "mock_serve_config",
+			entityId: data.mockId,
+			metadata: { isEnabled: data.isEnabled },
+			ipAddress: ip,
+		});
 
 		return { success: true };
 	});

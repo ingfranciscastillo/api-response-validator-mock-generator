@@ -3,6 +3,7 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { driftAlert, specificationVersion } from "@/db/schema";
+import { writeAuditLog } from "@/lib/audit/functions";
 import { auth } from "@/lib/auth";
 import { compareSpecificationVersions } from "@/lib/specs/compare";
 
@@ -30,6 +31,14 @@ export const resolveDriftAlert = createServerFn({ method: "POST" })
 		const session = await auth.api.getSession({ headers });
 		if (!session) throw new Error("Unauthorized");
 
+		const alert = await db
+			.select()
+			.from(driftAlert)
+			.where(eq(driftAlert.id, data.alertId))
+			.then((r) => r[0] ?? null);
+
+		if (!alert) throw new Error("Alert not found");
+
 		await db
 			.update(driftAlert)
 			.set({
@@ -38,6 +47,17 @@ export const resolveDriftAlert = createServerFn({ method: "POST" })
 				resolvedBy: session.user.id,
 			})
 			.where(eq(driftAlert.id, data.alertId));
+
+		const ip = headers.get("x-forwarded-for") ?? undefined;
+		await writeAuditLog({
+			workspaceId: alert.workspaceId,
+			actorId: session.user.id,
+			action: "drift.alert.resolved",
+			entityType: "drift_alert",
+			entityId: data.alertId,
+			metadata: { specId: alert.specId, severity: alert.severity },
+			ipAddress: ip,
+		});
 
 		return { success: true };
 	});

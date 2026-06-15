@@ -3,6 +3,7 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { endpoint, specification, specificationVersion } from "@/db/schema";
+import { writeAuditLog } from "@/lib/audit/functions";
 import { auth } from "@/lib/auth";
 import { buildSummary, parseSpec, parseSpecFromUrl } from "./parser";
 
@@ -61,6 +62,21 @@ export const importSpec = createServerFn({ method: "POST" })
 				})),
 			);
 		}
+
+		const ip = headers.get("x-forwarded-for") ?? undefined;
+		await writeAuditLog({
+			workspaceId: data.organizationId,
+			actorId: session.user.id,
+			action: "spec.imported",
+			entityType: "specification",
+			entityId: specId,
+			metadata: {
+				name: data.name,
+				version: 1,
+				endpointCount: parsed.endpoints.length,
+			},
+			ipAddress: ip,
+		});
 
 		return { specId, versionId, endpointCount: parsed.endpoints.length };
 	});

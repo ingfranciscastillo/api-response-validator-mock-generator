@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { AppSidebar, AppTopbar } from "#/components/layout";
+import { CommandPalette } from "#/components/shared/CommandPalette";
 import {
 	SidebarInset,
 	SidebarProvider,
@@ -36,6 +37,7 @@ function DashboardLayout() {
 					<Outlet />
 				</div>
 			</SidebarInset>
+			<CommandPalette />
 		</SidebarProvider>
 	);
 }

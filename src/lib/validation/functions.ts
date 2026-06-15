@@ -8,6 +8,7 @@ import {
 	validationResult,
 	validationRun,
 } from "@/db/schema";
+import { writeAuditLog } from "@/lib/audit/functions";
 import { auth } from "@/lib/auth";
 import { validateResponseAgainstSchema } from "./engine";
 import { computeDiff } from "./response-diff";
@@ -215,6 +216,21 @@ export const runValidation = createServerFn({ method: "POST" })
 		if (data.save) {
 			runId = crypto.randomUUID();
 			const resultId = crypto.randomUUID();
+
+			const ipVal = reqHeaders.get("x-forwarded-for") ?? undefined;
+			await writeAuditLog({
+				workspaceId: data.organizationId,
+				actorId: session.user.id,
+				action: "validation.run_completed",
+				entityType: "validation_run",
+				entityId: runId,
+				metadata: {
+					endpointId: data.endpointId,
+					outcome: validationOutcome,
+					statusCode: fetchRes.status,
+				},
+				ipAddress: ipVal,
+			});
 
 			await db.insert(validationRun).values({
 				id: runId,

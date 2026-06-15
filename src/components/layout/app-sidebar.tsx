@@ -136,20 +136,59 @@ function AppSidebar() {
 					<SidebarGroupContent>
 						<SidebarMenu>
 							<SidebarMenuItem>
-								<SidebarMenuButton asChild isActive={false} tooltip="Settings">
-									<Link to="/dashboard/settings">
-										<Settings />
-										<span>Settings</span>
-									</Link>
-								</SidebarMenuButton>
-							</SidebarMenuItem>
-							<SidebarMenuItem>
 								<SidebarMenuButton asChild isActive={false} tooltip="Team">
-									<Link to="/dashboard/team">
+									<Link to="/dashboard/team/members">
 										<Users />
 										<span>Team</span>
 									</Link>
 								</SidebarMenuButton>
+								<SidebarMenuSub>
+									<SidebarMenuSubItem>
+										<SidebarMenuSubButton asChild isActive={false}>
+											<Link to="/dashboard/team/members">
+												<span>Members</span>
+											</Link>
+										</SidebarMenuSubButton>
+									</SidebarMenuSubItem>
+									<SidebarMenuSubItem>
+										<SidebarMenuSubButton asChild isActive={false}>
+											<Link to="/dashboard/team/audit-log">
+												<span>Audit Log</span>
+											</Link>
+										</SidebarMenuSubButton>
+									</SidebarMenuSubItem>
+								</SidebarMenuSub>
+							</SidebarMenuItem>
+							<SidebarMenuItem>
+								<SidebarMenuButton asChild isActive={false} tooltip="Settings">
+									<Link to="/dashboard/settings/account">
+										<Settings />
+										<span>Settings</span>
+									</Link>
+								</SidebarMenuButton>
+								<SidebarMenuSub>
+									<SidebarMenuSubItem>
+										<SidebarMenuSubButton asChild isActive={false}>
+											<Link to="/dashboard/settings/account">
+												<span>Account</span>
+											</Link>
+										</SidebarMenuSubButton>
+									</SidebarMenuSubItem>
+									<SidebarMenuSubItem>
+										<SidebarMenuSubButton asChild isActive={false}>
+											<Link to="/dashboard/settings/workspace">
+												<span>Workspace</span>
+											</Link>
+										</SidebarMenuSubButton>
+									</SidebarMenuSubItem>
+									<SidebarMenuSubItem>
+										<SidebarMenuSubButton asChild isActive={false}>
+											<Link to="/dashboard/settings/api-keys">
+												<span>API Keys</span>
+											</Link>
+										</SidebarMenuSubButton>
+									</SidebarMenuSubItem>
+								</SidebarMenuSub>
 							</SidebarMenuItem>
 							<SidebarMenuItem>
 								<SidebarMenuButton asChild isActive={false} tooltip="Reports">
