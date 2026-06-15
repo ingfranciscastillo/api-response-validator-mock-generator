@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, desc, eq, gte, lte } from "drizzle-orm";
+import { and, desc, eq, gte, isNull, lte } from "drizzle-orm";
 import { db } from "@/db";
 import { auditLog, comment, user } from "@/db/schema";
 import { requireOrg } from "@/lib/auth/org";
@@ -50,7 +50,7 @@ export const listComments = createServerFn({ method: "GET" })
 				and(
 					eq(comment.entityType, data.entityType),
 					eq(comment.entityId, data.entityId),
-					eq(comment.deletedAt, null),
+					isNull(comment.deletedAt),
 				),
 			)
 			.orderBy(desc(comment.createdAt));
@@ -70,23 +70,25 @@ export const createComment = createServerFn({ method: "POST" })
 		const { orgId, userId, ipAddress } = await requireOrg();
 
 		const id = crypto.randomUUID();
-		await db.insert(comment).values({
-			id,
-			workspaceId: orgId,
-			authorId: userId,
-			entityType: data.entityType,
-			entityId: data.entityId,
-			body: data.body,
-		});
-
-		await writeAuditLog({
-			workspaceId: orgId,
-			actorId: userId,
-			action: "comment.created",
-			entityType: data.entityType,
-			entityId: data.entityId,
-			metadata: { commentId: id },
-			ipAddress,
+		await db.transaction(async (tx) => {
+			await tx.insert(comment).values({
+				id,
+				workspaceId: orgId,
+				authorId: userId,
+				entityType: data.entityType,
+				entityId: data.entityId,
+				body: data.body,
+			});
+			await tx.insert(auditLog).values({
+				id: crypto.randomUUID(),
+				workspaceId: orgId,
+				actorId: userId,
+				action: "comment.created",
+				entityType: data.entityType,
+				entityId: data.entityId,
+				metadata: { commentId: id } as Record<string, unknown> | null,
+				ipAddress: ipAddress ?? null,
+			});
 		});
 
 		return { id };
@@ -112,19 +114,25 @@ export const deleteComment = createServerFn({ method: "POST" })
 			requireRole(role, "admin");
 		}
 
-		await db
-			.update(comment)
-			.set({ deletedAt: new Date() })
-			.where(eq(comment.id, data.commentId));
+		await db.transaction(async (tx) => {
+			await tx
+				.update(comment)
+				.set({ deletedAt: new Date() })
+				.where(eq(comment.id, data.commentId));
 
-		await writeAuditLog({
-			workspaceId: orgId,
-			actorId: userId,
-			action: "comment.deleted",
-			entityType: existing.entityType,
-			entityId: existing.entityId,
-			metadata: { commentId: data.commentId },
-			ipAddress,
+			await tx.insert(auditLog).values({
+				id: crypto.randomUUID(),
+				workspaceId: orgId,
+				actorId: userId,
+				action: "comment.deleted",
+				entityType: existing.entityType,
+				entityId: existing.entityId,
+				metadata: { commentId: data.commentId } as Record<
+					string,
+					unknown
+				> | null,
+				ipAddress: ipAddress ?? null,
+			});
 		});
 
 		return { success: true };

@@ -39,16 +39,22 @@ function CommentsSection({
 	const [body, setBody] = useState("");
 	const [submitting, setSubmitting] = useState(false);
 	const [submitError, setSubmitError] = useState<string | null>(null);
+	const [fetchError, setFetchError] = useState<string | null>(null);
+	const [deleteError, setDeleteError] = useState<string | null>(null);
 
 	const fetchComments = useCallback(async () => {
 		setLoading(true);
+		setFetchError(null);
 		try {
 			const res = await listComments({
 				data: { entityType, entityId },
 			});
 			setComments(res);
-		} catch {
+		} catch (err) {
 			setComments([]);
+			setFetchError(
+				err instanceof Error ? err.message : "Failed to load comments",
+			);
 		} finally {
 			setLoading(false);
 		}
@@ -82,13 +88,16 @@ function CommentsSection({
 	};
 
 	const handleDelete = async (commentId: string) => {
+		setDeleteError(null);
 		try {
 			await deleteComment({
 				data: { commentId },
 			});
 			await fetchComments();
-		} catch {
-			/* noop */
+		} catch (err) {
+			setDeleteError(
+				err instanceof Error ? err.message : "Failed to delete comment",
+			);
 		}
 	};
 
@@ -107,6 +116,8 @@ function CommentsSection({
 					<div className="flex items-center justify-center py-4">
 						<div className="size-5 animate-pulse rounded-full bg-muted" />
 					</div>
+				) : fetchError ? (
+					<p className="py-4 text-center text-sm text-red-500">{fetchError}</p>
 				) : comments.length === 0 ? (
 					<p className="py-4 text-center text-sm text-muted-foreground">
 						No comments yet. Be the first to comment.
@@ -151,6 +162,7 @@ function CommentsSection({
 					</div>
 				)}
 
+				{deleteError && <p className="text-xs text-red-500">{deleteError}</p>}
 				{submitError && <p className="text-xs text-red-500">{submitError}</p>}
 				<div className="flex gap-2 pt-2">
 					<Textarea
