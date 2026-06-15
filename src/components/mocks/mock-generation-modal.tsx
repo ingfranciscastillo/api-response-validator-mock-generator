@@ -39,11 +39,15 @@ export function MockGenerationModal({
 	>([]);
 	const [selectedSpecId, setSelectedSpecId] = useState("");
 	const [selectedEndpointId, setSelectedEndpointId] = useState("");
+	const [availableStatusCodes, setAvailableStatusCodes] = useState<string[]>(
+		[],
+	);
 	const [statusCode, setStatusCode] = useState("200");
 	const [variantType, setVariantType] = useState("generated");
 	const [seed, setSeed] = useState("");
 	const [rules, setRules] = useState<GenerationRules>({});
 	const [generating, setGenerating] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
 		if (!open) return;
@@ -63,9 +67,37 @@ export function MockGenerationModal({
 		});
 	}, [selectedSpecId]);
 
+	useEffect(() => {
+		if (!selectedEndpointId) {
+			setAvailableStatusCodes([]);
+			return;
+		}
+		const ep = endpoints.find((e) => e.id === selectedEndpointId);
+		if (!ep) {
+			setAvailableStatusCodes([]);
+			return;
+		}
+		const responses = ep.responses as Record<string, unknown> | null;
+		const codes = Object.entries(responses ?? {})
+			.filter(([, resp]) => {
+				const content = (resp as Record<string, unknown>)?.content as
+					| Record<string, unknown>
+					| undefined;
+				const jsonContent = content?.["application/json"] as
+					| Record<string, unknown>
+					| undefined;
+				return jsonContent?.schema != null;
+			})
+			.map(([code]) => code)
+			.sort();
+		setAvailableStatusCodes(codes);
+		if (codes.length > 0) setStatusCode(codes[0]);
+	}, [selectedEndpointId, endpoints]);
+
 	const handleGenerate = async () => {
 		if (!selectedEndpointId) return;
 		setGenerating(true);
+		setError(null);
 		try {
 			await generateEndpointMock({
 				data: {
@@ -81,6 +113,8 @@ export function MockGenerationModal({
 			});
 			onGenerated();
 			onOpenChange(false);
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Failed to generate mock");
 		} finally {
 			setGenerating(false);
 		}
@@ -135,12 +169,24 @@ export function MockGenerationModal({
 
 					<div className="space-y-2">
 						<Label>Status Code</Label>
-						<Input
-							type="number"
-							value={statusCode}
-							onChange={(e) => setStatusCode(e.target.value)}
-							placeholder="200"
-						/>
+						{availableStatusCodes.length > 0 ? (
+							<Select value={statusCode} onValueChange={setStatusCode}>
+								<SelectTrigger>
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									{availableStatusCodes.map((code) => (
+										<SelectItem key={code} value={code}>
+											{code}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						) : (
+							<p className="text-sm text-muted-foreground">
+								No response schemas available for this endpoint
+							</p>
+						)}
 					</div>
 
 					<div className="space-y-2">
@@ -177,13 +223,23 @@ export function MockGenerationModal({
 					<GenerationRulesEditor rules={rules} onChange={setRules} />
 				</div>
 
+				{error && (
+					<div className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+						{error}
+					</div>
+				)}
+
 				<SheetFooter>
 					<Button variant="outline" onClick={() => onOpenChange(false)}>
 						Cancel
 					</Button>
 					<Button
 						onClick={handleGenerate}
-						disabled={!selectedEndpointId || generating}
+						disabled={
+							!selectedEndpointId ||
+							generating ||
+							availableStatusCodes.length === 0
+						}
 					>
 						{generating ? "Generating..." : "Generate & Save"}
 					</Button>

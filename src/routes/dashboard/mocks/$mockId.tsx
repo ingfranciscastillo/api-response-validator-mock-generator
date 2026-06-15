@@ -35,6 +35,7 @@ function MockDetailPage() {
 		null,
 	);
 	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 	const [latencyMs, setLatencyMs] = useState(0);
 	const [deleting, setDeleting] = useState(false);
 
@@ -46,6 +47,9 @@ function MockDetailPage() {
 					setLatencyMs(result.servingConfig.latencyMs);
 				}
 			})
+			.catch((err) =>
+				setError(err instanceof Error ? err.message : "Failed to load mock"),
+			)
 			.finally(() => setLoading(false));
 	}, [mockId]);
 
@@ -89,6 +93,17 @@ function MockDetailPage() {
 		return (
 			<div className="flex items-center justify-center py-12">
 				<div className="size-8 animate-pulse rounded-full bg-muted" />
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<div className="flex flex-col items-center gap-4 py-12">
+				<p className="text-destructive">{error}</p>
+				<Button asChild>
+					<Link to="/dashboard/mocks">Back to Mocks</Link>
+				</Button>
 			</div>
 		);
 	}

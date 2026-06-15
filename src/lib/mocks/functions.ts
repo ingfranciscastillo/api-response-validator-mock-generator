@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, desc, eq, like, sql } from "drizzle-orm";
+import { and, count, desc, eq, like, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { endpoint, mockDataset, mockServeConfig } from "@/db/schema";
 import { writeAuditLog } from "@/lib/audit/functions";
@@ -342,6 +342,8 @@ export const getMocks = createServerFn({ method: "GET", strict: false })
 			endpointId?: string;
 			variantType?: string;
 			search?: string;
+			page?: number;
+			pageSize?: number;
 		}) => input,
 	)
 	.handler(async ({ data }) => {
@@ -365,14 +367,31 @@ export const getMocks = createServerFn({ method: "GET", strict: false })
 			conditions.push(like(mockDataset.name, `%${data.search}%`));
 		}
 
+		const pageSize = data.pageSize ?? 25;
+		const page = data.page ?? 1;
+		const offset = (page - 1) * pageSize;
+
 		const mocks = await db
 			.select()
 			.from(mockDataset)
 			.where(and(...conditions))
 			.orderBy(desc(mockDataset.createdAt))
-			.limit(50);
+			.limit(pageSize)
+			.offset(offset);
 
-		return mocks;
+		const total = await db
+			.select({ count: count() })
+			.from(mockDataset)
+			.where(and(...conditions))
+			.then((r) => r[0]?.count ?? 0);
+
+		return {
+			mocks,
+			total,
+			page,
+			pageSize,
+			totalPages: Math.ceil(total / pageSize),
+		};
 	});
 
 export const getMock = createServerFn({ method: "GET", strict: false })

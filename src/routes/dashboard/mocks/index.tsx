@@ -6,6 +6,7 @@ import { MockGenerationModal } from "#/components/mocks/mock-generation-modal";
 import { Button } from "#/components/ui/button";
 import { EmptyState } from "#/components/ui/empty-state";
 import { Input } from "#/components/ui/input";
+import { PaginationControls } from "#/components/ui/pagination-controls";
 import {
 	Select,
 	SelectContent,
@@ -24,26 +25,43 @@ export const Route = createFileRoute("/dashboard/mocks/")({
 	component: MocksPage,
 });
 
+const DEFAULT_PAGE_SIZE = 25;
+
 function MocksPage() {
 	const [mocks, setMocks] = useState<MockRow[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 	const [modalOpen, setModalOpen] = useState(false);
 	const [search, setSearch] = useState("");
 	const [specFilter, setSpecFilter] = useState("all");
+	const [page, setPage] = useState(1);
+	const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+	const [total, setTotal] = useState(0);
+	const [totalPages, setTotalPages] = useState(0);
 
 	const [specs, setSpecs] = useState<Awaited<ReturnType<typeof getSpecs>>>([]);
 
 	const fetchMocks = useCallback(() => {
 		setLoading(true);
+		setError(null);
 		getMocks({
 			data: {
 				search: search || undefined,
 				specId: specFilter !== "all" ? specFilter : undefined,
+				page,
+				pageSize,
 			},
 		})
-			.then(setMocks)
+			.then((data) => {
+				setMocks(data.mocks);
+				setTotal(data.total);
+				setTotalPages(data.totalPages);
+			})
+			.catch((err) =>
+				setError(err instanceof Error ? err.message : "Failed to load mocks"),
+			)
 			.finally(() => setLoading(false));
-	}, [search, specFilter]);
+	}, [search, specFilter, page, pageSize]);
 
 	useEffect(() => {
 		fetchMocks();
@@ -54,6 +72,7 @@ function MocksPage() {
 	}, []);
 
 	const handleSearch = () => {
+		setPage(1);
 		fetchMocks();
 	};
 
@@ -111,6 +130,10 @@ function MocksPage() {
 						</div>
 					))}
 				</div>
+			) : error ? (
+				<div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+					{error}
+				</div>
 			) : mocks.length === 0 ? (
 				<EmptyState
 					icon={<TestTubes className="size-8" />}
@@ -118,11 +141,24 @@ function MocksPage() {
 					description="Generate mocks from your specifications"
 				/>
 			) : (
-				<div className="grid gap-3">
-					{mocks.map((mock) => (
-						<MockCard key={mock.id} mock={mock} />
-					))}
-				</div>
+				<>
+					<div className="grid gap-3">
+						{mocks.map((mock) => (
+							<MockCard key={mock.id} mock={mock} />
+						))}
+					</div>
+					<PaginationControls
+						page={page}
+						totalPages={totalPages}
+						total={total}
+						pageSize={pageSize}
+						onPageChange={setPage}
+						onPageSizeChange={(s) => {
+							setPageSize(s);
+							setPage(1);
+						}}
+					/>
+				</>
 			)}
 
 			<MockGenerationModal
