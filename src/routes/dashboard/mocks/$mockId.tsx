@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, FlaskConical, Trash2 } from "lucide-react";
+import { ArrowLeft, Copy, FlaskConical, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MockPayloadViewer } from "#/components/mocks/mock-payload-viewer";
 import { CommentsSection } from "#/components/shared/CommentsSection";
@@ -28,6 +28,8 @@ export const Route = createFileRoute("/dashboard/mocks/$mockId")({
 	component: MockDetailPage,
 });
 
+type HeaderPair = { key: string; value: string };
+
 function MockDetailPage() {
 	const { mockId } = Route.useParams();
 	const navigate = useNavigate();
@@ -39,12 +41,23 @@ function MockDetailPage() {
 	const [latencyMs, setLatencyMs] = useState(0);
 	const [deleting, setDeleting] = useState(false);
 
+	const [isToggling, setIsToggling] = useState(false);
+	const [isUpdating, setIsUpdating] = useState(false);
+	const [toggleError, setToggleError] = useState<string | null>(null);
+	const [latencyError, setLatencyError] = useState<string | null>(null);
+	const [curlCopied, setCurlCopied] = useState(false);
+
+	const [headerOverrides, setHeaderOverrides] = useState<HeaderPair[]>([]);
+
 	useEffect(() => {
 		getMock({ data: { mockId } })
 			.then((result) => {
 				setData(result);
 				if (result?.servingConfig) {
 					setLatencyMs(result.servingConfig.latencyMs);
+					setHeaderOverrides(
+						toHeaderPairs(result.servingConfig.responseHeadersOverride),
+					);
 				}
 			})
 			.catch((err) =>
@@ -54,33 +67,80 @@ function MockDetailPage() {
 	}, [mockId]);
 
 	const handleToggleServing = async (isEnabled: boolean) => {
-		await toggleMockServing({
-			data: { mockId, isEnabled },
-		});
-		setData((prev) =>
-			prev
-				? {
-						...prev,
-						servingConfig: prev.servingConfig
-							? { ...prev.servingConfig, isEnabled }
-							: {
-									id: "",
-									workspaceId: "",
-									mockDatasetId: mockId,
-									isEnabled,
-									latencyMs: 0,
-									responseHeadersOverride: null,
-									createdAt: new Date(),
-								},
-					}
-				: prev,
-		);
+		setIsToggling(true);
+		setToggleError(null);
+		try {
+			await toggleMockServing({ data: { mockId, isEnabled } });
+			const result = await getMock({ data: { mockId } });
+			setData(result);
+			if (result?.servingConfig) {
+				setLatencyMs(result.servingConfig.latencyMs);
+				setHeaderOverrides(
+					toHeaderPairs(result.servingConfig.responseHeadersOverride),
+				);
+			}
+		} catch (err) {
+			setToggleError(
+				err instanceof Error ? err.message : "Failed to update serving",
+			);
+		} finally {
+			setIsToggling(false);
+		}
 	};
 
 	const handleUpdateLatency = async () => {
-		await updateServingConfig({
-			data: { mockId, latencyMs },
+		setIsUpdating(true);
+		setLatencyError(null);
+		try {
+			const overrideObj = pairsToRecord(headerOverrides);
+			await updateServingConfig({
+				data: {
+					mockId,
+					latencyMs,
+					responseHeadersOverride: overrideObj,
+				},
+			});
+			const result = await getMock({ data: { mockId } });
+			setData(result);
+		} catch (err) {
+			setLatencyError(
+				err instanceof Error ? err.message : "Failed to update configuration",
+			);
+		} finally {
+			setIsUpdating(false);
+		}
+	};
+
+	const handleCopyCurl = async () => {
+		const host = window.location.origin;
+		const curl = `curl -H "Authorization: Bearer <your-api-key>" ${host}/api/public/mocks/${mockId}`;
+		try {
+			await navigator.clipboard.writeText(curl);
+			setCurlCopied(true);
+			setTimeout(() => setCurlCopied(false), 2000);
+		} catch {
+			// clipboard not available
+		}
+	};
+
+	const addHeaderRow = () => {
+		setHeaderOverrides((prev) => [...prev, { key: "", value: "" }]);
+	};
+
+	const updateHeaderRow = (
+		index: number,
+		field: "key" | "value",
+		val: string,
+	) => {
+		setHeaderOverrides((prev) => {
+			const next = [...prev];
+			next[index] = { ...next[index], [field]: val };
+			return next;
 		});
+	};
+
+	const removeHeaderRow = (index: number) => {
+		setHeaderOverrides((prev) => prev.filter((_, i) => i !== index));
 	};
 
 	const handleDelete = async () => {
@@ -175,8 +235,12 @@ function MockDetailPage() {
 						<Switch
 							checked={servingConfig?.isEnabled ?? false}
 							onCheckedChange={handleToggleServing}
+							disabled={isToggling}
 						/>
 					</div>
+					{toggleError && (
+						<p className="text-xs text-destructive">{toggleError}</p>
+					)}
 
 					<Separator />
 
@@ -191,17 +255,79 @@ function MockDetailPage() {
 								max={10000}
 							/>
 						</div>
-						<Button variant="outline" size="sm" onClick={handleUpdateLatency}>
-							Update
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={handleUpdateLatency}
+							disabled={isUpdating}
+						>
+							{isUpdating ? "Saving..." : "Update"}
 						</Button>
+					</div>
+					{latencyError && (
+						<p className="text-xs text-destructive">{latencyError}</p>
+					)}
+
+					<Separator />
+
+					<div className="space-y-2">
+						<div className="flex items-center justify-between">
+							<Label>Response Header Overrides</Label>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={addHeaderRow}
+								className="gap-1"
+							>
+								<Plus className="size-3" />
+								Add Header
+							</Button>
+						</div>
+						{headerOverrides.length === 0 && (
+							<p className="text-sm text-muted-foreground">
+								No custom headers configured
+							</p>
+						)}
+						{headerOverrides.map((pair, i) => (
+							<div key={i} className="flex items-center gap-2">
+								<Input
+									placeholder="Header name"
+									value={pair.key}
+									onChange={(e) => updateHeaderRow(i, "key", e.target.value)}
+									className="flex-1"
+								/>
+								<Input
+									placeholder="Header value"
+									value={pair.value}
+									onChange={(e) => updateHeaderRow(i, "value", e.target.value)}
+									className="flex-1"
+								/>
+								<Button
+									variant="ghost"
+									size="icon"
+									onClick={() => removeHeaderRow(i)}
+								>
+									<X className="size-4" />
+								</Button>
+							</div>
+						))}
 					</div>
 
 					{servingConfig?.isEnabled && (
-						<div className="rounded-md bg-muted p-3">
-							<p className="text-xs text-muted-foreground">
+						<div className="rounded-md bg-muted p-3 flex items-center justify-between gap-2">
+							<p className="text-xs text-muted-foreground break-all">
 								Public URL:{" "}
 								<code className="font-mono">/api/public/mocks/{mock.id}</code>
 							</p>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={handleCopyCurl}
+								className="shrink-0 gap-1"
+							>
+								<Copy className="size-3" />
+								{curlCopied ? "Copied!" : "Copy Curl"}
+							</Button>
 						</div>
 					)}
 				</CardContent>
@@ -244,4 +370,22 @@ function MockDetailPage() {
 			</Card>
 		</div>
 	);
+}
+
+function toHeaderPairs(value: unknown): HeaderPair[] {
+	if (!value || typeof value !== "object") return [];
+	return Object.entries(value).map(([key, val]) => ({
+		key,
+		value: String(val ?? ""),
+	}));
+}
+
+function pairsToRecord(pairs: HeaderPair[]): Record<string, string> | null {
+	const filtered = pairs.filter((p) => p.key.trim() !== "");
+	if (filtered.length === 0) return null;
+	const record: Record<string, string> = {};
+	for (const { key, value } of filtered) {
+		record[key.trim()] = value;
+	}
+	return record;
 }
