@@ -106,7 +106,7 @@ function AppTopbar() {
 							<DropdownMenuSeparator />
 							<DropdownMenuItem asChild>
 								<a
-									href="/dashboard/settings"
+									href="/dashboard/settings/account"
 									className="flex items-center gap-2"
 								>
 									<User className="size-4" />

@@ -25,6 +25,7 @@ import { Route as DashboardMocksRouteRouteImport } from './routes/dashboard/mock
 import { Route as DashboardDriftRouteRouteImport } from './routes/dashboard/drift/route'
 import { Route as DashboardValidationIndexRouteImport } from './routes/dashboard/validation/index'
 import { Route as DashboardSpecsIndexRouteImport } from './routes/dashboard/specs/index'
+import { Route as DashboardSettingsIndexRouteImport } from './routes/dashboard/settings/index'
 import { Route as DashboardReportsIndexRouteImport } from './routes/dashboard/reports/index'
 import { Route as DashboardMocksIndexRouteImport } from './routes/dashboard/mocks/index'
 import { Route as DashboardDriftIndexRouteImport } from './routes/dashboard/drift/index'
@@ -128,6 +129,11 @@ const DashboardSpecsIndexRoute = DashboardSpecsIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DashboardSpecsRouteRoute,
+} as any)
+const DashboardSettingsIndexRoute = DashboardSettingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardSettingsRouteRoute,
 } as any)
 const DashboardReportsIndexRoute = DashboardReportsIndexRouteImport.update({
   id: '/',
@@ -278,6 +284,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/drift/': typeof DashboardDriftIndexRoute
   '/dashboard/mocks/': typeof DashboardMocksIndexRoute
   '/dashboard/reports/': typeof DashboardReportsIndexRoute
+  '/dashboard/settings/': typeof DashboardSettingsIndexRoute
   '/dashboard/specs/': typeof DashboardSpecsIndexRoute
   '/dashboard/validation/': typeof DashboardValidationIndexRoute
   '/api/public/mocks/$mockId': typeof ApiPublicMocksMockIdRoute
@@ -292,7 +299,6 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/dashboard/settings': typeof DashboardSettingsRouteRouteWithChildren
   '/dashboard/team': typeof DashboardTeamRouteRouteWithChildren
   '/dashboard': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -310,6 +316,7 @@ export interface FileRoutesByTo {
   '/dashboard/drift': typeof DashboardDriftIndexRoute
   '/dashboard/mocks': typeof DashboardMocksIndexRoute
   '/dashboard/reports': typeof DashboardReportsIndexRoute
+  '/dashboard/settings': typeof DashboardSettingsIndexRoute
   '/dashboard/specs': typeof DashboardSpecsIndexRoute
   '/dashboard/validation': typeof DashboardValidationIndexRoute
   '/api/public/mocks/$mockId': typeof ApiPublicMocksMockIdRoute
@@ -350,6 +357,7 @@ export interface FileRoutesById {
   '/dashboard/drift/': typeof DashboardDriftIndexRoute
   '/dashboard/mocks/': typeof DashboardMocksIndexRoute
   '/dashboard/reports/': typeof DashboardReportsIndexRoute
+  '/dashboard/settings/': typeof DashboardSettingsIndexRoute
   '/dashboard/specs/': typeof DashboardSpecsIndexRoute
   '/dashboard/validation/': typeof DashboardValidationIndexRoute
   '/api/public/mocks/$mockId': typeof ApiPublicMocksMockIdRoute
@@ -391,6 +399,7 @@ export interface FileRouteTypes {
     | '/dashboard/drift/'
     | '/dashboard/mocks/'
     | '/dashboard/reports/'
+    | '/dashboard/settings/'
     | '/dashboard/specs/'
     | '/dashboard/validation/'
     | '/api/public/mocks/$mockId'
@@ -405,7 +414,6 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/register'
     | '/reset-password'
-    | '/dashboard/settings'
     | '/dashboard/team'
     | '/dashboard'
     | '/api/auth/$'
@@ -423,6 +431,7 @@ export interface FileRouteTypes {
     | '/dashboard/drift'
     | '/dashboard/mocks'
     | '/dashboard/reports'
+    | '/dashboard/settings'
     | '/dashboard/specs'
     | '/dashboard/validation'
     | '/api/public/mocks/$mockId'
@@ -462,6 +471,7 @@ export interface FileRouteTypes {
     | '/dashboard/drift/'
     | '/dashboard/mocks/'
     | '/dashboard/reports/'
+    | '/dashboard/settings/'
     | '/dashboard/specs/'
     | '/dashboard/validation/'
     | '/api/public/mocks/$mockId'
@@ -595,6 +605,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/specs/'
       preLoaderRoute: typeof DashboardSpecsIndexRouteImport
       parentRoute: typeof DashboardSpecsRouteRoute
+    }
+    '/dashboard/settings/': {
+      id: '/dashboard/settings/'
+      path: '/'
+      fullPath: '/dashboard/settings/'
+      preLoaderRoute: typeof DashboardSettingsIndexRouteImport
+      parentRoute: typeof DashboardSettingsRouteRoute
     }
     '/dashboard/reports/': {
       id: '/dashboard/reports/'
@@ -793,6 +810,7 @@ interface DashboardSettingsRouteRouteChildren {
   DashboardSettingsAccountRoute: typeof DashboardSettingsAccountRoute
   DashboardSettingsApiKeysRoute: typeof DashboardSettingsApiKeysRoute
   DashboardSettingsWorkspaceRoute: typeof DashboardSettingsWorkspaceRoute
+  DashboardSettingsIndexRoute: typeof DashboardSettingsIndexRoute
 }
 
 const DashboardSettingsRouteRouteChildren: DashboardSettingsRouteRouteChildren =
@@ -800,6 +818,7 @@ const DashboardSettingsRouteRouteChildren: DashboardSettingsRouteRouteChildren =
     DashboardSettingsAccountRoute: DashboardSettingsAccountRoute,
     DashboardSettingsApiKeysRoute: DashboardSettingsApiKeysRoute,
     DashboardSettingsWorkspaceRoute: DashboardSettingsWorkspaceRoute,
+    DashboardSettingsIndexRoute: DashboardSettingsIndexRoute,
   }
 
 const DashboardSettingsRouteRouteWithChildren =

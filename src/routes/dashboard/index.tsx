@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
+	AlertTriangle,
 	FileText,
 	FlaskConical,
+	RefreshCw,
 	Route as RouteIcon,
 	ShieldCheck,
 } from "lucide-react";
@@ -9,6 +11,7 @@ import { useEffect, useState } from "react";
 import { RecentRunsTable } from "#/components/dashboard/recent-runs-table";
 import { StatCard } from "#/components/dashboard/stat-card";
 import { ViolationsChart } from "#/components/dashboard/violations-chart";
+import { Button } from "#/components/ui/button";
 import {
 	type DashboardOverview,
 	getDashboardCharts,
@@ -25,20 +28,49 @@ function DashboardIndexPage() {
 		Awaited<ReturnType<typeof getDashboardCharts>>
 	>({ daily: [] });
 	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 
-	useEffect(() => {
-		Promise.all([getDashboardOverview(), getDashboardCharts()])
+	const fetchDashboard = () => {
+		setLoading(true);
+		setError(null);
+		Promise.all([getDashboardOverview(), getDashboardCharts({ data: {} })])
 			.then(([ov, charts]) => {
 				setOverview(ov);
 				setChartData(charts);
 			})
+			.catch((e) => {
+				setError(
+					e instanceof Error ? e.message : "Failed to load dashboard data",
+				);
+			})
 			.finally(() => setLoading(false));
+	};
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: fetchDashboard is stable
+	useEffect(() => {
+		fetchDashboard();
 	}, []);
 
 	if (loading) {
 		return (
 			<div className="flex items-center justify-center py-12">
 				<div className="size-8 animate-pulse rounded-full bg-muted" />
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<div className="flex flex-col items-center justify-center gap-4 py-16">
+				<AlertTriangle className="size-10 text-red-500" />
+				<div className="text-center">
+					<p className="text-lg font-medium">Failed to load dashboard</p>
+					<p className="text-sm text-muted-foreground mt-1">{error}</p>
+				</div>
+				<Button variant="outline" size="sm" onClick={fetchDashboard}>
+					<RefreshCw className="size-4 mr-1" />
+					Retry
+				</Button>
 			</div>
 		);
 	}
