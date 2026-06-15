@@ -138,3 +138,21 @@ export const getEndpoints = createServerFn({ method: "GET", strict: false })
 
 		return endpoints_;
 	});
+
+export const getSpecVersions = createServerFn({ method: "GET" })
+	.validator((input: { specId: string }) => input)
+	.handler(async ({ data }) => {
+		const headers = getRequestHeaders();
+		const session = await auth.api.getSession({ headers });
+		if (!session) throw new Error("Unauthorized");
+
+		return db
+			.select({
+				id: specificationVersion.id,
+				version: specificationVersion.version,
+				createdAt: specificationVersion.createdAt,
+			})
+			.from(specificationVersion)
+			.where(eq(specificationVersion.specId, data.specId))
+			.orderBy(desc(specificationVersion.version));
+	});

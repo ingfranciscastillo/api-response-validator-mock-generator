@@ -29,6 +29,7 @@ import { Route as DashboardReportsReportIdRouteImport } from './routes/dashboard
 import { Route as DashboardMocksMockIdRouteImport } from './routes/dashboard.mocks.$mockId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as DashboardValidationRunsRunIdRouteImport } from './routes/dashboard.validation.runs.$runId'
+import { Route as DashboardSpecsSpecIdCompareRouteImport } from './routes/dashboard.specs.$specId.compare'
 import { Route as ApiPublicMocksMockIdRouteImport } from './routes/api/public/mocks.$mockId'
 import { Route as DashboardSpecsSpecIdEndpointsEndpointIdRouteImport } from './routes/dashboard.specs.$specId.endpoints.$endpointId'
 
@@ -135,6 +136,12 @@ const DashboardValidationRunsRunIdRoute =
     path: '/runs/$runId',
     getParentRoute: () => DashboardValidationRoute,
   } as any)
+const DashboardSpecsSpecIdCompareRoute =
+  DashboardSpecsSpecIdCompareRouteImport.update({
+    id: '/compare',
+    path: '/compare',
+    getParentRoute: () => DashboardSpecsSpecIdRoute,
+  } as any)
 const ApiPublicMocksMockIdRoute = ApiPublicMocksMockIdRouteImport.update({
   id: '/api/public/mocks/$mockId',
   path: '/api/public/mocks/$mockId',
@@ -168,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/specs/new': typeof DashboardSpecsNewRoute
   '/dashboard/validation/workspace': typeof DashboardValidationWorkspaceRoute
   '/api/public/mocks/$mockId': typeof ApiPublicMocksMockIdRoute
+  '/dashboard/specs/$specId/compare': typeof DashboardSpecsSpecIdCompareRoute
   '/dashboard/validation/runs/$runId': typeof DashboardValidationRunsRunIdRoute
   '/dashboard/specs/$specId/endpoints/$endpointId': typeof DashboardSpecsSpecIdEndpointsEndpointIdRoute
 }
@@ -191,6 +199,7 @@ export interface FileRoutesByTo {
   '/dashboard/specs/new': typeof DashboardSpecsNewRoute
   '/dashboard/validation/workspace': typeof DashboardValidationWorkspaceRoute
   '/api/public/mocks/$mockId': typeof ApiPublicMocksMockIdRoute
+  '/dashboard/specs/$specId/compare': typeof DashboardSpecsSpecIdCompareRoute
   '/dashboard/validation/runs/$runId': typeof DashboardValidationRunsRunIdRoute
   '/dashboard/specs/$specId/endpoints/$endpointId': typeof DashboardSpecsSpecIdEndpointsEndpointIdRoute
 }
@@ -216,6 +225,7 @@ export interface FileRoutesById {
   '/dashboard/specs/new': typeof DashboardSpecsNewRoute
   '/dashboard/validation/workspace': typeof DashboardValidationWorkspaceRoute
   '/api/public/mocks/$mockId': typeof ApiPublicMocksMockIdRoute
+  '/dashboard/specs/$specId/compare': typeof DashboardSpecsSpecIdCompareRoute
   '/dashboard/validation/runs/$runId': typeof DashboardValidationRunsRunIdRoute
   '/dashboard/specs/$specId/endpoints/$endpointId': typeof DashboardSpecsSpecIdEndpointsEndpointIdRoute
 }
@@ -242,6 +252,7 @@ export interface FileRouteTypes {
     | '/dashboard/specs/new'
     | '/dashboard/validation/workspace'
     | '/api/public/mocks/$mockId'
+    | '/dashboard/specs/$specId/compare'
     | '/dashboard/validation/runs/$runId'
     | '/dashboard/specs/$specId/endpoints/$endpointId'
   fileRoutesByTo: FileRoutesByTo
@@ -265,6 +276,7 @@ export interface FileRouteTypes {
     | '/dashboard/specs/new'
     | '/dashboard/validation/workspace'
     | '/api/public/mocks/$mockId'
+    | '/dashboard/specs/$specId/compare'
     | '/dashboard/validation/runs/$runId'
     | '/dashboard/specs/$specId/endpoints/$endpointId'
   id:
@@ -289,6 +301,7 @@ export interface FileRouteTypes {
     | '/dashboard/specs/new'
     | '/dashboard/validation/workspace'
     | '/api/public/mocks/$mockId'
+    | '/dashboard/specs/$specId/compare'
     | '/dashboard/validation/runs/$runId'
     | '/dashboard/specs/$specId/endpoints/$endpointId'
   fileRoutesById: FileRoutesById
@@ -445,6 +458,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardValidationRunsRunIdRouteImport
       parentRoute: typeof DashboardValidationRoute
     }
+    '/dashboard/specs/$specId/compare': {
+      id: '/dashboard/specs/$specId/compare'
+      path: '/compare'
+      fullPath: '/dashboard/specs/$specId/compare'
+      preLoaderRoute: typeof DashboardSpecsSpecIdCompareRouteImport
+      parentRoute: typeof DashboardSpecsSpecIdRoute
+    }
     '/api/public/mocks/$mockId': {
       id: '/api/public/mocks/$mockId'
       path: '/api/public/mocks/$mockId'
@@ -486,10 +506,12 @@ const DashboardReportsRouteWithChildren =
   DashboardReportsRoute._addFileChildren(DashboardReportsRouteChildren)
 
 interface DashboardSpecsSpecIdRouteChildren {
+  DashboardSpecsSpecIdCompareRoute: typeof DashboardSpecsSpecIdCompareRoute
   DashboardSpecsSpecIdEndpointsEndpointIdRoute: typeof DashboardSpecsSpecIdEndpointsEndpointIdRoute
 }
 
 const DashboardSpecsSpecIdRouteChildren: DashboardSpecsSpecIdRouteChildren = {
+  DashboardSpecsSpecIdCompareRoute: DashboardSpecsSpecIdCompareRoute,
   DashboardSpecsSpecIdEndpointsEndpointIdRoute:
     DashboardSpecsSpecIdEndpointsEndpointIdRoute,
 }
