@@ -1,6 +1,6 @@
-import { Send } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { Save, Send } from "lucide-react";
 import { useEffect, useState } from "react";
-
 import { Button } from "#/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
 import { Input } from "#/components/ui/input";
@@ -22,13 +22,21 @@ export function ValidationRequestBuilder({
 	endpointId,
 	initialMethod = "GET",
 }: RequestBuilderProps) {
+	const navigate = useNavigate();
 	const [method, setMethod] = useState(initialMethod);
 	const [url, setUrl] = useState("");
 	const [headersText, setHeadersText] = useState("{}");
 	const [bodyText, setBodyText] = useState("");
 	const [sending, setSending] = useState(false);
+	const [saving, setSaving] = useState(false);
 	const [result, setResult] = useState<ValidationResultData | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	const [lastPayload, setLastPayload] = useState<{
+		url: string;
+		method: string;
+		headers: Record<string, string>;
+		body: unknown;
+	} | null>(null);
 
 	useEffect(() => {
 		setMethod(initialMethod);
@@ -38,6 +46,7 @@ export function ValidationRequestBuilder({
 		setSending(true);
 		setError(null);
 		setResult(null);
+		setLastPayload(null);
 
 		try {
 			let parsedHeaders: Record<string, string> = {};
@@ -72,6 +81,8 @@ export function ValidationRequestBuilder({
 				},
 			});
 
+			setLastPayload({ url, method, headers: parsedHeaders, body: parsedBody });
+
 			setResult({
 				endpointId,
 				responseStatusCode: response.response.statusCode,
@@ -89,6 +100,34 @@ export function ValidationRequestBuilder({
 			setError(err instanceof Error ? err.message : "Request failed");
 		} finally {
 			setSending(false);
+		}
+	}
+
+	async function handleSave() {
+		if (!lastPayload) return;
+		setSaving(true);
+		try {
+			const response = await runValidation({
+				data: {
+					specId,
+					endpointId,
+					url: lastPayload.url,
+					method: lastPayload.method,
+					headers: lastPayload.headers,
+					body: lastPayload.body,
+					save: true,
+				},
+			});
+			if (response.runId) {
+				navigate({
+					to: "/dashboard/validation/runs/$runId",
+					params: { runId: response.runId },
+				});
+			}
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Failed to save run");
+		} finally {
+			setSaving(false);
 		}
 	}
 
@@ -176,7 +215,18 @@ export function ValidationRequestBuilder({
 
 			{result && (
 				<div>
-					<h4 className="text-sm font-medium mb-2">Response</h4>
+					<div className="flex items-center justify-between mb-2">
+						<h4 className="text-sm font-medium">Response</h4>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={handleSave}
+							disabled={saving || !lastPayload}
+						>
+							<Save className="size-4" />
+							{saving ? "Saving..." : "Save Run"}
+						</Button>
+					</div>
 					<ValidationResultCard result={result} expanded />
 				</div>
 			)}
