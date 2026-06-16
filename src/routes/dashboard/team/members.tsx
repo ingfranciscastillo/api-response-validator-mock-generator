@@ -18,6 +18,7 @@ import { Skeleton } from "#/components/ui/skeleton";
 import {
 	inviteMember,
 	listMembers,
+	listMyInvitations,
 	removeMember,
 	updateMemberRole,
 } from "#/lib/workspace/functions";
@@ -25,6 +26,8 @@ import {
 export const Route = createFileRoute("/dashboard/team/members")({
 	component: MembersPage,
 });
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function MembersPage() {
 	const [members, setMembers] = useState<
@@ -35,11 +38,22 @@ function MembersPage() {
 	const [inviteEmail, setInviteEmail] = useState("");
 	const [inviteRole, setInviteRole] = useState("member");
 	const [inviting, setInviting] = useState(false);
+	const [inviteError, setInviteError] = useState<string | null>(null);
+	const [actionLoading, setActionLoading] = useState<Record<string, boolean>>(
+		{},
+	);
+	const [actionError, setActionError] = useState<Record<string, string>>({});
+	const [pendingInvitations, setPendingInvitations] = useState<
+		Awaited<ReturnType<typeof listMyInvitations>>
+	>([]);
 
 	const fetchMembers = () => {
 		setLoading(true);
-		listMembers()
-			.then(setMembers)
+		Promise.all([listMembers(), listMyInvitations()])
+			.then(([membersData, invitationsData]) => {
+				setMembers(membersData);
+				setPendingInvitations(invitationsData);
+			})
 			.finally(() => setLoading(false));
 	};
 
@@ -49,6 +63,13 @@ function MembersPage() {
 
 	const handleInvite = async () => {
 		if (!inviteEmail) return;
+		setInviteError(null);
+
+		if (!emailRegex.test(inviteEmail)) {
+			setInviteError("Please enter a valid email address");
+			return;
+		}
+
 		setInviting(true);
 		try {
 			await inviteMember({
@@ -59,23 +80,52 @@ function MembersPage() {
 			});
 			setInviteEmail("");
 			setShowInvite(false);
+			fetchMembers();
+		} catch (err) {
+			setInviteError(
+				err instanceof Error ? err.message : "Failed to invite member",
+			);
 		} finally {
 			setInviting(false);
 		}
 	};
 
 	const handleRoleChange = async (memberId: string, role: string) => {
-		await updateMemberRole({
-			data: { memberId, role },
-		});
-		fetchMembers();
+		setActionLoading((prev) => ({ ...prev, [memberId]: true }));
+		setActionError((prev) => ({ ...prev, [memberId]: "" }));
+		try {
+			await updateMemberRole({
+				data: { memberId, role },
+			});
+			fetchMembers();
+		} catch (err) {
+			setActionError((prev) => ({
+				...prev,
+				[memberId]:
+					err instanceof Error ? err.message : "Failed to update role",
+			}));
+		} finally {
+			setActionLoading((prev) => ({ ...prev, [memberId]: false }));
+		}
 	};
 
 	const handleRemove = async (memberId: string) => {
-		await removeMember({
-			data: { memberId },
-		});
-		fetchMembers();
+		setActionLoading((prev) => ({ ...prev, [memberId]: true }));
+		setActionError((prev) => ({ ...prev, [memberId]: "" }));
+		try {
+			await removeMember({
+				data: { memberId },
+			});
+			fetchMembers();
+		} catch (err) {
+			setActionError((prev) => ({
+				...prev,
+				[memberId]:
+					err instanceof Error ? err.message : "Failed to remove member",
+			}));
+		} finally {
+			setActionLoading((prev) => ({ ...prev, [memberId]: false }));
+		}
 	};
 
 	return (
@@ -99,7 +149,10 @@ function MembersPage() {
 								<Input
 									placeholder="colleague@example.com"
 									value={inviteEmail}
-									onChange={(e) => setInviteEmail(e.target.value)}
+									onChange={(e) => {
+										setInviteEmail(e.target.value);
+										setInviteError(null);
+									}}
 								/>
 							</div>
 							<div className="space-y-1">
@@ -121,6 +174,38 @@ function MembersPage() {
 							>
 								{inviting ? "Sending..." : "Send Invite"}
 							</Button>
+						</div>
+						{inviteError && (
+							<p className="mt-2 text-xs text-destructive">{inviteError}</p>
+						)}
+					</CardContent>
+				</Card>
+			)}
+
+			{pendingInvitations.length > 0 && (
+				<Card>
+					<CardContent className="pt-4">
+						<p className="text-sm font-medium mb-2 flex items-center gap-1.5">
+							<Mail className="size-4" />
+							Pending Invitations ({pendingInvitations.length})
+						</p>
+						<div className="space-y-1">
+							{pendingInvitations.map((inv) => (
+								<div
+									key={inv.id}
+									className="flex items-center justify-between py-1 text-xs"
+								>
+									<span className="text-muted-foreground">{inv.email}</span>
+									<div className="flex items-center gap-2">
+										<Badge variant="outline" className="text-[10px]">
+											{inv.role}
+										</Badge>
+										<span className="text-text-tertiary">
+											Expires {new Date(inv.expiresAt).toLocaleDateString()}
+										</span>
+									</div>
+								</div>
+							))}
 						</div>
 					</CardContent>
 				</Card>
@@ -182,6 +267,7 @@ function MembersPage() {
 											<Select
 												value={member.role}
 												onValueChange={(v) => handleRoleChange(member.id, v)}
+												disabled={actionLoading[member.id]}
 											>
 												<SelectTrigger className="w-24 h-8 text-xs">
 													<SelectValue />
@@ -196,12 +282,18 @@ function MembersPage() {
 												variant="ghost"
 												size="icon-xs"
 												onClick={() => handleRemove(member.id)}
+												disabled={actionLoading[member.id]}
 											>
 												<UserMinus className="size-4 text-red-500" />
 											</Button>
 										</>
 									)}
 								</div>
+								{actionError[member.id] && (
+									<p className="text-xs text-destructive mt-1">
+										{actionError[member.id]}
+									</p>
+								)}
 							</CardContent>
 						</Card>
 					))}
