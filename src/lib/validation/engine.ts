@@ -1,4 +1,5 @@
 import Ajv, { type ErrorObject } from "ajv";
+import AjvErrors from "ajv-errors";
 import addFormats from "ajv-formats";
 
 export interface Violation {
@@ -30,6 +31,7 @@ function getAjv(): Ajv {
 	if (!_ajv) {
 		_ajv = new Ajv({ strict: false, allErrors: true });
 		addFormats(_ajv);
+		AjvErrors(_ajv);
 	}
 	return _ajv;
 }
