@@ -1,6 +1,7 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Mail, UserMinus, UserPlus, Users } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Avatar, AvatarFallback } from "#/components/ui/avatar";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
@@ -37,10 +38,8 @@ export const Route = createFileRoute("/dashboard/team/members")({
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function MembersPage() {
-	const [members, setMembers] = useState<
-		Awaited<ReturnType<typeof listMembers>>
-	>([]);
-	const [loading, setLoading] = useState(true);
+	const queryClient = useQueryClient();
+
 	const [showInvite, setShowInvite] = useState(false);
 	const [inviteEmail, setInviteEmail] = useState("");
 	const [inviteRole, setInviteRole] = useState("member");
@@ -50,23 +49,20 @@ function MembersPage() {
 		{},
 	);
 	const [actionError, setActionError] = useState<Record<string, string>>({});
-	const [pendingInvitations, setPendingInvitations] = useState<
-		Awaited<ReturnType<typeof listMyInvitations>>
-	>([]);
 
-	const fetchMembers = () => {
-		setLoading(true);
-		Promise.all([listMembers(), listMyInvitations()])
-			.then(([membersData, invitationsData]) => {
-				setMembers(membersData);
-				setPendingInvitations(invitationsData);
-			})
-			.finally(() => setLoading(false));
+	const { data: members = [], isLoading } = useQuery({
+		queryKey: ["workspace", "members"],
+		queryFn: listMembers,
+	});
+
+	const { data: pendingInvitations = [] } = useQuery({
+		queryKey: ["workspace", "invitations"],
+		queryFn: listMyInvitations,
+	});
+
+	const invalidate = () => {
+		queryClient.invalidateQueries({ queryKey: ["workspace"] });
 	};
-
-	useEffect(() => {
-		fetchMembers();
-	}, []);
 
 	const handleInvite = async () => {
 		if (!inviteEmail) return;
@@ -87,7 +83,7 @@ function MembersPage() {
 			});
 			setInviteEmail("");
 			setShowInvite(false);
-			fetchMembers();
+			invalidate();
 		} catch (err) {
 			setInviteError(
 				err instanceof Error ? err.message : "Failed to invite member",
@@ -104,7 +100,7 @@ function MembersPage() {
 			await updateMemberRole({
 				data: { memberId, role },
 			});
-			fetchMembers();
+			invalidate();
 		} catch (err) {
 			setActionError((prev) => ({
 				...prev,
@@ -123,7 +119,7 @@ function MembersPage() {
 			await removeMember({
 				data: { memberId },
 			});
-			fetchMembers();
+			invalidate();
 		} catch (err) {
 			setActionError((prev) => ({
 				...prev,
@@ -218,7 +214,7 @@ function MembersPage() {
 				</Card>
 			)}
 
-			{loading ? (
+			{isLoading ? (
 				<div className="space-y-2">
 					{Array.from({ length: 3 }).map((_, i) => (
 						<Card key={i}>

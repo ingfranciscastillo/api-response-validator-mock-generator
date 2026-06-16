@@ -1,6 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Beaker, Clock } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
@@ -30,10 +31,6 @@ export const Route = createFileRoute("/dashboard/validation/")({
 	component: ValidationPage,
 });
 
-type ValidationRun = Awaited<
-	ReturnType<typeof getValidationRuns>
->["runs"][number];
-
 const triggerLabels: Record<string, string> = {
 	manual: "Manual",
 	workspace: "Workspace",
@@ -52,57 +49,50 @@ const triggerOptions = [
 const DEFAULT_PAGE_SIZE = 25;
 
 function ValidationPage() {
-	const [runs, setRuns] = useState<ValidationRun[]>([]);
-	const [loading, setLoading] = useState(true);
 	const [page, setPage] = useState(1);
 	const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-	const [total, setTotal] = useState(0);
-	const [totalPages, setTotalPages] = useState(0);
-
 	const [specFilter, setSpecFilter] = useState("all");
 	const [statusFilter, setStatusFilter] = useState("all");
 	const [triggerFilter, setTriggerFilter] = useState("all");
 	const [dateFrom, setDateFrom] = useState("");
 	const [dateTo, setDateTo] = useState("");
 
-	const [specs, setSpecs] = useState<Awaited<ReturnType<typeof getSpecs>>>([]);
+	const { data: specs } = useQuery({
+		queryKey: ["specs"],
+		queryFn: () => getSpecs({ data: {} }),
+		staleTime: 5 * 60 * 1000,
+	});
 
-	const fetchRuns = () => {
-		setLoading(true);
-		getValidationRuns({
-			data: {
-				specId: specFilter !== "all" ? specFilter : undefined,
-				status: statusFilter !== "all" ? statusFilter : undefined,
-				triggerType: triggerFilter !== "all" ? triggerFilter : undefined,
-				dateFrom: dateFrom || undefined,
-				dateTo: dateTo || undefined,
+	const { data: runsData, isLoading } = useQuery({
+		queryKey: [
+			"validationRuns",
+			{
 				page,
 				pageSize,
+				specFilter,
+				statusFilter,
+				triggerFilter,
+				dateFrom,
+				dateTo,
 			},
-		})
-			.then((data) => {
-				setRuns(data.runs);
-				setTotal(data.total);
-				setTotalPages(data.totalPages);
-			})
-			.finally(() => setLoading(false));
-	};
+		],
+		queryFn: () =>
+			getValidationRuns({
+				data: {
+					specId: specFilter !== "all" ? specFilter : undefined,
+					status: statusFilter !== "all" ? statusFilter : undefined,
+					triggerType: triggerFilter !== "all" ? triggerFilter : undefined,
+					dateFrom: dateFrom || undefined,
+					dateTo: dateTo || undefined,
+					page,
+					pageSize,
+				},
+			}),
+	});
 
-	useEffect(() => {
-		fetchRuns();
-	}, [
-		page,
-		pageSize,
-		specFilter,
-		statusFilter,
-		triggerFilter,
-		dateFrom,
-		dateTo,
-	]);
-
-	useEffect(() => {
-		getSpecs({ data: {} }).then(setSpecs);
-	}, []);
+	const runs = runsData?.runs ?? [];
+	const total = runsData?.total ?? 0;
+	const totalPages = runsData?.totalPages ?? 0;
 
 	return (
 		<div className="flex flex-col gap-6">
@@ -128,7 +118,7 @@ function ValidationPage() {
 					</SelectTrigger>
 					<SelectContent>
 						<SelectItem value="all">All Specs</SelectItem>
-						{specs.map((spec) => (
+						{(specs ?? []).map((spec) => (
 							<SelectItem key={spec.id} value={spec.id}>
 								{spec.name}
 							</SelectItem>
@@ -177,7 +167,7 @@ function ValidationPage() {
 				/>
 			</div>
 
-			{loading ? (
+			{isLoading ? (
 				<div className="space-y-2">
 					{Array.from({ length: 3 }).map((_, i) => (
 						<Card key={i}>

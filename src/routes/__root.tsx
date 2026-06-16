@@ -4,8 +4,9 @@ import {
 	HeadContent,
 	Scripts,
 } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { ThemeProvider } from "#/components/theme-provider";
+import TanstackQueryProvider from "#/integrations/tanstack-query/root-provider";
 import appCss from "../styles.css?url";
 
 interface MyRouterContext {
@@ -136,7 +137,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			<body>
 				<SkipLink />
 				<div id="main-content">
-					<ThemeProvider>{children}</ThemeProvider>
+					<TanstackQueryProvider>
+						<ThemeProvider>
+							<Suspense fallback={null}>{children}</Suspense>
+						</ThemeProvider>
+					</TanstackQueryProvider>
 				</div>
 				{import.meta.env.DEV && <DynamicDevtools />}
 				<Scripts />

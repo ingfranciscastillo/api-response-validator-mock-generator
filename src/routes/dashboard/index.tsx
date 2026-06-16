@@ -1,27 +1,27 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
 import {
 	AlertTriangle,
-	BookUp,
 	FileText,
 	FlaskConical,
-	Play,
 	RefreshCw,
 	Route as RouteIcon,
 	ShieldCheck,
-	TestTubes,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { lazy, Suspense } from "react";
 import { RecentRunsTable } from "#/components/dashboard/recent-runs-table";
 import { StatCard } from "#/components/dashboard/stat-card";
-import { ViolationsChart } from "#/components/dashboard/violations-chart";
 import { Button } from "#/components/ui/button";
-import { Card, CardContent } from "#/components/ui/card";
-import { Input } from "#/components/ui/input";
 import {
-	type DashboardOverview,
 	getDashboardCharts,
 	getDashboardOverview,
 } from "#/lib/dashboard/functions";
+
+const ViolationsChart = lazy(() =>
+	import("#/components/dashboard/violations-chart").then((m) => ({
+		default: m.ViolationsChart,
+	})),
+);
 
 export const Route = createFileRoute("/dashboard/")({
 	head: () => ({
@@ -31,59 +31,37 @@ export const Route = createFileRoute("/dashboard/")({
 });
 
 function DashboardIndexPage() {
-	const [overview, setOverview] = useState<DashboardOverview | null>(null);
-	const [chartData, setChartData] = useState<
-		Awaited<ReturnType<typeof getDashboardCharts>>
-	>({ daily: [] });
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
+	const { data: overview } = useSuspenseQuery({
+		queryKey: ["dashboard", "overview"],
+		queryFn: getDashboardOverview,
+	});
 
-	const fetchDashboard = () => {
-		setLoading(true);
-		setError(null);
-		Promise.all([getDashboardOverview(), getDashboardCharts({ data: {} })])
-			.then(([ov, charts]) => {
-				setOverview(ov);
-				setChartData(charts);
-			})
-			.catch((e) => {
-				setError(
-					e instanceof Error ? e.message : "Failed to load dashboard data",
-				);
-			})
-			.finally(() => setLoading(false));
-	};
+	const { data: chartData } = useSuspenseQuery({
+		queryKey: ["dashboard", "charts"],
+		queryFn: () => getDashboardCharts({ data: {} }),
+	});
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: fetchDashboard is stable
-	useEffect(() => {
-		fetchDashboard();
-	}, []);
-
-	if (loading) {
-		return (
-			<div className="flex items-center justify-center py-12">
-				<div className="size-8 animate-pulse rounded-full bg-muted" />
-			</div>
-		);
-	}
-
-	if (error) {
+	if (!overview) {
 		return (
 			<div className="flex flex-col items-center justify-center gap-4 py-16">
 				<AlertTriangle className="size-10 text-red-500" />
 				<div className="text-center">
 					<p className="text-lg font-medium">Failed to load dashboard</p>
-					<p className="text-sm text-muted-foreground mt-1">{error}</p>
+					<p className="text-sm text-muted-foreground mt-1">
+						No data available
+					</p>
 				</div>
-				<Button variant="outline" size="sm" onClick={fetchDashboard}>
+				<Button
+					variant="outline"
+					size="sm"
+					onClick={() => window.location.reload()}
+				>
 					<RefreshCw className="size-4 mr-1" />
 					Retry
 				</Button>
 			</div>
 		);
 	}
-
-	if (!overview) return null;
 
 	return (
 		<div className="flex flex-col gap-6">
@@ -136,7 +114,13 @@ function DashboardIndexPage() {
 			</div>
 
 			<div className="grid gap-4 lg:grid-cols-2">
-				<ViolationsChart data={chartData.daily} />
+				<Suspense
+					fallback={
+						<div className="h-[250px] animate-pulse rounded-lg bg-muted" />
+					}
+				>
+					<ViolationsChart data={chartData.daily} />
+				</Suspense>
 				<RecentRunsTable runs={overview.recentRuns} />
 			</div>
 		</div>

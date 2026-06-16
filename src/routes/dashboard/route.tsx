@@ -1,5 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
-import { AppSidebar, AppTopbar } from "#/components/layout";
+import { Suspense } from "react";
+import { AppSidebar } from "#/components/layout/app-sidebar";
+import { AppTopbar } from "#/components/layout/app-topbar";
 import { CommandPalette } from "#/components/shared/CommandPalette";
 import { SidebarInset, SidebarProvider } from "#/components/ui/sidebar";
 import { getSession } from "#/lib/auth.functions";
@@ -32,7 +34,15 @@ function DashboardLayout() {
 			<SidebarInset>
 				<AppTopbar />
 				<div className="flex flex-1 flex-col p-6">
-					<Outlet />
+					<Suspense
+						fallback={
+							<div className="flex items-center justify-center py-12">
+								<div className="size-8 animate-pulse rounded-full bg-muted" />
+							</div>
+						}
+					>
+						<Outlet />
+					</Suspense>
 				</div>
 			</SidebarInset>
 			<CommandPalette />

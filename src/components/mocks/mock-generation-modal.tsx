@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
@@ -53,19 +53,52 @@ export function MockGenerationModal({
 	const [generating, setGenerating] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
+	const defaultLoaded = useRef(false);
+
 	useEffect(() => {
 		if (!open) {
+			defaultLoaded.current = false;
 			setSelectedSpecId("");
 			setSelectedEndpointId("");
+			setEndpoints([]);
 			return;
 		}
-		getSpecs({ data: {} }).then((allSpecs) => {
+
+		const load = async () => {
+			const [allSpecs, defaultSpec] = await Promise.all([
+				getSpecs({ data: {} }),
+				defaultSpecId
+					? getSpec({ data: { specId: defaultSpecId } })
+					: Promise.resolve(null),
+			]);
+
 			setSpecs(allSpecs);
-			if (defaultSpecId && allSpecs.some((s) => s.id === defaultSpecId)) {
+
+			if (
+				defaultSpec &&
+				defaultSpecId &&
+				allSpecs.some((s) => s.id === defaultSpecId)
+			) {
 				setSelectedSpecId(defaultSpecId);
+				const versionId = defaultSpec?.versions?.[0]?.id;
+				if (versionId) {
+					const allEndpoints = await getEndpoints({
+						data: { specVersionId: versionId },
+					});
+					setEndpoints(allEndpoints);
+					defaultLoaded.current = true;
+					if (
+						defaultEndpointId &&
+						allEndpoints.some((e) => e.id === defaultEndpointId)
+					) {
+						setSelectedEndpointId(defaultEndpointId);
+					}
+				}
 			}
-		});
-	}, [open, defaultSpecId]);
+		};
+
+		load();
+	}, [open, defaultSpecId, defaultEndpointId]);
 
 	useEffect(() => {
 		if (!selectedSpecId) {
@@ -73,23 +106,22 @@ export function MockGenerationModal({
 			setSelectedEndpointId("");
 			return;
 		}
+		if (defaultLoaded.current) {
+			defaultLoaded.current = false;
+			return;
+		}
+
 		getSpec({ data: { specId: selectedSpecId } }).then((spec) => {
 			const versionId = spec?.versions?.[0]?.id;
 			if (versionId) {
 				getEndpoints({ data: { specVersionId: versionId } }).then(
 					(allEndpoints) => {
 						setEndpoints(allEndpoints);
-						if (
-							defaultEndpointId &&
-							allEndpoints.some((e) => e.id === defaultEndpointId)
-						) {
-							setSelectedEndpointId(defaultEndpointId);
-						}
 					},
 				);
 			}
 		});
-	}, [selectedSpecId, defaultEndpointId]);
+	}, [selectedSpecId]);
 
 	useEffect(() => {
 		if (!selectedEndpointId) {
