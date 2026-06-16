@@ -5,6 +5,13 @@ import { Button } from "#/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "#/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { Textarea } from "#/components/ui/textarea";
 import { runValidation } from "#/lib/validation/functions";
@@ -261,33 +268,37 @@ export function ValidationRequestBuilder({
 				<CardHeader>
 					<CardTitle className="text-base">Request</CardTitle>
 				</CardHeader>
-				<CardContent className="space-y-3">
-					<div className="flex flex-col sm:flex-row gap-2">
-						<div className="w-full sm:w-24 shrink-0">
-							<Label htmlFor="method">Method</Label>
-							<select
-								id="method"
-								value={method}
-								onChange={(e) => setMethod(e.target.value)}
-								className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
-							>
-								{[
-									"GET",
-									"POST",
-									"PUT",
-									"PATCH",
-									"DELETE",
-									"HEAD",
-									"OPTIONS",
-								].map((m) => (
-									<option key={m} value={m}>
-										{m}
-									</option>
-								))}
-							</select>
+				<CardContent className="space-y-5">
+					<div className="flex flex-col sm:flex-row gap-4">
+						<div className="w-full sm:w-28 shrink-0">
+							<Label htmlFor="method" className="mb-1.5 block">
+								Method
+							</Label>
+							<Select value={method} onValueChange={setMethod}>
+								<SelectTrigger id="method" className="w-full">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									{[
+										"GET",
+										"POST",
+										"PUT",
+										"PATCH",
+										"DELETE",
+										"HEAD",
+										"OPTIONS",
+									].map((m) => (
+										<SelectItem key={m} value={m}>
+											{m}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
 						</div>
 						<div className="flex-1">
-							<Label htmlFor="url">URL</Label>
+							<Label htmlFor="url" className="mb-1.5 block">
+								Base URL
+							</Label>
 							<div className="relative">
 								<Input
 									id="url"
@@ -305,16 +316,18 @@ export function ValidationRequestBuilder({
 
 					{hasPathParams && (
 						<div>
-							<Label className="text-xs text-muted-foreground mb-1 block">
-								Path Parameters
-							</Label>
-							<div className="flex flex-wrap gap-2">
+							<h4 className="text-sm font-medium mb-2">Path Parameters</h4>
+							<div className="flex flex-wrap gap-3">
 								{pathParams.map((pp) => (
-									<div key={pp.name} className="flex items-center gap-1">
-										<span className="text-xs font-mono text-muted-foreground">
-											{pp.name}:
-										</span>
+									<div key={pp.name} className="flex flex-col gap-1">
+										<Label
+											htmlFor={`path-${pp.name}`}
+											className="text-xs font-mono text-muted-foreground"
+										>
+											{pp.name}
+										</Label>
 										<Input
+											id={`path-${pp.name}`}
 											value={pp.value}
 											onChange={(e) => updatePathParam(pp.name, e.target.value)}
 											placeholder={`{${pp.name}}`}
@@ -347,7 +360,14 @@ export function ValidationRequestBuilder({
 							)}
 						</TabsList>
 						<TabsContent value="headers">
+							<Label
+								htmlFor="headers-input"
+								className="mb-1.5 block text-xs text-muted-foreground"
+							>
+								Headers JSON
+							</Label>
 							<Textarea
+								id="headers-input"
 								value={headersText}
 								onChange={(e) => setHeadersText(e.target.value)}
 								placeholder='{"Authorization": "Bearer ..."}'
@@ -356,33 +376,50 @@ export function ValidationRequestBuilder({
 						</TabsContent>
 						{hasQueryParams && (
 							<TabsContent value="query">
-								<div className="space-y-1.5">
+								<div className="space-y-2">
 									{queryParams.map((qp) => (
-										<div key={qp.name} className="flex items-center gap-2">
-											<Input
-												value={qp.name}
-												onChange={(e) => {
-													const oldName = qp.name;
-													removeQueryParam(oldName);
-													addQueryParam();
-													updateQueryParam(e.target.value, qp.value);
-												}}
-												placeholder="key"
-												className="h-7 w-36 font-mono text-xs"
-											/>
-											<span className="text-xs text-muted-foreground">=</span>
-											<Input
-												value={qp.value}
-												onChange={(e) =>
-													updateQueryParam(qp.name, e.target.value)
-												}
-												placeholder="value"
-												className="h-7 w-36 font-mono text-xs"
-											/>
+										<div key={qp.name} className="flex items-end gap-2">
+											<div className="flex flex-col gap-1">
+												<Label
+													htmlFor={`qp-key-${qp.name}`}
+													className="text-xs text-muted-foreground"
+												>
+													Key
+												</Label>
+												<Input
+													id={`qp-key-${qp.name}`}
+													value={qp.name}
+													onChange={(e) => {
+														const oldName = qp.name;
+														removeQueryParam(oldName);
+														addQueryParam();
+														updateQueryParam(e.target.value, qp.value);
+													}}
+													placeholder="key"
+													className="h-7 w-36 font-mono text-xs"
+												/>
+											</div>
+											<div className="flex flex-col gap-1">
+												<Label
+													htmlFor={`qp-value-${qp.name}`}
+													className="text-xs text-muted-foreground"
+												>
+													Value
+												</Label>
+												<Input
+													id={`qp-value-${qp.name}`}
+													value={qp.value}
+													onChange={(e) =>
+														updateQueryParam(qp.name, e.target.value)
+													}
+													placeholder="value"
+													className="h-7 w-36 font-mono text-xs"
+												/>
+											</div>
 											<button
 												type="button"
 												onClick={() => removeQueryParam(qp.name)}
-												className="text-muted-foreground hover:text-foreground"
+												className="text-muted-foreground hover:text-foreground mb-0.5"
 											>
 												<X className="size-3.5" />
 											</button>
@@ -402,7 +439,14 @@ export function ValidationRequestBuilder({
 						)}
 						{needsBody && (
 							<TabsContent value="body">
+								<Label
+									htmlFor="body-input"
+									className="mb-1.5 block text-xs text-muted-foreground"
+								>
+									Request Body JSON
+								</Label>
 								<Textarea
+									id="body-input"
 									value={bodyText}
 									onChange={(e) => setBodyText(e.target.value)}
 									placeholder='{"key": "value"}'

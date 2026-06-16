@@ -148,7 +148,7 @@ export function ValidationResultCard({
 				</div>
 			</CardHeader>
 			{isExpanded && (
-				<CardContent className="p-3 pt-0 border-t">
+				<CardContent className="p-3 pt-3 border-t">
 					<Tabs defaultValue="body">
 						<TabsList className="mb-2">
 							<TabsTrigger value="body" className="text-xs">

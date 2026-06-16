@@ -48,6 +48,7 @@ function ValidationWorkspacePage() {
 		initialEndpointId ?? "",
 	);
 	const [loadingSpecs, setLoadingSpecs] = useState(true);
+	const [loadingEndpoints, setLoadingEndpoints] = useState(false);
 	const [latestResult, setLatestResult] = useState<ValidationResultData | null>(
 		null,
 	);
@@ -63,6 +64,7 @@ function ValidationWorkspacePage() {
 			setEndpoints([]);
 			return;
 		}
+		setLoadingEndpoints(true);
 		getSpec({ data: { specId: selectedSpecId } })
 			.then((spec) => {
 				const versionId = spec?.versions?.[0]?.id;
@@ -71,7 +73,8 @@ function ValidationWorkspacePage() {
 				}
 				return [] as EndpointData[];
 			})
-			.then(setEndpoints);
+			.then(setEndpoints)
+			.finally(() => setLoadingEndpoints(false));
 	}, [selectedSpecId]);
 
 	const selectedEndpoint = endpoints.find((ep) => ep.id === selectedEndpointId);
@@ -122,39 +125,48 @@ function ValidationWorkspacePage() {
 						)}
 					</div>
 
-					{selectedSpecId && endpoints.length > 0 && (
-						<ScrollArea className="flex-1">
+					{selectedSpecId && (
+						<>
 							<h4 className="text-sm font-medium mb-2">Endpoints</h4>
-							<div className="space-y-1">
-								{endpoints.map((ep) => (
-									<button
-										key={ep.id}
-										type="button"
-										onClick={() => {
-											setSelectedEndpointId(ep.id);
-											setLatestResult(null);
-										}}
-										className={`w-full flex items-center gap-2 rounded px-2 py-1.5 text-left text-xs transition-colors ${
-											selectedEndpointId === ep.id
-												? "bg-accent text-accent-foreground"
-												: "hover:bg-muted/50"
-										}`}
-									>
-										<span
-											className={`inline-flex items-center rounded px-1 py-0.5 font-mono text-[10px] text-white ${methodColors[ep.method] ?? "bg-slate-600"}`}
-										>
-											{ep.method}
-										</span>
-										<code className="truncate">{ep.path}</code>
-									</button>
-								))}
-							</div>
-						</ScrollArea>
-					)}
-					{selectedSpecId && endpoints.length === 0 && (
-						<p className="text-xs text-muted-foreground mt-2">
-							No endpoints found
-						</p>
+							{loadingEndpoints ? (
+								<div className="space-y-1.5">
+									<div className="h-7 animate-pulse rounded bg-muted" />
+									<div className="h-7 animate-pulse rounded bg-muted" />
+									<div className="h-7 animate-pulse rounded bg-muted" />
+								</div>
+							) : endpoints.length > 0 ? (
+								<ScrollArea className="flex-1">
+									<div className="space-y-1">
+										{endpoints.map((ep) => (
+											<button
+												key={ep.id}
+												type="button"
+												onClick={() => {
+													setSelectedEndpointId(ep.id);
+													setLatestResult(null);
+												}}
+												className={`w-full flex items-center gap-2 rounded px-2 py-1.5 text-left text-xs transition-colors ${
+													selectedEndpointId === ep.id
+														? "bg-accent text-accent-foreground"
+														: "hover:bg-muted/50"
+												}`}
+											>
+												<span
+													className={`inline-flex items-center rounded px-1 py-0.5 font-mono text-[10px] text-white ${methodColors[ep.method] ?? "bg-slate-600"}`}
+												>
+													{ep.method}
+												</span>
+												<code className="truncate">{ep.path}</code>
+											</button>
+										))}
+									</div>
+								</ScrollArea>
+							) : (
+								<p className="text-xs text-muted-foreground">
+									No endpoints found
+								</p>
+							)}
+						</>
 					)}
 				</div>
 
