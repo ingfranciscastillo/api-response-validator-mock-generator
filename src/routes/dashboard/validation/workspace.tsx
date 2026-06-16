@@ -87,7 +87,7 @@ function ValidationWorkspacePage() {
 				<h2 className="text-2xl font-bold">API Testing Workspace</h2>
 			</div>
 
-			<div className="grid grid-cols-1 md:grid-cols-[260px_1fr] lg:grid-cols-[260px_1fr_380px] gap-4">
+			<div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-4">
 				<div className="rounded-md border p-3 flex flex-col gap-3 max-h-[calc(100dvh-13rem)] overflow-hidden">
 					<div>
 						<h4 className="text-sm font-medium mb-2">Specification</h4>
@@ -158,7 +158,7 @@ function ValidationWorkspacePage() {
 					)}
 				</div>
 
-				<div className="min-w-0">
+				<div className="min-w-0 flex flex-col gap-4">
 					{selectedEndpoint ? (
 						<ValidationRequestBuilder
 							specId={selectedSpecId}
@@ -171,19 +171,13 @@ function ValidationWorkspacePage() {
 							Select a specification and endpoint to start testing
 						</div>
 					)}
-				</div>
 
-				<div className="min-w-0">
 					{latestResult ? (
-						<div className="flex flex-col gap-2">
+						<div className="flex flex-col gap-2 animate-rise-in">
 							<h4 className="text-sm font-medium">Response</h4>
 							<ValidationResultCard result={latestResult} expanded />
 						</div>
-					) : (
-						<div className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground h-full flex items-center justify-center">
-							Send a request to see the response here
-						</div>
-					)}
+					) : null}
 				</div>
 			</div>
 		</div>
