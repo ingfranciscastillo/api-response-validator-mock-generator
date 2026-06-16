@@ -48,10 +48,22 @@ type Org = {
 	logo: string | null;
 };
 
-function AppSidebar() {
+interface AppSidebarProps {
+	user?: {
+		id: string;
+		name: string;
+		email: string;
+		image?: string | null;
+	} | null;
+}
+
+function AppSidebar({ user: propUser }: AppSidebarProps) {
 	const navigate = useNavigate();
 	const { data: session } = authClient.useSession();
 	const [orgs, setOrgs] = useState<Org[]>([]);
+	const [mounted, setMounted] = useState(false);
+
+	useEffect(() => setMounted(true), []);
 
 	const activeOrgId = session?.session?.activeOrganizationId;
 
@@ -62,6 +74,8 @@ function AppSidebar() {
 	}, []);
 
 	const activeOrg = orgs.find((o) => o.id === activeOrgId);
+
+	const displayUser = mounted && session?.user ? session.user : propUser;
 
 	const handleSwitchOrg = async (orgId: string) => {
 		await organization.setActive({ organizationId: orgId });
@@ -273,18 +287,16 @@ function AppSidebar() {
 			</SidebarContent>
 
 			<SidebarFooter>
-				{session?.user && (
+				{displayUser && (
 					<div className="p-2">
 						<div className="flex items-center gap-2 rounded-md p-2">
 							<div className="flex size-8 items-center justify-center rounded-full bg-accent-blue text-white text-xs font-medium">
-								{session.user.name?.charAt(0).toUpperCase() ?? "U"}
+								{displayUser.name?.charAt(0).toUpperCase() ?? "U"}
 							</div>
 							<div className="grid flex-1 text-left text-sm leading-tight">
-								<span className="truncate font-medium">
-									{session.user.name}
-								</span>
+								<span className="truncate font-medium">{displayUser.name}</span>
 								<span className="truncate text-xs text-text-tertiary">
-									{session.user.email}
+									{displayUser.email}
 								</span>
 							</div>
 						</div>

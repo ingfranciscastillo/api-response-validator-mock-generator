@@ -25,9 +25,10 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function DashboardLayout() {
+	const { user } = Route.useRouteContext();
 	return (
 		<SidebarProvider defaultOpen>
-			<AppSidebar />
+			<AppSidebar user={user} />
 			<SidebarInset>
 				<AppTopbar />
 				<div className="flex flex-1 flex-col p-6">
