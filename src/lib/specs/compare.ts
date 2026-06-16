@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import diff from "microdiff";
+import { downloadFromR2, isR2Configured } from "#/lib/storage";
 import { db } from "@/db";
 import { specificationVersion } from "@/db/schema";
 
@@ -19,6 +20,18 @@ export interface SpecComparison {
 	breakingCount: number;
 	nonBreakingCount: number;
 	summary: string;
+}
+
+async function resolveSpecContent(
+	version: typeof specificationVersion.$inferSelect,
+): Promise<Record<string, unknown>> {
+	if (version.openapiSpec)
+		return version.openapiSpec as Record<string, unknown>;
+	if (version.storageKey && isR2Configured()) {
+		const buf = await downloadFromR2(version.storageKey);
+		return JSON.parse(buf.toString());
+	}
+	throw new Error(`No spec content available for version ${version.id}`);
 }
 
 function isBreakingChange(change: SpecChange): boolean {
@@ -77,8 +90,8 @@ export async function compareSpecificationVersions(
 
 	if (!fromVer || !toVer) throw new Error("Version not found");
 
-	const fromSpec = fromVer.openapiSpec as Record<string, unknown>;
-	const toSpec = toVer.openapiSpec as Record<string, unknown>;
+	const fromSpec = await resolveSpecContent(fromVer);
+	const toSpec = await resolveSpecContent(toVer);
 
 	const rawDiffs = diff(fromSpec, toSpec);
 

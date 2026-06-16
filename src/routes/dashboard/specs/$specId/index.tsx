@@ -6,6 +6,7 @@ import {
 	FlaskConical,
 	GitCompare,
 	Play,
+	Upload,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MockGenerationModal } from "#/components/mocks/mock-generation-modal";
@@ -13,10 +14,26 @@ import { CommentsSection } from "#/components/shared/CommentsSection";
 import { JsonViewer } from "#/components/shared/json-viewer";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "#/components/ui/dialog";
+import { Input } from "#/components/ui/input";
+import { Label } from "#/components/ui/label";
 import { Switch } from "#/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
+import { Textarea } from "#/components/ui/textarea";
 import { getDriftChecks, updateDriftCheck } from "#/lib/drift/functions";
-import { getEndpoints, getSpec, getSpecVersions } from "#/lib/specs/functions";
+import {
+	getEndpoints,
+	getSpec,
+	getSpecContent,
+	getSpecVersions,
+	reimportSpec,
+} from "#/lib/specs/functions";
 
 export const Route = createFileRoute("/dashboard/specs/$specId/")({
 	head: () => ({
@@ -59,6 +76,17 @@ function SpecDetailPage() {
 
 	const [driftEnabled, setDriftEnabled] = useState(false);
 	const [driftCheckId, setDriftCheckId] = useState<string | null>(null);
+	const [schemaData, setSchemaData] = useState<Record<string, unknown> | null>(
+		null,
+	);
+	const [schemaLoading, setSchemaLoading] = useState(false);
+	const [updateSpecOpen, setUpdateSpecOpen] = useState(false);
+	const [updateSpecMethod, setUpdateSpecMethod] = useState<"paste" | "url">(
+		"paste",
+	);
+	const [updateSpecContent, setUpdateSpecContent] = useState("");
+	const [updateSpecUrl, setUpdateSpecUrl] = useState("");
+	const [updateSpecSubmitting, setUpdateSpecSubmitting] = useState(false);
 
 	useEffect(() => {
 		getSpec({ data: { specId } })
@@ -88,12 +116,66 @@ function SpecDetailPage() {
 		});
 	}, [specId]);
 
+	useEffect(() => {
+		const ver = spec?.versions?.[0];
+		if (!ver) {
+			setSchemaData(null);
+			return;
+		}
+		if (ver.openapiSpec) {
+			setSchemaData(ver.openapiSpec as Record<string, unknown>);
+		} else if (ver.storageKey) {
+			setSchemaLoading(true);
+			getSpecContent({ data: { versionId: ver.id } })
+				.then((data) => setSchemaData(data))
+				.finally(() => setSchemaLoading(false));
+		} else {
+			setSchemaData(null);
+		}
+	}, [
+		spec?.versions?.[0]?.id,
+		spec?.versions?.[0]?.openapiSpec,
+		spec?.versions?.[0]?.storageKey,
+	]);
+
 	const handleDriftToggle = async (enabled: boolean) => {
 		setDriftEnabled(enabled);
 		if (driftCheckId) {
 			await updateDriftCheck({
 				data: { checkId: driftCheckId, enabled },
 			});
+		}
+	};
+
+	const handleReimport = async () => {
+		setUpdateSpecSubmitting(true);
+		try {
+			await reimportSpec({
+				data: {
+					specId,
+					...(updateSpecMethod === "paste"
+						? { specContent: updateSpecContent }
+						: { specUrl: updateSpecUrl }),
+				},
+			});
+			setUpdateSpecOpen(false);
+			setUpdateSpecContent("");
+			setUpdateSpecUrl("");
+			const specData = await getSpec({ data: { specId } });
+			setSpec(specData);
+			const latestVersion = specData.versions?.[0];
+			if (latestVersion) {
+				const eps = await getEndpoints({
+					data: { specVersionId: latestVersion.id },
+				});
+				setEndpoints(eps);
+			}
+			const vers = await getSpecVersions({ data: { specId } });
+			setVersions(vers);
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Failed to reimport spec");
+		} finally {
+			setUpdateSpecSubmitting(false);
 		}
 	};
 
@@ -169,6 +251,14 @@ function SpecDetailPage() {
 							<Play className="size-3.5" />
 							Run Validation
 						</Link>
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => setUpdateSpecOpen(true)}
+					>
+						<Upload className="size-3.5" />
+						Update Spec
 					</Button>
 					<Button
 						variant="outline"
@@ -257,8 +347,12 @@ function SpecDetailPage() {
 
 				<TabsContent value="schema">
 					<div className="rounded-md border">
-						{latestVersion?.openapiSpec ? (
-							<JsonViewer data={latestVersion.openapiSpec} />
+						{schemaLoading ? (
+							<div className="p-4 text-center text-sm text-muted-foreground">
+								Loading schema...
+							</div>
+						) : schemaData ? (
+							<JsonViewer data={schemaData} />
 						) : (
 							<div className="p-4 text-center text-sm text-muted-foreground">
 								No schema data available
@@ -335,6 +429,73 @@ function SpecDetailPage() {
 				onGenerated={() => {}}
 				defaultSpecId={specId}
 			/>
+
+			<Dialog open={updateSpecOpen} onOpenChange={setUpdateSpecOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Update Specification</DialogTitle>
+						<DialogDescription>
+							Import a new version of this API specification to enable drift
+							detection.
+						</DialogDescription>
+					</DialogHeader>
+					<div className="flex gap-2">
+						<Button
+							variant={updateSpecMethod === "paste" ? "default" : "outline"}
+							size="sm"
+							onClick={() => setUpdateSpecMethod("paste")}
+						>
+							Paste Content
+						</Button>
+						<Button
+							variant={updateSpecMethod === "url" ? "default" : "outline"}
+							size="sm"
+							onClick={() => setUpdateSpecMethod("url")}
+						>
+							Fetch from URL
+						</Button>
+					</div>
+					{updateSpecMethod === "paste" ? (
+						<div className="grid gap-2">
+							<Label htmlFor="spec-content">Spec Content (JSON/YAML)</Label>
+							<Textarea
+								id="spec-content"
+								placeholder="Paste your OpenAPI spec here..."
+								className="min-h-[200px] font-mono text-xs"
+								value={updateSpecContent}
+								onChange={(e) => setUpdateSpecContent(e.target.value)}
+							/>
+						</div>
+					) : (
+						<div className="grid gap-2">
+							<Label htmlFor="spec-url">Spec URL</Label>
+							<Input
+								id="spec-url"
+								type="url"
+								placeholder="https://example.com/openapi.json"
+								value={updateSpecUrl}
+								onChange={(e) => setUpdateSpecUrl(e.target.value)}
+							/>
+						</div>
+					)}
+					<div className="flex justify-end gap-2">
+						<Button variant="outline" onClick={() => setUpdateSpecOpen(false)}>
+							Cancel
+						</Button>
+						<Button
+							onClick={handleReimport}
+							disabled={
+								updateSpecSubmitting ||
+								(updateSpecMethod === "paste"
+									? !updateSpecContent.trim()
+									: !updateSpecUrl.trim())
+							}
+						>
+							{updateSpecSubmitting ? "Importing..." : "Import Version"}
+						</Button>
+					</div>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 

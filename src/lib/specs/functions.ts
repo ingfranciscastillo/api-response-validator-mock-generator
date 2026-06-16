@@ -1,6 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { and, desc, eq, ilike } from "drizzle-orm";
-import { buildStorageKey, isR2Configured, uploadToR2 } from "#/lib/storage";
+import {
+	buildStorageKey,
+	downloadFromR2,
+	isR2Configured,
+	uploadToR2,
+} from "#/lib/storage";
 import { db } from "@/db";
 import { endpoint, specification, specificationVersion } from "@/db/schema";
 import { writeAuditLog } from "@/lib/audit/functions";
@@ -91,6 +96,132 @@ export const importSpec = createServerFn({ method: "POST" })
 		});
 
 		return { specId, versionId, endpointCount: parsed.endpoints.length };
+	});
+
+export const reimportSpec = createServerFn({ method: "POST" })
+	.validator(
+		(input: { specId: string; specContent?: string; specUrl?: string }) =>
+			input,
+	)
+	.handler(async ({ data }) => {
+		const { orgId, userId, ipAddress } = await requireOrg();
+
+		const spec = await db
+			.select()
+			.from(specification)
+			.where(eq(specification.id, data.specId))
+			.then((r) => r[0] ?? null);
+
+		if (!spec) throw new Error("Spec not found");
+
+		const lastVersion = await db
+			.select()
+			.from(specificationVersion)
+			.where(eq(specificationVersion.specId, data.specId))
+			.orderBy(desc(specificationVersion.version))
+			.then((r) => r[0]);
+
+		const newVersionNumber = lastVersion ? lastVersion.version + 1 : 1;
+
+		const parsed = data.specUrl
+			? await parseSpecFromUrl(data.specUrl)
+			: await parseSpec(data.specContent!);
+
+		const versionId = crypto.randomUUID();
+		const summary = buildSummary(parsed.endpoints, parsed.tags);
+
+		const rawStr = data.specContent ?? JSON.stringify(parsed);
+		let storageKey: string | null = null;
+		let finalRawDocument: Record<string, unknown> | null =
+			parsed as unknown as Record<string, unknown>;
+		let finalDereferencedSchema: Record<string, unknown> | null = null;
+
+		if (isR2Configured() && Buffer.byteLength(rawStr) > 200 * 1024) {
+			const key = buildStorageKey(
+				orgId,
+				"specs",
+				data.specId,
+				`v${newVersionNumber}/document.json`,
+			);
+			await uploadToR2(key, rawStr, "application/json");
+			storageKey = key;
+			finalRawDocument = null;
+			finalDereferencedSchema = null;
+		}
+
+		await db.insert(specificationVersion).values({
+			id: versionId,
+			specId: data.specId,
+			version: newVersionNumber,
+			openapiSpec: finalRawDocument ?? finalDereferencedSchema,
+			storageKey,
+			summary,
+		});
+
+		if (parsed.endpoints.length > 0) {
+			await db.insert(endpoint).values(
+				parsed.endpoints.map((ep) => ({
+					id: crypto.randomUUID(),
+					specId: data.specId,
+					specVersionId: versionId,
+					method: ep.method,
+					path: ep.path,
+					summary: ep.summary,
+					operationId: ep.operationId,
+					parameters: ep.parameters as Record<string, unknown> | null,
+					requestBody: ep.requestBody as Record<string, unknown> | null,
+					responses: ep.responses as Record<string, unknown>,
+					serverUrl: parsed.serverUrl,
+				})),
+			);
+		}
+
+		await db
+			.update(specification)
+			.set({ updatedAt: new Date() })
+			.where(eq(specification.id, data.specId));
+
+		await writeAuditLog({
+			workspaceId: orgId,
+			actorId: userId,
+			action: "spec.reimported",
+			entityType: "specification",
+			entityId: data.specId,
+			metadata: {
+				version: newVersionNumber,
+				endpointCount: parsed.endpoints.length,
+			},
+			ipAddress,
+		});
+
+		return {
+			specId: data.specId,
+			versionId,
+			endpointCount: parsed.endpoints.length,
+		};
+	});
+
+export const getSpecContent = createServerFn({ method: "GET", strict: false })
+	.validator((input: { versionId: string }) => input)
+	.handler(async ({ data }) => {
+		await requireOrg();
+
+		const version = await db
+			.select()
+			.from(specificationVersion)
+			.where(eq(specificationVersion.id, data.versionId))
+			.then((r) => r[0] ?? null);
+
+		if (!version) throw new Error("Version not found");
+
+		if (version.openapiSpec)
+			return version.openapiSpec as Record<string, unknown>;
+		if (version.storageKey && isR2Configured()) {
+			const buf = await downloadFromR2(version.storageKey);
+			return JSON.parse(buf.toString()) as Record<string, unknown>;
+		}
+
+		return null;
 	});
 
 export const getSpecs = createServerFn({ method: "GET", strict: false })

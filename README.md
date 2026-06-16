@@ -87,6 +87,14 @@ pnpm dev
 
 Opens at [http://localhost:3000](http://localhost:3000).
 
+### Inngest (Drift Detection)
+
+```bash
+npx inngest-cli dev
+```
+
+Starts the Inngest dev server at [http://localhost:8288](http://localhost:8288) and registers local drift-detection functions. No Inngest account required for development.
+
 ### Production Build
 
 ```bash

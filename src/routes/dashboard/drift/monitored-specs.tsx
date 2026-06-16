@@ -83,6 +83,7 @@ function MonitoredSpecsPage() {
 				next.delete(specId);
 				return next;
 			});
+			fetchData();
 		}
 	};
 
