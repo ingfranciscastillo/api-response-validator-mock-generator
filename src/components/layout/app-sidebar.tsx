@@ -7,7 +7,6 @@ import {
 	FileText,
 	FlaskConical,
 	LayoutDashboard,
-	Plus,
 	Settings,
 	ShieldAlert,
 	ShieldCheck,
@@ -20,7 +19,6 @@ import {
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuLabel,
-	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 import {
@@ -126,16 +124,6 @@ function AppSidebar({ user: propUser }: AppSidebarProps) {
 										{org.name}
 									</DropdownMenuItem>
 								))}
-								<DropdownMenuSeparator />
-								<DropdownMenuItem
-									onClick={() => navigate({ to: "/onboarding" })}
-									className="gap-2 p-2"
-								>
-									<div className="flex size-6 items-center justify-center rounded-md border bg-background">
-										<Plus className="size-3" />
-									</div>
-									Create workspace
-								</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>
 					</SidebarMenuItem>
@@ -237,6 +225,13 @@ function AppSidebar({ user: propUser }: AppSidebarProps) {
 										<SidebarMenuSubButton asChild isActive={false}>
 											<Link to="/dashboard/team/audit-log">
 												<span>Audit Log</span>
+											</Link>
+										</SidebarMenuSubButton>
+									</SidebarMenuSubItem>
+									<SidebarMenuSubItem>
+										<SidebarMenuSubButton asChild isActive={false}>
+											<Link to="/dashboard/team/invitations">
+												<span>Invitations</span>
 											</Link>
 										</SidebarMenuSubButton>
 									</SidebarMenuSubItem>

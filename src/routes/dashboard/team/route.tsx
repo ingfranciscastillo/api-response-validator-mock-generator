@@ -13,7 +13,9 @@ function TeamLayout() {
 	const location = useLocation();
 	const currentTab = location.pathname.endsWith("/audit-log")
 		? "audit-log"
-		: "members";
+		: location.pathname.endsWith("/invitations")
+			? "invitations"
+			: "members";
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -43,6 +45,16 @@ function TeamLayout() {
 					}`}
 				>
 					Audit Log
+				</Link>
+				<Link
+					to="/dashboard/team/invitations"
+					className={`pb-2 text-sm font-medium border-b-2 transition-colors ${
+						currentTab === "invitations"
+							? "border-primary text-foreground"
+							: "border-transparent text-text-tertiary hover:text-foreground"
+					}`}
+				>
+					Invitations
 				</Link>
 			</div>
 			<Outlet />

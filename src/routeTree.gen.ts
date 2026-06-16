@@ -13,7 +13,6 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as InvitationsRouteImport } from './routes/invitations'
 import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
@@ -33,6 +32,7 @@ import { Route as DashboardMocksIndexRouteImport } from './routes/dashboard/mock
 import { Route as DashboardDriftIndexRouteImport } from './routes/dashboard/drift/index'
 import { Route as DashboardValidationWorkspaceRouteImport } from './routes/dashboard/validation/workspace'
 import { Route as DashboardTeamMembersRouteImport } from './routes/dashboard/team/members'
+import { Route as DashboardTeamInvitationsRouteImport } from './routes/dashboard/team/invitations'
 import { Route as DashboardTeamAuditLogRouteImport } from './routes/dashboard/team/audit-log'
 import { Route as DashboardSpecsNewRouteImport } from './routes/dashboard/specs/new'
 import { Route as DashboardSettingsWorkspaceRouteImport } from './routes/dashboard/settings/workspace'
@@ -68,11 +68,6 @@ const OnboardingRoute = OnboardingRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InvitationsRoute = InvitationsRouteImport.update({
-  id: '/invitations',
-  path: '/invitations',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRouteRoute = DashboardRouteRouteImport.update({
@@ -173,6 +168,12 @@ const DashboardTeamMembersRoute = DashboardTeamMembersRouteImport.update({
   path: '/members',
   getParentRoute: () => DashboardTeamRouteRoute,
 } as any)
+const DashboardTeamInvitationsRoute =
+  DashboardTeamInvitationsRouteImport.update({
+    id: '/invitations',
+    path: '/invitations',
+    getParentRoute: () => DashboardTeamRouteRoute,
+  } as any)
 const DashboardTeamAuditLogRoute = DashboardTeamAuditLogRouteImport.update({
   id: '/audit-log',
   path: '/audit-log',
@@ -268,7 +269,6 @@ const DashboardSpecsSpecIdEndpointsEndpointIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
-  '/invitations': typeof InvitationsRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/register': typeof RegisterRoute
@@ -293,6 +293,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings/workspace': typeof DashboardSettingsWorkspaceRoute
   '/dashboard/specs/new': typeof DashboardSpecsNewRoute
   '/dashboard/team/audit-log': typeof DashboardTeamAuditLogRoute
+  '/dashboard/team/invitations': typeof DashboardTeamInvitationsRoute
   '/dashboard/team/members': typeof DashboardTeamMembersRoute
   '/dashboard/validation/workspace': typeof DashboardValidationWorkspaceRoute
   '/dashboard/drift/': typeof DashboardDriftIndexRoute
@@ -309,7 +310,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/invitations': typeof InvitationsRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/register': typeof RegisterRoute
@@ -327,6 +327,7 @@ export interface FileRoutesByTo {
   '/dashboard/settings/workspace': typeof DashboardSettingsWorkspaceRoute
   '/dashboard/specs/new': typeof DashboardSpecsNewRoute
   '/dashboard/team/audit-log': typeof DashboardTeamAuditLogRoute
+  '/dashboard/team/invitations': typeof DashboardTeamInvitationsRoute
   '/dashboard/team/members': typeof DashboardTeamMembersRoute
   '/dashboard/validation/workspace': typeof DashboardValidationWorkspaceRoute
   '/dashboard/drift': typeof DashboardDriftIndexRoute
@@ -345,7 +346,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
-  '/invitations': typeof InvitationsRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/register': typeof RegisterRoute
@@ -370,6 +370,7 @@ export interface FileRoutesById {
   '/dashboard/settings/workspace': typeof DashboardSettingsWorkspaceRoute
   '/dashboard/specs/new': typeof DashboardSpecsNewRoute
   '/dashboard/team/audit-log': typeof DashboardTeamAuditLogRoute
+  '/dashboard/team/invitations': typeof DashboardTeamInvitationsRoute
   '/dashboard/team/members': typeof DashboardTeamMembersRoute
   '/dashboard/validation/workspace': typeof DashboardValidationWorkspaceRoute
   '/dashboard/drift/': typeof DashboardDriftIndexRoute
@@ -389,7 +390,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
-    | '/invitations'
     | '/login'
     | '/onboarding'
     | '/register'
@@ -414,6 +414,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/workspace'
     | '/dashboard/specs/new'
     | '/dashboard/team/audit-log'
+    | '/dashboard/team/invitations'
     | '/dashboard/team/members'
     | '/dashboard/validation/workspace'
     | '/dashboard/drift/'
@@ -430,7 +431,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/invitations'
     | '/login'
     | '/onboarding'
     | '/register'
@@ -448,6 +448,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/workspace'
     | '/dashboard/specs/new'
     | '/dashboard/team/audit-log'
+    | '/dashboard/team/invitations'
     | '/dashboard/team/members'
     | '/dashboard/validation/workspace'
     | '/dashboard/drift'
@@ -465,7 +466,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/dashboard'
-    | '/invitations'
     | '/login'
     | '/onboarding'
     | '/register'
@@ -490,6 +490,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/workspace'
     | '/dashboard/specs/new'
     | '/dashboard/team/audit-log'
+    | '/dashboard/team/invitations'
     | '/dashboard/team/members'
     | '/dashboard/validation/workspace'
     | '/dashboard/drift/'
@@ -508,7 +509,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
-  InvitationsRoute: typeof InvitationsRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   RegisterRoute: typeof RegisterRoute
@@ -546,13 +546,6 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/invitations': {
-      id: '/invitations'
-      path: '/invitations'
-      fullPath: '/invitations'
-      preLoaderRoute: typeof InvitationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -686,6 +679,13 @@ declare module '@tanstack/react-router' {
       path: '/members'
       fullPath: '/dashboard/team/members'
       preLoaderRoute: typeof DashboardTeamMembersRouteImport
+      parentRoute: typeof DashboardTeamRouteRoute
+    }
+    '/dashboard/team/invitations': {
+      id: '/dashboard/team/invitations'
+      path: '/invitations'
+      fullPath: '/dashboard/team/invitations'
+      preLoaderRoute: typeof DashboardTeamInvitationsRouteImport
       parentRoute: typeof DashboardTeamRouteRoute
     }
     '/dashboard/team/audit-log': {
@@ -902,11 +902,13 @@ const DashboardSpecsRouteRouteWithChildren =
 
 interface DashboardTeamRouteRouteChildren {
   DashboardTeamAuditLogRoute: typeof DashboardTeamAuditLogRoute
+  DashboardTeamInvitationsRoute: typeof DashboardTeamInvitationsRoute
   DashboardTeamMembersRoute: typeof DashboardTeamMembersRoute
 }
 
 const DashboardTeamRouteRouteChildren: DashboardTeamRouteRouteChildren = {
   DashboardTeamAuditLogRoute: DashboardTeamAuditLogRoute,
+  DashboardTeamInvitationsRoute: DashboardTeamInvitationsRoute,
   DashboardTeamMembersRoute: DashboardTeamMembersRoute,
 }
 
@@ -960,7 +962,6 @@ const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRouteRoute: DashboardRouteRouteWithChildren,
-  InvitationsRoute: InvitationsRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   RegisterRoute: RegisterRoute,

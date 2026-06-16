@@ -18,12 +18,11 @@ import {
 	rejectInvitation,
 } from "#/lib/workspace/functions";
 
-export const Route = createFileRoute("/invitations")({
+export const Route = createFileRoute("/dashboard/team/invitations")({
 	head: () => ({
 		meta: [
 			{
-				title:
-					"Workspace Invitations — API Response Validator & Mock Generator",
+				title: "Invitations — API Response Validator & Mock Generator",
 			},
 		],
 	}),
@@ -97,90 +96,81 @@ function InvitationsPage() {
 
 	if (sessionLoading || loading) {
 		return (
-			<div className="flex min-h-svh items-center justify-center">
+			<div className="flex items-center justify-center py-12">
 				<div className="size-8 animate-pulse rounded-full bg-muted" />
 			</div>
 		);
 	}
 
 	return (
-		<div className="flex min-h-svh items-center justify-center bg-linear-to-br from-background to-muted p-4">
-			<div className="w-full max-w-lg space-y-4">
-				<div className="text-center">
-					<h1 className="text-2xl font-bold">Invitations</h1>
-					<p className="text-muted-foreground mt-1">
-						Accept or decline workspace invitations
-					</p>
+		<div className="space-y-4">
+			{error && (
+				<div className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+					{error}
 				</div>
+			)}
 
-				{error && (
-					<div className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-						{error}
-					</div>
-				)}
-
-				{invitations.length === 0 ? (
-					<Card>
-						<CardContent className="pt-6">
-							<EmptyState
-								icon={<Building2 className="size-8" />}
-								title="No pending invitations"
-								description="You don't have any pending workspace invitations"
-							/>
+			{invitations.length === 0 ? (
+				<Card>
+					<CardContent className="pt-6">
+						<EmptyState
+							icon={<Building2 className="size-8" />}
+							title="No pending invitations"
+							description="You don't have any pending workspace invitations"
+						/>
+					</CardContent>
+				</Card>
+			) : (
+				invitations.map((inv) => (
+					<Card key={inv.id}>
+						<CardHeader>
+							<CardTitle className="text-base flex items-center gap-2">
+								<Building2 className="size-4" />
+								{inv.organizationName}
+							</CardTitle>
+							<CardDescription>
+								You've been invited to join as{" "}
+								<Badge variant="secondary" className="text-xs">
+									{inv.role}
+								</Badge>
+							</CardDescription>
+						</CardHeader>
+						<CardContent className="flex items-center justify-between">
+							<p className="text-xs text-muted-foreground">
+								Expires {new Date(inv.expiresAt).toLocaleDateString()}
+							</p>
+							<div className="flex gap-2">
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => handleDecline(inv)}
+									disabled={acceptingId === inv.id || decliningId === inv.id}
+								>
+									<X className="size-3.5" />
+									{decliningId === inv.id ? "Declining..." : "Decline"}
+								</Button>
+								<Button
+									size="sm"
+									onClick={() => handleAccept(inv)}
+									disabled={acceptingId === inv.id}
+									className="gap-1"
+								>
+									<Check className="size-3.5" />
+									{acceptingId === inv.id ? "Accepting..." : "Accept"}
+								</Button>
+							</div>
 						</CardContent>
 					</Card>
-				) : (
-					invitations.map((inv) => (
-						<Card key={inv.id}>
-							<CardHeader>
-								<CardTitle className="text-base flex items-center gap-2">
-									<Building2 className="size-4" />
-									{inv.organizationName}
-								</CardTitle>
-								<CardDescription>
-									You've been invited to join as{" "}
-									<Badge variant="secondary" className="text-xs">
-										{inv.role}
-									</Badge>
-								</CardDescription>
-							</CardHeader>
-							<CardContent className="flex items-center justify-between">
-								<p className="text-xs text-muted-foreground">
-									Expires {new Date(inv.expiresAt).toLocaleDateString()}
-								</p>
-								<div className="flex gap-2">
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() => handleDecline(inv)}
-										disabled={acceptingId === inv.id || decliningId === inv.id}
-									>
-										<X className="size-3.5" />
-										{decliningId === inv.id ? "Declining..." : "Decline"}
-									</Button>
-									<Button
-										size="sm"
-										onClick={() => handleAccept(inv)}
-										disabled={acceptingId === inv.id}
-										className="gap-1"
-									>
-										<Check className="size-3.5" />
-										{acceptingId === inv.id ? "Accepting..." : "Accept"}
-									</Button>
-								</div>
-							</CardContent>
-						</Card>
-					))
-				)}
+				))
+			)}
 
-				{session?.user && invitations.length === 0 && (
-					<div className="text-center">
-						<Button variant="outline" asChild>
-							<Link to="/onboarding">Create a workspace</Link>
-						</Button>
-					</div>
-				)}
-			</div>
+			{session?.user && invitations.length === 0 && (
+				<div className="text-center">
+					<Button variant="outline" asChild>
+						<Link to="/onboarding">Create a workspace</Link>
+					</Button>
+				</div>
+			)}
 		</div>
 	);
 }
