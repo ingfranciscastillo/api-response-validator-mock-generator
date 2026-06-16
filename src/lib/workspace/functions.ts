@@ -407,3 +407,47 @@ export const revokeApiKey = createServerFn({ method: "POST" })
 
 		return { success: true };
 	});
+
+export const rejectInvitation = createServerFn({ method: "POST" })
+	.validator((input: { invitationId: string }) => input)
+	.handler(async ({ data }) => {
+		await requireOrg();
+
+		await db
+			.update(organizationInvitation)
+			.set({ status: "rejected" })
+			.where(eq(organizationInvitation.id, data.invitationId));
+
+		return { success: true };
+	});
+
+export const cancelInvitation = createServerFn({ method: "POST" })
+	.validator((input: { invitationId: string }) => input)
+	.handler(async ({ data }) => {
+		const { orgId, userId, ipAddress } = await requireOrg();
+
+		const role = await getUserRole(userId, orgId);
+		requireRole(role, "admin");
+
+		await db
+			.update(organizationInvitation)
+			.set({ status: "cancelled" })
+			.where(
+				and(
+					eq(organizationInvitation.id, data.invitationId),
+					eq(organizationInvitation.organizationId, orgId),
+				),
+			);
+
+		await writeAuditLog({
+			workspaceId: orgId,
+			actorId: userId,
+			action: "member.invitation.cancelled",
+			entityType: "organization",
+			entityId: orgId,
+			metadata: { invitationId: data.invitationId },
+			ipAddress,
+		});
+
+		return { success: true };
+	});

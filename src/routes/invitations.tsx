@@ -13,7 +13,10 @@ import {
 import { EmptyState } from "#/components/ui/empty-state";
 
 import { authClient, getSession, organization } from "#/lib/auth-client";
-import { listPendingInvitationsByEmail } from "#/lib/workspace/functions";
+import {
+	listPendingInvitationsByEmail,
+	rejectInvitation,
+} from "#/lib/workspace/functions";
 
 export const Route = createFileRoute("/invitations")({
 	head: () => ({
@@ -37,6 +40,7 @@ function InvitationsPage() {
 	const [invitations, setInvitations] = useState<Invitation[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [acceptingId, setAcceptingId] = useState<string | null>(null);
+	const [decliningId, setDecliningId] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
@@ -73,6 +77,21 @@ function InvitationsPage() {
 			);
 		} finally {
 			setAcceptingId(null);
+		}
+	};
+
+	const handleDecline = async (invitation: Invitation) => {
+		setDecliningId(invitation.id);
+		setError(null);
+		try {
+			await rejectInvitation({ data: { invitationId: invitation.id } });
+			setInvitations((prev) => prev.filter((i) => i.id !== invitation.id));
+		} catch (err) {
+			setError(
+				err instanceof Error ? err.message : "Failed to decline invitation",
+			);
+		} finally {
+			setDecliningId(null);
 		}
 	};
 
@@ -133,10 +152,11 @@ function InvitationsPage() {
 									<Button
 										variant="outline"
 										size="sm"
-										disabled={acceptingId === inv.id}
+										onClick={() => handleDecline(inv)}
+										disabled={acceptingId === inv.id || decliningId === inv.id}
 									>
 										<X className="size-3.5" />
-										Decline
+										{decliningId === inv.id ? "Declining..." : "Decline"}
 									</Button>
 									<Button
 										size="sm"

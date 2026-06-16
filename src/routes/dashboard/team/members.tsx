@@ -17,6 +17,7 @@ import {
 } from "#/components/ui/select";
 import { Skeleton } from "#/components/ui/skeleton";
 import {
+	cancelInvitation,
 	inviteMember,
 	listMembers,
 	listMyInvitations,
@@ -49,6 +50,7 @@ function MembersPage() {
 		{},
 	);
 	const [actionError, setActionError] = useState<Record<string, string>>({});
+	const [cancellingId, setCancellingId] = useState<string | null>(null);
 
 	const { data: members = [], isLoading } = useQuery({
 		queryKey: ["workspace", "members"],
@@ -131,6 +133,22 @@ function MembersPage() {
 		}
 	};
 
+	const handleCancelInvite = async (invitationId: string) => {
+		setCancellingId(invitationId);
+		try {
+			await cancelInvitation({ data: { invitationId } });
+			invalidate();
+		} catch (err) {
+			setActionError((prev) => ({
+				...prev,
+				[invitationId]:
+					err instanceof Error ? err.message : "Failed to cancel invitation",
+			}));
+		} finally {
+			setCancellingId(null);
+		}
+	};
+
 	return (
 		<div className="flex flex-col gap-4">
 			<div className="flex items-center justify-between">
@@ -206,6 +224,15 @@ function MembersPage() {
 										<span className="text-text-tertiary">
 											Expires {new Date(inv.expiresAt).toLocaleDateString()}
 										</span>
+										<Button
+											variant="ghost"
+											size="icon-xs"
+											aria-label={`Cancel invitation for ${inv.email}`}
+											onClick={() => handleCancelInvite(inv.id)}
+											disabled={cancellingId === inv.id}
+										>
+											<UserMinus className="size-3 text-red-500" />
+										</Button>
 									</div>
 								</div>
 							))}

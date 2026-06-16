@@ -1,7 +1,14 @@
 "use client";
 
 import { useLocation, useNavigate } from "@tanstack/react-router";
-import { Bell, ChevronDown, ChevronRight, LogOut, User } from "lucide-react";
+import {
+	Bell,
+	ChevronDown,
+	ChevronRight,
+	LogOut,
+	Mail,
+	User,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { ModeToggle } from "#/components/mode-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
@@ -153,6 +160,12 @@ function AppTopbar() {
 								>
 									<User className="size-4" />
 									<span>Account Settings</span>
+								</a>
+							</DropdownMenuItem>
+							<DropdownMenuItem asChild>
+								<a href="/invitations" className="flex items-center gap-2">
+									<Mail className="size-4" />
+									<span>Invitations</span>
 								</a>
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
