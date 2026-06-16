@@ -1,5 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { Building2 } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
@@ -19,6 +19,7 @@ import {
 	FieldLabel,
 } from "#/components/ui/field";
 import { Input } from "#/components/ui/input";
+import { getSession as getServerSession } from "#/lib/auth.functions";
 import { authClient, getSession, organization } from "#/lib/auth-client";
 
 const onboardingSchema = z.object({
@@ -37,6 +38,12 @@ function toSlug(value: string): string {
 }
 
 export const Route = createFileRoute("/onboarding")({
+	beforeLoad: async () => {
+		const session = await getServerSession();
+		if (session?.session?.activeOrganizationId) {
+			throw redirect({ to: "/dashboard" });
+		}
+	},
 	component: OnboardingPage,
 });
 

@@ -61,6 +61,7 @@ function LoginPage() {
 				return;
 			}
 			await organization.setActive({ organizationId: orgs[0].id });
+			await authClient.getSession();
 			navigate({ to: redirect ?? "/dashboard" });
 		},
 	});
