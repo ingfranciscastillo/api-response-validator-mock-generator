@@ -3,7 +3,7 @@
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { Bell, ChevronRight, LogOut, User } from "lucide-react";
 import { useEffect, useState } from "react";
-
+import { ModeToggle } from "#/components/mode-toggle";
 import { Button } from "#/components/ui/button";
 import {
 	DropdownMenu,
@@ -92,6 +92,7 @@ function AppTopbar() {
 			</nav>
 
 			<div className="ml-auto flex items-center gap-2">
+				<ModeToggle />
 				<Button
 					variant="ghost"
 					size="icon"
