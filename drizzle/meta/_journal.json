@@ -5,50 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1781415592156,
-      "tag": "0000_lowly_spitfire",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1781475641630,
-      "tag": "0001_fluffy_lady_deathstrike",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1781478219892,
-      "tag": "0002_shallow_aaron_stack",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1781480838893,
-      "tag": "0003_petite_shinobi_shaw",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1781540000000,
-      "tag": "0004_drift_notification",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1781600000000,
-      "tag": "0005_audit_collaboration",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1781800000000,
-      "tag": "0006_add_active_org_to_session",
+      "when": 1781636531626,
+      "tag": "0000_white_fenris",
       "breakpoints": true
     }
   ]

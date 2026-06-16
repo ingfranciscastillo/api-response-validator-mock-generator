@@ -63,9 +63,11 @@ Copy `.env.local.example` to `.env.local` and fill in:
 
 | Variable | Description |
 |----------|-------------|
-| `DATABASE_URL` | Neon Postgres connection string |
+| `DATABASE_URL` | Neon Postgres connection string (pooled) |
+| `DATABASE_URL_UNPOOLED` | Neon Postgres direct connection (for migrations) |
 | `BETTER_AUTH_SECRET` | Auth secret (generate with `pnpm dlx @better-auth/cli secret`) |
 | `BETTER_AUTH_URL` | App URL for auth callbacks |
+| `APP_URL` | Application base URL |
 | `R2_*` | Cloudflare R2 credentials (optional, for large-file storage) |
 | `INNGEST_*` | Inngest event key and signing key (optional, for drift detection) |
 

@@ -1,5 +1,6 @@
 import { Check, Clipboard } from "lucide-react";
 import { useState } from "react";
+import { JsonViewer } from "#/components/shared/json-viewer";
 import { Button } from "#/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
 import type { JsonValue } from "#/lib/mocks/engine";
@@ -39,9 +40,7 @@ export function MockPayloadViewer({ payload, title }: MockPayloadViewerProps) {
 				</Button>
 			</CardHeader>
 			<CardContent>
-				<pre className="overflow-auto rounded-md bg-muted p-4 text-sm leading-relaxed">
-					<code>{formatted}</code>
-				</pre>
+				<JsonViewer data={payload} maxHeight="400px" />
 			</CardContent>
 		</Card>
 	);
