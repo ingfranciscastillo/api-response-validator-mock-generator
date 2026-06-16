@@ -288,6 +288,7 @@ function MembersPage() {
 											<Button
 												variant="ghost"
 												size="icon-xs"
+												aria-label={`Remove ${member.name ?? member.email}`}
 												onClick={() => handleRemove(member.id)}
 												disabled={actionLoading[member.id]}
 											>

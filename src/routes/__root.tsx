@@ -1,18 +1,25 @@
-import { TanStackDevtools } from "@tanstack/react-devtools";
 import type { QueryClient } from "@tanstack/react-query";
 import {
 	createRootRouteWithContext,
 	HeadContent,
 	Scripts,
 } from "@tanstack/react-router";
-import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { useEffect, useState } from "react";
 import { ThemeProvider } from "#/components/theme-provider";
-import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 import appCss from "../styles.css?url";
 
 interface MyRouterContext {
 	queryClient: QueryClient;
 }
+
+const organizationSchema = {
+	"@context": "https://schema.org",
+	"@type": "Organization",
+	name: "API Response Validator & Mock Generator",
+	url: "https://apivalidator.io",
+	description:
+		"Validate API responses, generate perfect mocks, ship with confidence",
+};
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
 	head: () => ({
@@ -46,8 +53,25 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 				content: "website",
 			},
 			{
+				property: "og:image",
+				content: "https://apivalidator.io/og-image.png",
+			},
+			{
+				property: "og:url",
+				content: "https://apivalidator.io",
+			},
+			{
 				name: "twitter:card",
 				content: "summary_large_image",
+			},
+			{
+				name: "twitter:image",
+				content: "https://apivalidator.io/og-image.png",
+			},
+			{
+				httpEquiv: "Content-Security-Policy-Report-Only",
+				content:
+					"default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.supabase.co https://api.apivalidator.io; base-uri 'self'; form-action 'self'",
 			},
 		],
 		links: [
@@ -55,33 +79,92 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 				rel: "stylesheet",
 				href: appCss,
 			},
+			{
+				rel: "preconnect",
+				href: "https://fonts.googleapis.com",
+			},
+			{
+				rel: "preconnect",
+				href: "https://fonts.gstatic.com",
+				crossOrigin: "anonymous",
+			},
+			{
+				rel: "preload",
+				href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap",
+				as: "style",
+			},
+			{
+				rel: "stylesheet",
+				href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap",
+			},
+			{
+				rel: "canonical",
+				href: "https://apivalidator.io",
+			},
+			{
+				rel: "manifest",
+				href: "/manifest.json",
+			},
 		],
 	}),
 	shellComponent: RootDocument,
 });
+
+function SkipLink() {
+	return (
+		<a
+			href="#main-content"
+			className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:shadow-lg focus:outline-none"
+		>
+			Skip to main content
+		</a>
+	);
+}
 
 function RootDocument({ children }: { children: React.ReactNode }) {
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<head>
 				<HeadContent />
+				<script
+					type="application/ld+json"
+					dangerouslySetInnerHTML={{
+						__html: JSON.stringify(organizationSchema),
+					}}
+				/>
 			</head>
 			<body>
-				<ThemeProvider>{children}</ThemeProvider>
-				<TanStackDevtools
-					config={{
-						position: "bottom-right",
-					}}
-					plugins={[
-						{
-							name: "Tanstack Router",
-							render: <TanStackRouterDevtoolsPanel />,
-						},
-						TanStackQueryDevtools,
-					]}
-				/>
+				<SkipLink />
+				<div id="main-content">
+					<ThemeProvider>{children}</ThemeProvider>
+				</div>
+				{import.meta.env.DEV && <DynamicDevtools />}
 				<Scripts />
 			</body>
 		</html>
 	);
+}
+
+function DynamicDevtools() {
+	const [devtools, setDevtools] = useState<React.ReactNode>(null);
+
+	useEffect(() => {
+		Promise.all([
+			import("@tanstack/react-devtools"),
+			import("@tanstack/react-router-devtools"),
+			import("../integrations/tanstack-query/devtools"),
+		]).then(([reactDevtools, routerDevtools, queryDevtools]) => {
+			const TD = reactDevtools.TanStackDevtools;
+			const RD = routerDevtools.TanStackRouterDevtoolsPanel;
+			const QD = queryDevtools.default;
+			setDevtools(
+				<TD
+					config={{ position: "bottom-right" }}
+					plugins={[{ name: "Tanstack Router", render: <RD /> }, QD]}
+				/>,
+			);
+		});
+	}, []);
+
+	return devtools;
 }

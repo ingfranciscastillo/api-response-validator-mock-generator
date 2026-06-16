@@ -97,6 +97,7 @@ function AppTopbar() {
 					variant="ghost"
 					size="icon"
 					className="relative"
+					aria-label={`Drift alerts${alertCount > 0 ? ` (${alertCount} pending)` : ""}`}
 					onClick={() => navigate({ to: "/dashboard/drift" })}
 				>
 					<Bell className="size-5" />
@@ -112,7 +113,12 @@ function AppTopbar() {
 				) : session?.user ? (
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
-							<Button variant="ghost" size="sm" className="gap-2">
+							<Button
+								variant="ghost"
+								size="sm"
+								className="gap-2"
+								aria-label="User menu"
+							>
 								<div className="flex size-8 items-center justify-center rounded-full bg-accent-blue text-white text-xs font-medium">
 									{session.user.name?.charAt(0).toUpperCase() ?? "U"}
 								</div>

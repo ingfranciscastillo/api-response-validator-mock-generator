@@ -87,7 +87,10 @@ function RegisterPage() {
 		<div className="flex min-h-svh items-center justify-center bg-linear-to-br from-background to-muted p-4">
 			<Card className="w-full max-w-sm">
 				<CardHeader className="text-center">
-					<div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl bg-accent-blue text-white">
+					<div
+						className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl bg-accent-blue text-white"
+						aria-hidden="true"
+					>
 						<ShieldCheck className="size-6" />
 					</div>
 					<CardTitle className="text-2xl">Create an account</CardTitle>

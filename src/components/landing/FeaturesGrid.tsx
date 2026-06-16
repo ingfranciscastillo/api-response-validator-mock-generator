@@ -39,7 +39,10 @@ export function FeaturesGrid() {
 							key={feature.title}
 							className="gradient-border-card group rounded-xl border border-border bg-surface p-6 transition-shadow hover:shadow-glow-blue"
 						>
-							<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-accent-blue/10 text-accent-blue">
+							<div
+								className="mb-4 flex size-12 items-center justify-center rounded-lg bg-accent-blue/10 text-accent-blue"
+								aria-hidden="true"
+							>
 								<feature.icon className="size-6" />
 							</div>
 							<h3 className="mb-2 text-lg font-semibold text-text-primary">
