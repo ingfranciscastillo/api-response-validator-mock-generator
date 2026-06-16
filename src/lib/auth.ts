@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { twoFactor } from "better-auth/plugins";
 import { organization } from "better-auth/plugins/organization";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { db } from "#/db";
@@ -113,7 +114,22 @@ export const auth = betterAuth({
 		},
 	},
 
-	plugins: [organization(), tanstackStartCookies()],
+	plugins: [
+		organization(),
+		twoFactor({
+			issuer: "API Validator",
+			totpOptions: {
+				digits: 6,
+				period: 30,
+			},
+			backupCodeOptions: {
+				amount: 10,
+				length: 10,
+				storeBackupCodes: "encrypted",
+			},
+		}),
+		tanstackStartCookies(),
+	],
 
 	databaseHooks: {
 		user: {

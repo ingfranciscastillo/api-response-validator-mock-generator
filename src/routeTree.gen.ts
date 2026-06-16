@@ -13,6 +13,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as R2faRouteImport } from './routes/2fa'
 import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
@@ -36,6 +37,7 @@ import { Route as DashboardTeamInvitationsRouteImport } from './routes/dashboard
 import { Route as DashboardTeamAuditLogRouteImport } from './routes/dashboard/team/audit-log'
 import { Route as DashboardSpecsNewRouteImport } from './routes/dashboard/specs/new'
 import { Route as DashboardSettingsWorkspaceRouteImport } from './routes/dashboard/settings/workspace'
+import { Route as DashboardSettingsSecurityRouteImport } from './routes/dashboard/settings/security'
 import { Route as DashboardSettingsApiKeysRouteImport } from './routes/dashboard/settings/api-keys'
 import { Route as DashboardSettingsAccountRouteImport } from './routes/dashboard/settings/account'
 import { Route as DashboardReportsReportIdRouteImport } from './routes/dashboard/reports/$reportId'
@@ -68,6 +70,11 @@ const OnboardingRoute = OnboardingRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const R2faRoute = R2faRouteImport.update({
+  id: '/2fa',
+  path: '/2fa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRouteRoute = DashboardRouteRouteImport.update({
@@ -190,6 +197,12 @@ const DashboardSettingsWorkspaceRoute =
     path: '/workspace',
     getParentRoute: () => DashboardSettingsRouteRoute,
   } as any)
+const DashboardSettingsSecurityRoute =
+  DashboardSettingsSecurityRouteImport.update({
+    id: '/security',
+    path: '/security',
+    getParentRoute: () => DashboardSettingsRouteRoute,
+  } as any)
 const DashboardSettingsApiKeysRoute =
   DashboardSettingsApiKeysRouteImport.update({
     id: '/api-keys',
@@ -269,6 +282,7 @@ const DashboardSpecsSpecIdEndpointsEndpointIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/2fa': typeof R2faRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/register': typeof RegisterRoute
@@ -290,6 +304,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/reports/$reportId': typeof DashboardReportsReportIdRoute
   '/dashboard/settings/account': typeof DashboardSettingsAccountRoute
   '/dashboard/settings/api-keys': typeof DashboardSettingsApiKeysRoute
+  '/dashboard/settings/security': typeof DashboardSettingsSecurityRoute
   '/dashboard/settings/workspace': typeof DashboardSettingsWorkspaceRoute
   '/dashboard/specs/new': typeof DashboardSpecsNewRoute
   '/dashboard/team/audit-log': typeof DashboardTeamAuditLogRoute
@@ -310,6 +325,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/2fa': typeof R2faRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/register': typeof RegisterRoute
@@ -324,6 +340,7 @@ export interface FileRoutesByTo {
   '/dashboard/reports/$reportId': typeof DashboardReportsReportIdRoute
   '/dashboard/settings/account': typeof DashboardSettingsAccountRoute
   '/dashboard/settings/api-keys': typeof DashboardSettingsApiKeysRoute
+  '/dashboard/settings/security': typeof DashboardSettingsSecurityRoute
   '/dashboard/settings/workspace': typeof DashboardSettingsWorkspaceRoute
   '/dashboard/specs/new': typeof DashboardSpecsNewRoute
   '/dashboard/team/audit-log': typeof DashboardTeamAuditLogRoute
@@ -346,6 +363,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/2fa': typeof R2faRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/register': typeof RegisterRoute
@@ -367,6 +385,7 @@ export interface FileRoutesById {
   '/dashboard/reports/$reportId': typeof DashboardReportsReportIdRoute
   '/dashboard/settings/account': typeof DashboardSettingsAccountRoute
   '/dashboard/settings/api-keys': typeof DashboardSettingsApiKeysRoute
+  '/dashboard/settings/security': typeof DashboardSettingsSecurityRoute
   '/dashboard/settings/workspace': typeof DashboardSettingsWorkspaceRoute
   '/dashboard/specs/new': typeof DashboardSpecsNewRoute
   '/dashboard/team/audit-log': typeof DashboardTeamAuditLogRoute
@@ -390,6 +409,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/2fa'
     | '/login'
     | '/onboarding'
     | '/register'
@@ -411,6 +431,7 @@ export interface FileRouteTypes {
     | '/dashboard/reports/$reportId'
     | '/dashboard/settings/account'
     | '/dashboard/settings/api-keys'
+    | '/dashboard/settings/security'
     | '/dashboard/settings/workspace'
     | '/dashboard/specs/new'
     | '/dashboard/team/audit-log'
@@ -431,6 +452,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/2fa'
     | '/login'
     | '/onboarding'
     | '/register'
@@ -445,6 +467,7 @@ export interface FileRouteTypes {
     | '/dashboard/reports/$reportId'
     | '/dashboard/settings/account'
     | '/dashboard/settings/api-keys'
+    | '/dashboard/settings/security'
     | '/dashboard/settings/workspace'
     | '/dashboard/specs/new'
     | '/dashboard/team/audit-log'
@@ -466,6 +489,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/dashboard'
+    | '/2fa'
     | '/login'
     | '/onboarding'
     | '/register'
@@ -487,6 +511,7 @@ export interface FileRouteTypes {
     | '/dashboard/reports/$reportId'
     | '/dashboard/settings/account'
     | '/dashboard/settings/api-keys'
+    | '/dashboard/settings/security'
     | '/dashboard/settings/workspace'
     | '/dashboard/specs/new'
     | '/dashboard/team/audit-log'
@@ -509,6 +534,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
+  R2faRoute: typeof R2faRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   RegisterRoute: typeof RegisterRoute
@@ -546,6 +572,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/2fa': {
+      id: '/2fa'
+      path: '/2fa'
+      fullPath: '/2fa'
+      preLoaderRoute: typeof R2faRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -709,6 +742,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSettingsWorkspaceRouteImport
       parentRoute: typeof DashboardSettingsRouteRoute
     }
+    '/dashboard/settings/security': {
+      id: '/dashboard/settings/security'
+      path: '/security'
+      fullPath: '/dashboard/settings/security'
+      preLoaderRoute: typeof DashboardSettingsSecurityRouteImport
+      parentRoute: typeof DashboardSettingsRouteRoute
+    }
     '/dashboard/settings/api-keys': {
       id: '/dashboard/settings/api-keys'
       path: '/api-keys'
@@ -849,6 +889,7 @@ const DashboardReportsRouteRouteWithChildren =
 interface DashboardSettingsRouteRouteChildren {
   DashboardSettingsAccountRoute: typeof DashboardSettingsAccountRoute
   DashboardSettingsApiKeysRoute: typeof DashboardSettingsApiKeysRoute
+  DashboardSettingsSecurityRoute: typeof DashboardSettingsSecurityRoute
   DashboardSettingsWorkspaceRoute: typeof DashboardSettingsWorkspaceRoute
   DashboardSettingsIndexRoute: typeof DashboardSettingsIndexRoute
 }
@@ -857,6 +898,7 @@ const DashboardSettingsRouteRouteChildren: DashboardSettingsRouteRouteChildren =
   {
     DashboardSettingsAccountRoute: DashboardSettingsAccountRoute,
     DashboardSettingsApiKeysRoute: DashboardSettingsApiKeysRoute,
+    DashboardSettingsSecurityRoute: DashboardSettingsSecurityRoute,
     DashboardSettingsWorkspaceRoute: DashboardSettingsWorkspaceRoute,
     DashboardSettingsIndexRoute: DashboardSettingsIndexRoute,
   }
@@ -962,6 +1004,7 @@ const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRouteRoute: DashboardRouteRouteWithChildren,
+  R2faRoute: R2faRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   RegisterRoute: RegisterRoute,

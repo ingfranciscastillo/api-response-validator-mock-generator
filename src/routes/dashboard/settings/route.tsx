@@ -12,6 +12,11 @@ export const Route = createFileRoute("/dashboard/settings")({
 const tabs = [
 	{ id: "account", label: "Account", path: "/dashboard/settings/account" },
 	{
+		id: "security",
+		label: "Security",
+		path: "/dashboard/settings/security",
+	},
+	{
 		id: "workspace",
 		label: "Workspace",
 		path: "/dashboard/settings/workspace",

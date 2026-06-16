@@ -8,6 +8,13 @@
       "when": 1781636531626,
       "tag": "0000_white_fenris",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781646632718,
+      "tag": "0001_absurd_micromacro",
+      "breakpoints": true
     }
   ]
 }
