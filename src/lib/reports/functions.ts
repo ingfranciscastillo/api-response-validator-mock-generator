@@ -3,7 +3,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { report } from "@/db/schema";
 import { requireOrg } from "@/lib/auth/org";
-import { generateValidationSummary } from "./generator";
+import { generateAndStoreReport, generateValidationSummary } from "./generator";
 
 export const createReport = createServerFn({ method: "POST" })
 	.validator(
@@ -25,6 +25,13 @@ export const createReport = createServerFn({ method: "POST" })
 		);
 
 		const id = crypto.randomUUID();
+		const storageKeys = await generateAndStoreReport(
+			data.type ?? "validation-summary",
+			reportData,
+			orgId,
+			id,
+		);
+
 		await db.insert(report).values({
 			id,
 			workspaceId: orgId,
@@ -33,6 +40,8 @@ export const createReport = createServerFn({ method: "POST" })
 			type: data.type ?? "validation-summary",
 			config: { runIds: data.runIds ?? null, days: data.days ?? 30 },
 			data: reportData as unknown as Record<string, unknown>,
+			htmlStorageKey: storageKeys.htmlStorageKey ?? null,
+			jsonStorageKey: storageKeys.jsonStorageKey ?? null,
 			status: "ready",
 			generatedBy: userId,
 		});

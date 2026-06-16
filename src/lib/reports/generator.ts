@@ -364,7 +364,41 @@ th { background: #f3f4f6; text-align: left; padding: 6px 12px; border: 1px solid
 	</div>`
 			: ""
 	}
-</div>
+	</div>
 </body>
 </html>`;
+}
+
+import { buildStorageKey, isR2Configured, uploadToR2 } from "#/lib/storage";
+
+export async function generateAndStoreReport(
+	type: string,
+	data: ReportData,
+	workspaceId: string,
+	reportId: string,
+): Promise<{ htmlStorageKey?: string; jsonStorageKey?: string }> {
+	const html = await generateHtmlReport(data);
+	const jsonStr = JSON.stringify(data, null, 2);
+	const result: { htmlStorageKey?: string; jsonStorageKey?: string } = {};
+
+	if (isR2Configured()) {
+		const htmlKey = buildStorageKey(
+			workspaceId,
+			"reports",
+			reportId,
+			"report.html",
+		);
+		const jsonKey = buildStorageKey(
+			workspaceId,
+			"reports",
+			reportId,
+			"report.json",
+		);
+		await uploadToR2(htmlKey, html, "text/html");
+		await uploadToR2(jsonKey, jsonStr, "application/json");
+		result.htmlStorageKey = htmlKey;
+		result.jsonStorageKey = jsonKey;
+	}
+
+	return result;
 }
