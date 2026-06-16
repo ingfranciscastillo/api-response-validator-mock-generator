@@ -15,7 +15,7 @@ import {
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
 import { Separator } from "#/components/ui/separator";
-import { authClient } from "#/lib/auth-client";
+import { authClient, organization } from "#/lib/auth-client";
 import { deleteWorkspace, updateWorkspace } from "#/lib/workspace/functions";
 
 export const Route = createFileRoute("/dashboard/settings/workspace")({
@@ -28,6 +28,8 @@ export const Route = createFileRoute("/dashboard/settings/workspace")({
 	}),
 	component: WorkspacePage,
 });
+
+type Org = { id: string; name: string; slug: string; logo: string | null };
 
 function WorkspacePage() {
 	const router = useRouter();
@@ -42,13 +44,15 @@ function WorkspacePage() {
 
 	useEffect(() => {
 		if (sessionOrg) {
-			const org = session?.session?.activeOrganization;
-			if (org) {
-				setName(org.name ?? "");
-				setSlug(org.slug ?? "");
-			}
+			organization.list().then(({ data }) => {
+				const org = (data as Org[])?.find((o) => o.id === sessionOrg);
+				if (org) {
+					setName(org.name ?? "");
+					setSlug(org.slug ?? "");
+				}
+			});
 		}
-	}, [session, sessionOrg]);
+	}, [sessionOrg]);
 
 	if (!sessionOrg) return null;
 
