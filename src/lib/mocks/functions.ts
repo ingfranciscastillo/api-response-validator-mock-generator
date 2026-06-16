@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { and, count, desc, eq, like, sql } from "drizzle-orm";
+import { buildStorageKey, isR2Configured, uploadToR2 } from "#/lib/storage";
 import { db } from "@/db";
 import { endpoint, mockDataset, mockServeConfig } from "@/db/schema";
 import { writeAuditLog } from "@/lib/audit/functions";
@@ -11,6 +12,8 @@ import {
 	generateMockVariants,
 	type JsonValue,
 } from "./engine";
+
+const R2_SIZE_THRESHOLD = 200 * 1024;
 
 export const generateEndpointMock = createServerFn({ method: "POST" })
 	.validator(
@@ -66,6 +69,23 @@ export const generateEndpointMock = createServerFn({ method: "POST" })
 			if (data.save) {
 				mockId = crypto.randomUUID();
 
+				let finalPayload: Record<string, unknown> | null = payload as Record<
+					string,
+					unknown
+				>;
+				let storageKey: string | null = null;
+
+				const payloadStr = JSON.stringify(payload);
+				if (
+					isR2Configured() &&
+					Buffer.byteLength(payloadStr) > R2_SIZE_THRESHOLD
+				) {
+					const key = buildStorageKey(orgId, "mocks", mockId, "payload.json");
+					await uploadToR2(key, payloadStr, "application/json");
+					storageKey = key;
+					finalPayload = null;
+				}
+
 				await db.insert(mockDataset).values({
 					id: mockId,
 					workspaceId: orgId,
@@ -75,7 +95,8 @@ export const generateEndpointMock = createServerFn({ method: "POST" })
 					statusCode: data.statusCode,
 					variantType: data.variantType,
 					variantLabel: data.variantLabel ?? null,
-					payload,
+					payload: finalPayload,
+					storageKey,
 					generationRules: data.rules ?? null,
 					seed: data.seed ? String(data.seed) : null,
 					createdBy: userId,
@@ -161,6 +182,22 @@ export const generateMocksVariant = createServerFn({ method: "POST" })
 					const mockId = crypto.randomUUID();
 					mockIds.push(mockId);
 
+					let finalPayload: Record<string, unknown> | null = payloads[
+						i
+					] as Record<string, unknown>;
+					let storageKey: string | null = null;
+
+					const payloadStr = JSON.stringify(payloads[i]);
+					if (
+						isR2Configured() &&
+						Buffer.byteLength(payloadStr) > R2_SIZE_THRESHOLD
+					) {
+						const key = buildStorageKey(orgId, "mocks", mockId, "payload.json");
+						await uploadToR2(key, payloadStr, "application/json");
+						storageKey = key;
+						finalPayload = null;
+					}
+
 					await db.insert(mockDataset).values({
 						id: mockId,
 						workspaceId: orgId,
@@ -169,7 +206,8 @@ export const generateMocksVariant = createServerFn({ method: "POST" })
 						name: `${ep.method} ${ep.path} — variant ${i + 1}`,
 						statusCode: data.statusCode,
 						variantType: "generated",
-						payload: payloads[i],
+						payload: finalPayload,
+						storageKey,
 						generationRules: data.rules ?? null,
 						seed: data.seed ? String(Number(data.seed) + i) : null,
 						createdBy: userId,
@@ -250,6 +288,22 @@ export const generateEdgeCaseMocksFn = createServerFn({ method: "POST" })
 					const mockId = crypto.randomUUID();
 					mockIds.push(mockId);
 
+					let finalPayload: Record<string, unknown> | null = payloads[
+						i
+					] as Record<string, unknown>;
+					let storageKey: string | null = null;
+
+					const payloadStr = JSON.stringify(payloads[i]);
+					if (
+						isR2Configured() &&
+						Buffer.byteLength(payloadStr) > R2_SIZE_THRESHOLD
+					) {
+						const key = buildStorageKey(orgId, "mocks", mockId, "payload.json");
+						await uploadToR2(key, payloadStr, "application/json");
+						storageKey = key;
+						finalPayload = null;
+					}
+
 					await db.insert(mockDataset).values({
 						id: mockId,
 						workspaceId: orgId,
@@ -259,7 +313,8 @@ export const generateEdgeCaseMocksFn = createServerFn({ method: "POST" })
 						statusCode: data.statusCode,
 						variantType: "edge_case",
 						variantLabel: labels[i],
-						payload: payloads[i],
+						payload: finalPayload,
+						storageKey,
 						createdBy: userId,
 					});
 				}
@@ -304,6 +359,17 @@ export const saveMock = createServerFn({ method: "POST" })
 
 		const mockId = crypto.randomUUID();
 
+		let finalPayload: Record<string, unknown> | null = data.payload;
+		let storageKey: string | null = null;
+
+		const payloadStr = JSON.stringify(data.payload);
+		if (isR2Configured() && Buffer.byteLength(payloadStr) > R2_SIZE_THRESHOLD) {
+			const key = buildStorageKey(orgId, "mocks", mockId, "payload.json");
+			await uploadToR2(key, payloadStr, "application/json");
+			storageKey = key;
+			finalPayload = null;
+		}
+
 		await db.insert(mockDataset).values({
 			id: mockId,
 			workspaceId: orgId,
@@ -313,7 +379,8 @@ export const saveMock = createServerFn({ method: "POST" })
 			statusCode: data.statusCode,
 			variantType: data.variantType,
 			variantLabel: data.variantLabel ?? null,
-			payload: data.payload,
+			payload: finalPayload,
+			storageKey,
 			tags: data.tags ?? null,
 			createdBy: userId,
 		});
