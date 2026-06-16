@@ -15,6 +15,13 @@ import {
 } from "#/lib/workspace/functions";
 
 export const Route = createFileRoute("/dashboard/settings/api-keys")({
+	head: () => ({
+		meta: [
+			{
+				title: "API Keys — API Response Validator & Mock Generator",
+			},
+		],
+	}),
 	component: ApiKeysPage,
 });
 

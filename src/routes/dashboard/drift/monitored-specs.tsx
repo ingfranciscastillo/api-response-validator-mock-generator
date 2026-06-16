@@ -23,6 +23,13 @@ import {
 import { getSpecs } from "#/lib/specs/functions";
 
 export const Route = createFileRoute("/dashboard/drift/monitored-specs")({
+	head: () => ({
+		meta: [
+			{
+				title: "Monitored Specs — API Response Validator & Mock Generator",
+			},
+		],
+	}),
 	component: MonitoredSpecsPage,
 });
 

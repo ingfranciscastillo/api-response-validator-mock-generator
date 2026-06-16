@@ -32,6 +32,9 @@ export const Route = createFileRoute("/login")({
 	validateSearch: z.object({
 		redirect: z.string().optional(),
 	}),
+	head: () => ({
+		meta: [{ title: "Sign In — API Response Validator & Mock Generator" }],
+	}),
 	component: LoginPage,
 });
 

@@ -16,6 +16,14 @@ import { authClient, getSession, organization } from "#/lib/auth-client";
 import { listPendingInvitationsByEmail } from "#/lib/workspace/functions";
 
 export const Route = createFileRoute("/invitations")({
+	head: () => ({
+		meta: [
+			{
+				title:
+					"Workspace Invitations — API Response Validator & Mock Generator",
+			},
+		],
+	}),
 	component: InvitationsPage,
 });
 

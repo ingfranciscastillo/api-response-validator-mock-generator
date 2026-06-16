@@ -35,6 +35,13 @@ export const Route = createFileRoute(
 	validateSearch: z.object({
 		tab: z.enum(["request", "responses", "mocks", "history"]).optional(),
 	}),
+	head: () => ({
+		meta: [
+			{
+				title: "Endpoint Details — API Response Validator & Mock Generator",
+			},
+		],
+	}),
 	component: EndpointDetailPage,
 });
 

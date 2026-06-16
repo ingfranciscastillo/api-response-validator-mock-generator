@@ -11,6 +11,13 @@ import {
 import { getSpecVersions } from "#/lib/specs/functions";
 
 export const Route = createFileRoute("/dashboard/specs/$specId/compare")({
+	head: () => ({
+		meta: [
+			{
+				title: "Compare Versions — API Response Validator & Mock Generator",
+			},
+		],
+	}),
 	component: SpecComparePage,
 });
 

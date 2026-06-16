@@ -15,6 +15,13 @@ import { getDriftAlerts, resolveDriftAlert } from "#/lib/drift/functions";
 import { getSpecs } from "#/lib/specs/functions";
 
 export const Route = createFileRoute("/dashboard/drift/")({
+	head: () => ({
+		meta: [
+			{
+				title: "Drift Detection — API Response Validator & Mock Generator",
+			},
+		],
+	}),
 	component: DriftPage,
 });
 

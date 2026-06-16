@@ -22,6 +22,13 @@ import { getSpecs } from "#/lib/specs/functions";
 type MockRow = typeof mockDataset.$inferSelect;
 
 export const Route = createFileRoute("/dashboard/mocks/")({
+	head: () => ({
+		meta: [
+			{
+				title: "Mock Endpoints — API Response Validator & Mock Generator",
+			},
+		],
+	}),
 	component: MocksPage,
 });
 

@@ -24,6 +24,13 @@ import {
 } from "#/lib/workspace/functions";
 
 export const Route = createFileRoute("/dashboard/team/members")({
+	head: () => ({
+		meta: [
+			{
+				title: "Team Members — API Response Validator & Mock Generator",
+			},
+		],
+	}),
 	component: MembersPage,
 });
 

@@ -20,6 +20,13 @@ import { getSpecs } from "#/lib/specs/functions";
 import { getValidationRuns } from "#/lib/validation/functions";
 
 export const Route = createFileRoute("/dashboard/validation/")({
+	head: () => ({
+		meta: [
+			{
+				title: "Validation Runs — API Response Validator & Mock Generator",
+			},
+		],
+	}),
 	component: ValidationPage,
 });
 

@@ -6,6 +6,13 @@ import { Textarea } from "#/components/ui/textarea";
 import { importSpec } from "#/lib/specs/functions";
 
 export const Route = createFileRoute("/dashboard/specs/new")({
+	head: () => ({
+		meta: [
+			{
+				title: "Add Specification — API Response Validator & Mock Generator",
+			},
+		],
+	}),
 	component: NewSpecPage,
 });
 

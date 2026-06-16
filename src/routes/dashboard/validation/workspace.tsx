@@ -13,6 +13,14 @@ export const Route = createFileRoute("/dashboard/validation/workspace")({
 		specId: z.string().optional(),
 		endpointId: z.string().optional(),
 	}),
+	head: () => ({
+		meta: [
+			{
+				title:
+					"API Testing Workspace — API Response Validator & Mock Generator",
+			},
+		],
+	}),
 	component: ValidationWorkspacePage,
 });
 

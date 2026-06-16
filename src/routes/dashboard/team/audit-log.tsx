@@ -11,6 +11,13 @@ import { Skeleton } from "#/components/ui/skeleton";
 import { listAuditLog } from "#/lib/audit/functions";
 
 export const Route = createFileRoute("/dashboard/team/audit-log")({
+	head: () => ({
+		meta: [
+			{
+				title: "Audit Log — API Response Validator & Mock Generator",
+			},
+		],
+	}),
 	component: AuditLogPage,
 });
 

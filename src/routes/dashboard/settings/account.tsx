@@ -8,6 +8,13 @@ import { Separator } from "#/components/ui/separator";
 import { authClient } from "#/lib/auth-client";
 
 export const Route = createFileRoute("/dashboard/settings/account")({
+	head: () => ({
+		meta: [
+			{
+				title: "Account Settings — API Response Validator & Mock Generator",
+			},
+		],
+	}),
 	component: AccountPage,
 });
 

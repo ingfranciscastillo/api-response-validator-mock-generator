@@ -8,6 +8,13 @@ import { getReport } from "#/lib/reports/functions";
 import { generateHtmlReport } from "#/lib/reports/generator";
 
 export const Route = createFileRoute("/dashboard/reports/$reportId")({
+	head: () => ({
+		meta: [
+			{
+				title: "Report Details — API Response Validator & Mock Generator",
+			},
+		],
+	}),
 	component: ReportDetailPage,
 });
 

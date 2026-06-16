@@ -24,6 +24,9 @@ import {
 } from "#/lib/dashboard/functions";
 
 export const Route = createFileRoute("/dashboard/")({
+	head: () => ({
+		meta: [{ title: "Dashboard — API Response Validator & Mock Generator" }],
+	}),
 	component: DashboardIndexPage,
 });
 

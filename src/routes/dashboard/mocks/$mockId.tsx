@@ -25,6 +25,13 @@ import {
 } from "#/lib/mocks/functions";
 
 export const Route = createFileRoute("/dashboard/mocks/$mockId")({
+	head: () => ({
+		meta: [
+			{
+				title: "Mock Details — API Response Validator & Mock Generator",
+			},
+		],
+	}),
 	component: MockDetailPage,
 });
 

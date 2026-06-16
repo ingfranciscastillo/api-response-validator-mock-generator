@@ -8,6 +8,13 @@ import { Skeleton } from "#/components/ui/skeleton";
 import { getSpecs } from "#/lib/specs/functions";
 
 export const Route = createFileRoute("/dashboard/specs/")({
+	head: () => ({
+		meta: [
+			{
+				title: "Specifications — API Response Validator & Mock Generator",
+			},
+		],
+	}),
 	component: SpecsPage,
 });
 

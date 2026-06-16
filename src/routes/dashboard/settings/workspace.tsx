@@ -19,6 +19,13 @@ import { authClient } from "#/lib/auth-client";
 import { deleteWorkspace, updateWorkspace } from "#/lib/workspace/functions";
 
 export const Route = createFileRoute("/dashboard/settings/workspace")({
+	head: () => ({
+		meta: [
+			{
+				title: "Workspace Settings — API Response Validator & Mock Generator",
+			},
+		],
+	}),
 	component: WorkspacePage,
 });
 

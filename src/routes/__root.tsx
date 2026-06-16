@@ -25,7 +25,29 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 				content: "width=device-width, initial-scale=1",
 			},
 			{
-				title: "TanStack Start Starter",
+				title: "API Response Validator & Mock Generator",
+			},
+			{
+				name: "description",
+				content:
+					"Automatically validate API responses against your OpenAPI specifications, detect breaking changes, and generate realistic mock data.",
+			},
+			{
+				property: "og:title",
+				content: "API Response Validator & Mock Generator",
+			},
+			{
+				property: "og:description",
+				content:
+					"Automatically validate API responses against your OpenAPI specifications, detect breaking changes, and generate realistic mock data.",
+			},
+			{
+				property: "og:type",
+				content: "website",
+			},
+			{
+				name: "twitter:card",
+				content: "summary_large_image",
 			},
 		],
 		links: [

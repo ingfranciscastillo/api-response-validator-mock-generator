@@ -13,6 +13,13 @@ import {
 } from "#/lib/reports/functions";
 
 export const Route = createFileRoute("/dashboard/reports/")({
+	head: () => ({
+		meta: [
+			{
+				title: "Reports — API Response Validator & Mock Generator",
+			},
+		],
+	}),
 	component: ReportsPage,
 });
 

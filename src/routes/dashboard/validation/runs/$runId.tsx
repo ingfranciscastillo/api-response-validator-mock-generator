@@ -10,6 +10,13 @@ import { ValidationResultCard } from "#/components/validation/validation-result-
 import { getValidationRun } from "#/lib/validation/functions";
 
 export const Route = createFileRoute("/dashboard/validation/runs/$runId")({
+	head: () => ({
+		meta: [
+			{
+				title: "Validation Run — API Response Validator & Mock Generator",
+			},
+		],
+	}),
 	component: ValidationRunDetailPage,
 });
 

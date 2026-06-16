@@ -19,6 +19,14 @@ import { getDriftChecks, updateDriftCheck } from "#/lib/drift/functions";
 import { getEndpoints, getSpec, getSpecVersions } from "#/lib/specs/functions";
 
 export const Route = createFileRoute("/dashboard/specs/$specId/")({
+	head: () => ({
+		meta: [
+			{
+				title:
+					"Specification Details — API Response Validator & Mock Generator",
+			},
+		],
+	}),
 	component: SpecDetailPage,
 });
 

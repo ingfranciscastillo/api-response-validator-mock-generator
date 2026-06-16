@@ -38,6 +38,13 @@ import {
 } from "#/lib/notifications/functions";
 
 export const Route = createFileRoute("/dashboard/drift/notifications")({
+	head: () => ({
+		meta: [
+			{
+				title: "Drift Notifications — API Response Validator & Mock Generator",
+			},
+		],
+	}),
 	component: NotificationsPage,
 });
 

@@ -41,6 +41,13 @@ export const Route = createFileRoute("/reset-password")({
 		token: z.string().optional(),
 		error: z.string().optional(),
 	}),
+	head: () => ({
+		meta: [
+			{
+				title: "Reset Password — API Response Validator & Mock Generator",
+			},
+		],
+	}),
 	component: ResetPasswordPage,
 });
 

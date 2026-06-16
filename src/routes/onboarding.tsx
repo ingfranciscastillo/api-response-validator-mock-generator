@@ -44,6 +44,14 @@ export const Route = createFileRoute("/onboarding")({
 			throw redirect({ to: "/dashboard" });
 		}
 	},
+	head: () => ({
+		meta: [
+			{
+				title:
+					"Set Up Your Workspace — API Response Validator & Mock Generator",
+			},
+		],
+	}),
 	component: OnboardingPage,
 });
 
