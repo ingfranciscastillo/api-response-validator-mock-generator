@@ -1,47 +1,183 @@
-Welcome to your new TanStack Start app! 
+# API Response Validator & Mock Generator
 
-# Getting Started
+[![Live Demo](https://img.shields.io/badge/Live-Demo-1e3a8a?style=for-the-badge&logo=terminal)](https://portfolio-code-workspace.vercel.app/)
+[![behance](https://img.shields.io/badge/behance-1769FF?style=for-the-badge&logo=behance&logoColor=white)](https://www.behance.net/ingfranciscastillo)
+[![github_stars](https://img.shields.io/github/stars/ingfranciscastillo/api-response-validator-mock-generator?style=for-the-badge)](https://github.com/ingfranciscastillo/api-response-validator-mock-generator/stargazers)
+[![license](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](LICENSE)
+[![linkedin](https://img.shields.io/badge/linkedin-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/ingfranciscastillo)
+[![last_commit](https://img.shields.io/github/last-commit/ingfranciscastillo/api-response-validator-mock-generator?style=for-the-badge)](https://github.com/ingfranciscastillo/api-response-validator-mock-generator/commits/main)
 
-To run this application:
+<!-- README-I18N:START -->
+
+**English** | [Español](./README.es.md)
+
+<!-- README-I18N:END -->
+
+Full-stack SaaS platform for API teams to validate responses against OpenAPI specs, generate realistic mock data, and detect contract drift.
+
+## Features
+
+- **Response Validation** — Send requests to your API and validate responses against OpenAPI/Swagger specs (2.0, 3.0, 3.1) with structured violation reports.
+- **Mock Generation** — Generate realistic payloads from schema definitions using faker-driven templates, including edge-case and error variants.
+- **Contract Drift Detection** — Scheduled background jobs poll your endpoints and compare live responses against your specs, surfacing breaking changes and diffs.
+- **Spec Management** — Import specs via file upload, text paste, or URL fetch. Browse endpoints with an interactive schema tree viewer. Compare versions side-by-side.
+- **Export Reports** — Export validation results as HTML, PDF, or JSON.
+- **Workspace Multitenancy** — Organization-scoped teams with role-based access control (owner, admin, member).
+- **Dark Mode** — Built-in dark mode support with system-aware toggling.
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Framework** | [TanStack Start](https://tanstack.com/start) (SSR, server functions, file-based routing) |
+| **Routing** | [TanStack Router](https://tanstack.com/router) (type-safe) |
+| **State** | [TanStack Query](https://tanstack.com/query), [TanStack Form](https://tanstack.com/form), [TanStack Table](https://tanstack.com/table) |
+| **UI** | React 19, Tailwind CSS v4, [shadcn/ui](https://ui.shadcn.com/), Radix UI, Lucide icons |
+| **Charts** | Recharts |
+| **Database** | Neon (serverless Postgres) + [Drizzle ORM](https://orm.drizzle.team) |
+| **Auth** | [Better Auth](https://www.better-auth.com) (email/password, GitHub/Google OAuth, organizations) |
+| **Validation** | AJV, ajv-formats, @apidevtools/swagger-parser |
+| **Mock Data** | json-schema-faker + @faker-js/faker |
+| **Background Jobs** | Inngest (drift detection cron, alerts) |
+| **Storage** | Cloudflare R2 (S3-compatible for large specs, exports) |
+| **Linting** | Biome |
+| **Testing** | Vitest |
+
+## Getting Started
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) >= 20
+- [pnpm](https://pnpm.io/) >= 9
+- A [Neon](https://neon.tech) Postgres database (or any Postgres-compatible)
+
+### Installation
 
 ```bash
 pnpm install
+```
+
+### Environment Variables
+
+Copy `.env.local.example` to `.env.local` and fill in:
+
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | Neon Postgres connection string |
+| `BETTER_AUTH_SECRET` | Auth secret (generate with `pnpm dlx @better-auth/cli secret`) |
+| `BETTER_AUTH_URL` | App URL for auth callbacks |
+| `R2_*` | Cloudflare R2 credentials (optional, for large-file storage) |
+| `INNGEST_*` | Inngest event key and signing key (optional, for drift detection) |
+
+### Database
+
+```bash
+pnpm db:generate    # Generate SQL migrations
+pnpm db:migrate     # Apply migrations to your database
+pnpm db:push        # Push schema changes directly (dev only)
+```
+
+### Development
+
+```bash
 pnpm dev
 ```
 
-# Building For Production
+Opens at [http://localhost:3000](http://localhost:3000).
 
-To build this application for production:
+### Production Build
 
 ```bash
 pnpm build
+pnpm preview
 ```
 
-## Testing
-
-This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
+### Testing
 
 ```bash
 pnpm test
 ```
 
-## Styling
+## Usage
 
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
+### 1. Import an OpenAPI Spec
 
-### Removing Tailwind CSS
+Navigate to **Specs** → **New Spec**. Upload a JSON/YAML file, paste raw content, or fetch from a URL. The parser supports OpenAPI 2.0, 3.0, and 3.1.
 
-If you prefer not to use Tailwind CSS:
+### 2. Validate Responses
 
-1. Remove the demo pages in `src/routes/demo/`
-2. Replace the Tailwind import in `src/styles.css` with your own styles
-3. Remove `tailwindcss()` from the plugins array in `vite.config.ts`
-4. Uninstall the packages: `pnpm add @tailwindcss/vite tailwindcss --dev`
+Go to the **Validation Workspace**, select a spec and endpoint, then configure your request:
 
-## Linting & Formatting
+- Set the HTTP method and base URL
+- Fill path/query parameters and headers
+- Provide a request body (for POST/PUT/PATCH)
+- Click **Send Request**
 
-This project uses [Biome](https://biomejs.dev/) for linting and formatting. The following scripts are available:
+The engine runs the response through AJV against your spec's schema and returns a structured result with violations grouped by severity.
 
+### 3. Generate Mocks
+
+From the **Mocks** page, select a spec version and target response status code. The generator builds payloads from the schema properties — required fields first, then optional, plus error and edge-case variants.
+
+### 4. Monitor Drift
+
+Set up **Monitored Specs** to have Inngest poll your endpoints on a schedule. When a live response differs from the spec, you'll get a drift alert with a detailed diff.
+
+## Project Structure
+
+```
+src/
+├── routes/              # File-based routing
+│   ├── dashboard/       # Protected dashboard (specs, validation, mocks, drift, reports, team, settings)
+│   ├── login.tsx        # Auth pages
+│   └── ...
+├── components/          # UI components
+│   ├── ui/              # shadcn/ui primitives
+│   ├── validation/      # ValidationRequestBuilder, ValidationResultCard, DiffViewer
+│   ├── specs/           # EndpointExplorer, SchemaTreeViewer
+│   ├── mocks/           # Mock payload viewer, generation rules
+│   ├── dashboard/       # Stat cards, charts, tables
+│   └── landing/         # Marketing pages
+├── db/
+│   ├── schema/          # Drizzle schema per domain (auth, spec, validation, mocks, drift, report, audit)
+│   └── index.ts         # DB client
+├── lib/
+│   ├── specs/           # Spec import, parsing, CRUD (server functions)
+│   ├── validation/      # Validation engine, diff logic (server functions)
+│   ├── mocks/           # Mock generation (server functions)
+│   └── auth/            # Server-side auth helpers
+└── integrations/        # Auth client, TanStack Query provider
+```
+
+## Documentation
+
+Comprehensive design and architecture docs are available in the [`docs/`](./docs/) directory:
+
+- [Architecture](./docs/architecture.md)
+- [Database Schema](./docs/database.md)
+- [Auth & Permissions](./docs/auth_and_permissions.md)
+- [API Reference](./docs/api_spec.md)
+- [Component Library](./docs/components.md)
+- [Design System](./docs/design_system.md)
+- [Roadmap](./docs/roadmap.md)
+
+## Contributing
+
+Contributions are welcome! Please open an issue or pull request.
+
+### Development Setup
+
+```bash
+git clone https://github.com/ingfranciscastillo/api-response-validator-mock-generator.git
+cd api-response-validator-mock-generator
+pnpm install
+cp .env.local.example .env.local
+# Fill in your DATABASE_URL and auth secret
+pnpm db:push
+pnpm dev
+```
+
+### Lint & Format
 
 ```bash
 pnpm lint
@@ -49,231 +185,6 @@ pnpm format
 pnpm check
 ```
 
+## License
 
-## Deploy with Nitro
-
-This project uses Nitro as a generic server adapter, so it can run on any Node-compatible host.
-
-```bash
-npm run build
-node dist/server/index.mjs
-```
-
-The build output is a self-contained Node server. To deploy, push the `dist/` directory to your host (Render, Fly.io, your own VPS, etc.) and run the server command above.
-
-For host-specific presets (Vercel, Netlify, Cloudflare, AWS Lambda, etc.) and tuning, see https://v3.nitro.build/deploy.
-
-
-## Shadcn
-
-Add components using the latest version of [Shadcn](https://ui.shadcn.com/).
-
-```bash
-pnpm dlx shadcn@latest add button
-```
-
-
-## Setting up Better Auth
-
-1. Generate and set the `BETTER_AUTH_SECRET` environment variable in your `.env.local`:
-
-   ```bash
-   pnpm dlx @better-auth/cli secret
-   ```
-
-2. Visit the [Better Auth documentation](https://www.better-auth.com) to unlock the full potential of authentication in your app.
-
-### Adding a Database (Optional)
-
-Better Auth can work in stateless mode, but to persist user data, add a database:
-
-```typescript
-// src/lib/auth.ts
-import { betterAuth } from "better-auth";
-import { Pool } from "pg";
-
-export const auth = betterAuth({
-  database: new Pool({
-    connectionString: process.env.DATABASE_URL,
-  }),
-  // ... rest of config
-});
-```
-
-Then run migrations:
-
-```bash
-pnpm dlx @better-auth/cli migrate
-```
-
-
-## T3Env
-
-- You can use T3Env to add type safety to your environment variables.
-- Add Environment variables to the `src/env.mjs` file.
-- Use the environment variables in your code.
-
-### Usage
-
-```ts
-import { env } from "#/env";
-
-console.log(env.VITE_APP_TITLE);
-```
-
-
-
-
-
-
-## Routing
-
-This project uses [TanStack Router](https://tanstack.com/router) with file-based routing. Routes are managed as files in `src/routes`.
-
-### Adding A Route
-
-To add a new route to your application just add a new file in the `./src/routes` directory.
-
-TanStack will automatically generate the content of the route file for you.
-
-Now that you have two routes you can use a `Link` component to navigate between them.
-
-### Adding Links
-
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
-
-```tsx
-import { Link } from "@tanstack/react-router";
-```
-
-Then anywhere in your JSX you can use it like so:
-
-```tsx
-<Link to="/about">About</Link>
-```
-
-This will create a link that will navigate to the `/about` route.
-
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
-
-### Using A Layout
-
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you render `{children}` in the `shellComponent`.
-
-Here is an example layout that includes a header:
-
-```tsx
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-
-export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'My App' },
-    ],
-  }),
-  shellComponent: ({ children }) => (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <header>
-          <nav>
-            <Link to="/">Home</Link>
-            <Link to="/about">About</Link>
-          </nav>
-        </header>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  ),
-})
-```
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
-## Server Functions
-
-TanStack Start provides server functions that allow you to write server-side code that seamlessly integrates with your client components.
-
-```tsx
-import { createServerFn } from '@tanstack/react-start'
-
-const getServerTime = createServerFn({
-  method: 'GET',
-}).handler(async () => {
-  return new Date().toISOString()
-})
-
-// Use in a component
-function MyComponent() {
-  const [time, setTime] = useState('')
-  
-  useEffect(() => {
-    getServerTime().then(setTime)
-  }, [])
-  
-  return <div>Server time: {time}</div>
-}
-```
-
-## API Routes
-
-You can create API routes by using the `server` property in your route definitions:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-import { json } from '@tanstack/react-start'
-
-export const Route = createFileRoute('/api/hello')({
-  server: {
-    handlers: {
-      GET: () => json({ message: 'Hello, World!' }),
-    },
-  },
-})
-```
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-
-export const Route = createFileRoute('/people')({
-  loader: async () => {
-    const response = await fetch('https://swapi.dev/api/people')
-    return response.json()
-  },
-  component: PeopleComponent,
-})
-
-function PeopleComponent() {
-  const data = Route.useLoaderData()
-  return (
-    <ul>
-      {data.results.map((person) => (
-        <li key={person.name}>{person.name}</li>
-      ))}
-    </ul>
-  )
-}
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
-
-For TanStack Start specific documentation, visit [TanStack Start](https://tanstack.com/start).
+[MIT](./LICENSE) © Francis Castillo.
