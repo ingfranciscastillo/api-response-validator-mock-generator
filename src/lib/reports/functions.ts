@@ -1,9 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { and, desc, eq } from "drizzle-orm";
+import { buildStorageKey, isR2Configured, uploadToR2 } from "#/lib/storage";
 import { db } from "@/db";
 import { report } from "@/db/schema";
 import { requireOrg } from "@/lib/auth/org";
 import { generateAndStoreReport, generateValidationSummary } from "./generator";
+import { generatePdfReport } from "./pdf-export";
 
 export const createReport = createServerFn({ method: "POST" })
 	.validator(
@@ -25,12 +27,13 @@ export const createReport = createServerFn({ method: "POST" })
 		);
 
 		const id = crypto.randomUUID();
-		const storageKeys = await generateAndStoreReport(
-			data.type ?? "validation-summary",
-			reportData,
-			orgId,
-			id,
-		);
+		const { html, htmlStorageKey, jsonStorageKey } =
+			await generateAndStoreReport(
+				data.type ?? "validation-summary",
+				reportData,
+				orgId,
+				id,
+			);
 
 		await db.insert(report).values({
 			id,
@@ -40,11 +43,21 @@ export const createReport = createServerFn({ method: "POST" })
 			type: data.type ?? "validation-summary",
 			config: { runIds: data.runIds ?? null, days: data.days ?? 30 },
 			data: reportData as unknown as Record<string, unknown>,
-			htmlStorageKey: storageKeys.htmlStorageKey ?? null,
-			jsonStorageKey: storageKeys.jsonStorageKey ?? null,
+			htmlStorageKey: htmlStorageKey ?? null,
+			jsonStorageKey: jsonStorageKey ?? null,
 			status: "ready",
 			generatedBy: userId,
 		});
+
+		if (isR2Configured()) {
+			const pdf = await generatePdfReport(html);
+			const pdfKey = buildStorageKey(orgId, "reports", id, "report.pdf");
+			await uploadToR2(pdfKey, pdf, "application/pdf");
+			await db
+				.update(report)
+				.set({ pdfStorageKey: pdfKey })
+				.where(eq(report.id, id));
+		}
 
 		return { id };
 	});

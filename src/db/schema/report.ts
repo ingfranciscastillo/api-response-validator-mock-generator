@@ -19,6 +19,7 @@ export const report = pgTable(
 		data: json("data").notNull(),
 		htmlStorageKey: text("html_storage_key"),
 		jsonStorageKey: text("json_storage_key"),
+		pdfStorageKey: text("pdf_storage_key"),
 		status: text("status").notNull().default("ready"),
 		generatedBy: text("generated_by").references(() => user.id, {
 			onDelete: "set null",

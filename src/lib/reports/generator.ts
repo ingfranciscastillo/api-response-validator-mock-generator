@@ -376,10 +376,14 @@ export async function generateAndStoreReport(
 	data: ReportData,
 	workspaceId: string,
 	reportId: string,
-): Promise<{ htmlStorageKey?: string; jsonStorageKey?: string }> {
+): Promise<{ html: string; htmlStorageKey?: string; jsonStorageKey?: string }> {
 	const html = await generateHtmlReport(data);
 	const jsonStr = JSON.stringify(data, null, 2);
-	const result: { htmlStorageKey?: string; jsonStorageKey?: string } = {};
+	const result: {
+		html: string;
+		htmlStorageKey?: string;
+		jsonStorageKey?: string;
+	} = { html };
 
 	if (isR2Configured()) {
 		const htmlKey = buildStorageKey(
