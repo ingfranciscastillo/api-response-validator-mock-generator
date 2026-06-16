@@ -1,6 +1,8 @@
 import { Plus, Send, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import { MonacoEditor } from "#/components/editors/monaco-editor";
+
 import { Button } from "#/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
 import { Input } from "#/components/ui/input";
@@ -439,18 +441,14 @@ export function ValidationRequestBuilder({
 						)}
 						{needsBody && (
 							<TabsContent value="body">
-								<Label
-									htmlFor="body-input"
-									className="mb-1.5 block text-xs text-muted-foreground"
-								>
+								<Label className="mb-1.5 block text-xs text-muted-foreground">
 									Request Body JSON
 								</Label>
-								<Textarea
-									id="body-input"
+								<MonacoEditor
 									value={bodyText}
-									onChange={(e) => setBodyText(e.target.value)}
-									placeholder='{"key": "value"}'
-									className="font-mono text-xs min-h-[120px]"
+									onChange={setBodyText}
+									language="json"
+									height="200px"
 								/>
 							</TabsContent>
 						)}
