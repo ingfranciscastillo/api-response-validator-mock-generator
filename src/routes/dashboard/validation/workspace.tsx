@@ -78,7 +78,7 @@ function ValidationWorkspacePage() {
 				<h2 className="text-2xl font-bold">API Testing Workspace</h2>
 			</div>
 
-			<div className="grid grid-cols-[260px_1fr_380px] gap-4">
+			<div className="grid grid-cols-1 md:grid-cols-[260px_1fr] lg:grid-cols-[260px_1fr_380px] gap-4">
 				<div className="rounded-md border p-3 flex flex-col gap-3">
 					<div>
 						<h4 className="text-sm font-medium mb-2">Specification</h4>

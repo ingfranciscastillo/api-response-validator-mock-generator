@@ -262,8 +262,8 @@ export function ValidationRequestBuilder({
 					<CardTitle className="text-base">Request</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-3">
-					<div className="flex gap-2">
-						<div className="w-24 shrink-0">
+					<div className="flex flex-col sm:flex-row gap-2">
+						<div className="w-full sm:w-24 shrink-0">
 							<Label htmlFor="method">Method</Label>
 							<select
 								id="method"
