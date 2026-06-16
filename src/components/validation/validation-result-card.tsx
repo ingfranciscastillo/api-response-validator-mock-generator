@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
+import { JsonViewer } from "#/components/shared/json-viewer";
 import { Badge } from "#/components/ui/badge";
 import { Card, CardContent, CardHeader } from "#/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
@@ -44,15 +45,6 @@ function outcomeReason(result: ValidationResultData): string {
 		return `Response structure matches schema but has structural differences from the generated mock`;
 	}
 	return "Response structure matches schema but values differ from the expected mock";
-}
-
-function JsonViewer({ data }: { data: unknown }) {
-	const formatted = JSON.stringify(data, null, 2);
-	return (
-		<pre className="rounded bg-muted p-3 text-xs font-mono overflow-auto max-h-80">
-			<code>{formatted}</code>
-		</pre>
-	);
 }
 
 export function ValidationResultCard({

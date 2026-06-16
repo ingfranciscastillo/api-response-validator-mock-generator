@@ -8,9 +8,9 @@ import {
 	Play,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-
 import { MockGenerationModal } from "#/components/mocks/mock-generation-modal";
 import { CommentsSection } from "#/components/shared/CommentsSection";
+import { JsonViewer } from "#/components/shared/json-viewer";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { Switch } from "#/components/ui/switch";
@@ -258,9 +258,7 @@ function SpecDetailPage() {
 				<TabsContent value="schema">
 					<div className="rounded-md border">
 						{latestVersion?.openapiSpec ? (
-							<pre className="overflow-auto p-4 text-xs font-mono max-h-[600px]">
-								{JSON.stringify(latestVersion.openapiSpec, null, 2)}
-							</pre>
+							<JsonViewer data={latestVersion.openapiSpec} />
 						) : (
 							<div className="p-4 text-center text-sm text-muted-foreground">
 								No schema data available
