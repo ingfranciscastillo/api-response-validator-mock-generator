@@ -99,8 +99,8 @@ function ChangePasswordCard() {
 					Change Password
 				</CardTitle>
 			</CardHeader>
-			<CardContent className="space-y-3">
-				<div className="space-y-1">
+			<CardContent className="space-y-4">
+				<div className="space-y-1.5">
 					<Label>Current Password</Label>
 					<Input
 						type="password"
@@ -108,7 +108,7 @@ function ChangePasswordCard() {
 						onChange={(e) => setCurrentPassword(e.target.value)}
 					/>
 				</div>
-				<div className="space-y-1">
+				<div className="space-y-1.5">
 					<Label>New Password</Label>
 					<Input
 						type="password"
@@ -116,7 +116,7 @@ function ChangePasswordCard() {
 						onChange={(e) => setNewPassword(e.target.value)}
 					/>
 				</div>
-				<div className="space-y-1">
+				<div className="space-y-1.5">
 					<Label>Confirm New Password</Label>
 					<Input
 						type="password"
