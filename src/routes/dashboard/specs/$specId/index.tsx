@@ -9,9 +9,9 @@ import {
 	Upload,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { MonacoEditor } from "#/components/editors/monaco-editor";
 import { MockGenerationModal } from "#/components/mocks/mock-generation-modal";
 import { CommentsSection } from "#/components/shared/CommentsSection";
-import { JsonViewer } from "#/components/shared/json-viewer";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
@@ -25,7 +25,6 @@ import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
 import { Switch } from "#/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
-import { Textarea } from "#/components/ui/textarea";
 import { getDriftChecks, updateDriftCheck } from "#/lib/drift/functions";
 import {
 	getEndpoints,
@@ -352,7 +351,13 @@ function SpecDetailPage() {
 								Loading schema...
 							</div>
 						) : schemaData ? (
-							<JsonViewer data={schemaData} />
+							<MonacoEditor
+								value={JSON.stringify(schemaData, null, 2)}
+								language="json"
+								readOnly={true}
+								height="500px"
+								minimap={true}
+							/>
 						) : (
 							<div className="p-4 text-center text-sm text-muted-foreground">
 								No schema data available
@@ -458,12 +463,11 @@ function SpecDetailPage() {
 					{updateSpecMethod === "paste" ? (
 						<div className="grid gap-2">
 							<Label htmlFor="spec-content">Spec Content (JSON/YAML)</Label>
-							<Textarea
-								id="spec-content"
-								placeholder="Paste your OpenAPI spec here..."
-								className="min-h-[200px] font-mono text-xs"
+							<MonacoEditor
 								value={updateSpecContent}
-								onChange={(e) => setUpdateSpecContent(e.target.value)}
+								onChange={setUpdateSpecContent}
+								language="json"
+								height="300px"
 							/>
 						</div>
 					) : (

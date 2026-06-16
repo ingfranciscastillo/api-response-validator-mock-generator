@@ -4,11 +4,8 @@ import { useEffect, useState } from "react";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
-import {
-	compareSpecificationVersions,
-	type SpecChange,
-} from "#/lib/specs/compare";
-import { getSpecVersions } from "#/lib/specs/functions";
+import type { SpecChange } from "#/lib/specs/compare";
+import { compareVersions, getSpecVersions } from "#/lib/specs/functions";
 
 export const Route = createFileRoute("/dashboard/specs/$specId/compare")({
 	head: () => ({
@@ -57,7 +54,12 @@ function SpecComparePage() {
 		if (!fromId || !toId) return;
 		setComparing(true);
 		try {
-			const result = await compareSpecificationVersions(fromId, toId);
+			const result = await compareVersions({
+				data: {
+					fromVersionId: fromId,
+					toVersionId: toId,
+				},
+			});
 			setComparison(result);
 		} finally {
 			setComparing(false);

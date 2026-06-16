@@ -10,6 +10,7 @@ import { db } from "@/db";
 import { endpoint, specification, specificationVersion } from "@/db/schema";
 import { writeAuditLog } from "@/lib/audit/functions";
 import { requireOrg } from "@/lib/auth/org";
+import { compareSpecificationVersions } from "./compare";
 import { buildSummary, parseSpec, parseSpecFromUrl } from "./parser";
 
 export const importSpec = createServerFn({ method: "POST" })
@@ -309,4 +310,10 @@ export const getSpecVersions = createServerFn({ method: "GET" })
 			.from(specificationVersion)
 			.where(eq(specificationVersion.specId, data.specId))
 			.orderBy(desc(specificationVersion.version));
+	});
+
+export const compareVersions = createServerFn({ method: "GET", strict: false })
+	.validator((input: { fromVersionId: string; toVersionId: string }) => input)
+	.handler(async ({ data }) => {
+		return compareSpecificationVersions(data.fromVersionId, data.toVersionId);
 	});
