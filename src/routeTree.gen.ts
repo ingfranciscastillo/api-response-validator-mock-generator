@@ -16,6 +16,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as ApiInngestRouteImport } from './routes/api/inngest'
 import { Route as DashboardValidationRouteRouteImport } from './routes/dashboard/validation/route'
 import { Route as DashboardTeamRouteRouteImport } from './routes/dashboard/team/route'
 import { Route as DashboardSpecsRouteRouteImport } from './routes/dashboard/specs/route'
@@ -82,6 +83,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DashboardRouteRoute,
+} as any)
+const ApiInngestRoute = ApiInngestRouteImport.update({
+  id: '/api/inngest',
+  path: '/api/inngest',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardValidationRouteRoute =
   DashboardValidationRouteRouteImport.update({
@@ -267,6 +273,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/specs': typeof DashboardSpecsRouteRouteWithChildren
   '/dashboard/team': typeof DashboardTeamRouteRouteWithChildren
   '/dashboard/validation': typeof DashboardValidationRouteRouteWithChildren
+  '/api/inngest': typeof ApiInngestRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/specs/$specId': typeof DashboardSpecsSpecIdRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -300,6 +307,7 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/dashboard/team': typeof DashboardTeamRouteRouteWithChildren
+  '/api/inngest': typeof ApiInngestRoute
   '/dashboard': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/drift/monitored-specs': typeof DashboardDriftMonitoredSpecsRoute
@@ -340,6 +348,7 @@ export interface FileRoutesById {
   '/dashboard/specs': typeof DashboardSpecsRouteRouteWithChildren
   '/dashboard/team': typeof DashboardTeamRouteRouteWithChildren
   '/dashboard/validation': typeof DashboardValidationRouteRouteWithChildren
+  '/api/inngest': typeof ApiInngestRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/specs/$specId': typeof DashboardSpecsSpecIdRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -382,6 +391,7 @@ export interface FileRouteTypes {
     | '/dashboard/specs'
     | '/dashboard/team'
     | '/dashboard/validation'
+    | '/api/inngest'
     | '/dashboard/'
     | '/dashboard/specs/$specId'
     | '/api/auth/$'
@@ -415,6 +425,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/dashboard/team'
+    | '/api/inngest'
     | '/dashboard'
     | '/api/auth/$'
     | '/dashboard/drift/monitored-specs'
@@ -454,6 +465,7 @@ export interface FileRouteTypes {
     | '/dashboard/specs'
     | '/dashboard/team'
     | '/dashboard/validation'
+    | '/api/inngest'
     | '/dashboard/'
     | '/dashboard/specs/$specId'
     | '/api/auth/$'
@@ -488,6 +500,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiInngestRoute: typeof ApiInngestRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiPublicMocksMockIdRoute: typeof ApiPublicMocksMockIdRoute
 }
@@ -542,6 +555,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/'
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRouteRoute
+    }
+    '/api/inngest': {
+      id: '/api/inngest'
+      path: '/api/inngest'
+      fullPath: '/api/inngest'
+      preLoaderRoute: typeof ApiInngestRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/dashboard/validation': {
       id: '/dashboard/validation'
@@ -924,6 +944,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiInngestRoute: ApiInngestRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiPublicMocksMockIdRoute: ApiPublicMocksMockIdRoute,
 }

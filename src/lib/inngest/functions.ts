@@ -10,8 +10,11 @@ import { compareSpecificationVersions } from "@/lib/specs/compare";
 import { inngest } from "./client";
 
 export const scheduledDriftCheck = inngest.createFunction(
-	{ id: "scheduled-drift-check", name: "Scheduled Drift Check" },
-	{ cron: "0 0 * * *" },
+	{
+		id: "scheduled-drift-check",
+		name: "Scheduled Drift Check",
+		triggers: { cron: "0 0 * * *" },
+	},
 	async ({ step }) => {
 		const enabledChecks = await step.run("fetch-enabled-checks", async () => {
 			return db.select().from(driftCheck).where(eq(driftCheck.enabled, true));
@@ -60,8 +63,11 @@ export const scheduledDriftCheck = inngest.createFunction(
 );
 
 export const breakingChangeAlert = inngest.createFunction(
-	{ id: "breaking-change-alert", name: "Breaking Change Alert" },
-	{ event: "drift/breaking-change-detected" },
+	{
+		id: "breaking-change-alert",
+		name: "Breaking Change Alert",
+		triggers: { event: "drift/breaking-change-detected" },
+	},
 	async ({ event, step }) => {
 		const { specId, workspaceId, alertId } = event.data;
 
