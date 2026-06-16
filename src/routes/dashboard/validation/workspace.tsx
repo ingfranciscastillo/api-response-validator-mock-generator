@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Button } from "#/components/ui/button";
+import { ScrollArea } from "#/components/ui/scroll-area";
 import { ValidationRequestBuilder } from "#/components/validation/validation-request-builder";
 import type { ValidationResultData } from "#/components/validation/validation-result-card";
 import { ValidationResultCard } from "#/components/validation/validation-result-card";
@@ -87,7 +88,7 @@ function ValidationWorkspacePage() {
 			</div>
 
 			<div className="grid grid-cols-1 md:grid-cols-[260px_1fr] lg:grid-cols-[260px_1fr_380px] gap-4">
-				<div className="rounded-md border p-3 flex flex-col gap-3">
+				<div className="rounded-md border p-3 flex flex-col gap-3 max-h-[calc(100dvh-13rem)] overflow-hidden">
 					<div>
 						<h4 className="text-sm font-medium mb-2">Specification</h4>
 						{loadingSpecs ? (
@@ -122,7 +123,7 @@ function ValidationWorkspacePage() {
 					</div>
 
 					{selectedSpecId && endpoints.length > 0 && (
-						<div className="flex-1 overflow-auto">
+						<ScrollArea className="flex-1">
 							<h4 className="text-sm font-medium mb-2">Endpoints</h4>
 							<div className="space-y-1">
 								{endpoints.map((ep) => (
@@ -148,7 +149,7 @@ function ValidationWorkspacePage() {
 									</button>
 								))}
 							</div>
-						</div>
+						</ScrollArea>
 					)}
 					{selectedSpecId && endpoints.length === 0 && (
 						<p className="text-xs text-muted-foreground mt-2">

@@ -1,9 +1,10 @@
 "use client";
 
 import { useLocation, useNavigate } from "@tanstack/react-router";
-import { Bell, ChevronRight, LogOut, User } from "lucide-react";
+import { Bell, ChevronDown, ChevronRight, LogOut, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ModeToggle } from "#/components/mode-toggle";
+import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
 import { Button } from "#/components/ui/button";
 import {
 	DropdownMenu,
@@ -119,10 +120,20 @@ function AppTopbar() {
 								className="gap-2"
 								aria-label="User menu"
 							>
-								<div className="flex size-8 items-center justify-center rounded-full bg-accent-blue text-white text-xs font-medium">
-									{session.user.name?.charAt(0).toUpperCase() ?? "U"}
-								</div>
+								<Avatar
+									className="bg-accent-blue text-white text-xs font-medium"
+									size="sm"
+								>
+									<AvatarImage
+										src={session.user.image ?? undefined}
+										alt={session.user.name ?? ""}
+									/>
+									<AvatarFallback className="bg-accent-blue text-white text-xs font-medium">
+										{session.user.name?.charAt(0).toUpperCase() ?? "U"}
+									</AvatarFallback>
+								</Avatar>
 								<span className="hidden md:inline">{session.user.name}</span>
+								<ChevronDown className="size-3 text-text-tertiary" />
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end" className="w-56">
