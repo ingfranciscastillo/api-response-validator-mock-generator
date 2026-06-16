@@ -1,7 +1,8 @@
 "use client";
 
-import { useLocation } from "@tanstack/react-router";
-import { ChevronRight, LogOut, User } from "lucide-react";
+import { useLocation, useNavigate } from "@tanstack/react-router";
+import { Bell, ChevronRight, LogOut, User } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { Button } from "#/components/ui/button";
 import {
@@ -14,6 +15,7 @@ import {
 } from "#/components/ui/dropdown-menu";
 import { SidebarTrigger } from "#/components/ui/sidebar";
 import { authClient } from "#/lib/auth-client";
+import { getDriftAlerts } from "#/lib/drift/functions";
 
 interface BreadcrumbItem {
 	label: string;
@@ -46,10 +48,18 @@ function getBreadcrumbs(pathname: string): BreadcrumbItem[] {
 
 function AppTopbar() {
 	const location = useLocation();
+	const navigate = useNavigate();
 	const { data: session, isPending } = authClient.useSession();
 	const signOut = authClient.signOut;
+	const [alertCount, setAlertCount] = useState(0);
 
 	const breadcrumbs = getBreadcrumbs(location.pathname);
+
+	useEffect(() => {
+		getDriftAlerts({ data: { status: "open" } })
+			.then((alerts) => setAlertCount(alerts.length))
+			.catch(() => {});
+	}, []);
 
 	const handleSignOut = async () => {
 		await signOut();
@@ -82,6 +92,20 @@ function AppTopbar() {
 			</nav>
 
 			<div className="ml-auto flex items-center gap-2">
+				<Button
+					variant="ghost"
+					size="icon"
+					className="relative"
+					onClick={() => navigate({ to: "/dashboard/drift" })}
+				>
+					<Bell className="size-5" />
+					{alertCount > 0 && (
+						<span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground">
+							{alertCount > 9 ? "9+" : alertCount}
+						</span>
+					)}
+				</Button>
+
 				{isPending ? (
 					<div className="h-8 w-8 rounded-full bg-surface-elevated animate-pulse" />
 				) : session?.user ? (

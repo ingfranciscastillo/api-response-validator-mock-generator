@@ -59,7 +59,7 @@ export function MockGenerationModal({
 			setSelectedEndpointId("");
 			return;
 		}
-		getSpecs().then((allSpecs) => {
+		getSpecs({ data: {} }).then((allSpecs) => {
 			setSpecs(allSpecs);
 			if (defaultSpecId && allSpecs.some((s) => s.id === defaultSpecId)) {
 				setSelectedSpecId(defaultSpecId);

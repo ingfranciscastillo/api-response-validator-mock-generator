@@ -8,18 +8,47 @@ import { inngest } from "@/lib/inngest/client";
 import { compareSpecificationVersions } from "@/lib/specs/compare";
 
 export const getDriftAlerts = createServerFn({ method: "GET" })
-	.validator((input: { status?: string }) => input)
+	.validator(
+		(input: {
+			status?: string;
+			specId?: string;
+			severity?: string;
+			type?: string;
+		}) => input,
+	)
 	.handler(async ({ data }) => {
 		const { orgId } = await requireOrg();
 
 		const filters = [eq(driftAlert.workspaceId, orgId)];
 		if (data.status) filters.push(eq(driftAlert.status, data.status));
+		if (data.specId) filters.push(eq(driftAlert.specId, data.specId));
+		if (data.severity) filters.push(eq(driftAlert.severity, data.severity));
+		if (data.type) filters.push(eq(driftAlert.type, data.type));
 
-		return db
-			.select()
+		const rows = await db
+			.select({
+				id: driftAlert.id,
+				workspaceId: driftAlert.workspaceId,
+				specId: driftAlert.specId,
+				fromVersionId: driftAlert.fromVersionId,
+				toVersionId: driftAlert.toVersionId,
+				type: driftAlert.type,
+				severity: driftAlert.severity,
+				summary: driftAlert.summary,
+				changes: driftAlert.changes,
+				status: driftAlert.status,
+				detectedAt: driftAlert.detectedAt,
+				resolvedAt: driftAlert.resolvedAt,
+				resolvedBy: driftAlert.resolvedBy,
+			})
 			.from(driftAlert)
 			.where(and(...filters))
 			.orderBy(desc(driftAlert.detectedAt));
+
+		return rows.map((r) => ({
+			...r,
+			changes: r.changes as never,
+		}));
 	});
 
 export const resolveDriftAlert = createServerFn({ method: "POST" })

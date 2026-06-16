@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, ilike } from "drizzle-orm";
 import { db } from "@/db";
 import { endpoint, specification, specificationVersion } from "@/db/schema";
 import { writeAuditLog } from "@/lib/audit/functions";
@@ -77,17 +77,24 @@ export const importSpec = createServerFn({ method: "POST" })
 		return { specId, versionId, endpointCount: parsed.endpoints.length };
 	});
 
-export const getSpecs = createServerFn({ method: "GET" }).handler(async () => {
-	const { orgId } = await requireOrg();
+export const getSpecs = createServerFn({ method: "GET", strict: false })
+	.validator((input: { search?: string }) => input)
+	.handler(async ({ data }) => {
+		const { orgId } = await requireOrg();
 
-	const specs = await db
-		.select()
-		.from(specification)
-		.where(eq(specification.organizationId, orgId))
-		.orderBy(desc(specification.updatedAt));
+		const filters = [eq(specification.organizationId, orgId)];
+		if (data.search) {
+			filters.push(ilike(specification.name, `%${data.search}%`));
+		}
 
-	return specs;
-});
+		const specs = await db
+			.select()
+			.from(specification)
+			.where(and(...filters))
+			.orderBy(desc(specification.updatedAt));
+
+		return specs;
+	});
 
 export const getSpec = createServerFn({ method: "GET", strict: false })
 	.validator((input: { specId: string }) => input)

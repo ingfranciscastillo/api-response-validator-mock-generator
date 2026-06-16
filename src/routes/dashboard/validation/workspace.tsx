@@ -44,7 +44,7 @@ function ValidationWorkspacePage() {
 	);
 
 	useEffect(() => {
-		getSpecs()
+		getSpecs({ data: {} })
 			.then(setSpecs)
 			.finally(() => setLoadingSpecs(false));
 	}, []);

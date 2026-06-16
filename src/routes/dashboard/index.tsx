@@ -1,17 +1,22 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
 	AlertTriangle,
+	BookUp,
 	FileText,
 	FlaskConical,
+	Play,
 	RefreshCw,
 	Route as RouteIcon,
 	ShieldCheck,
+	TestTubes,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { RecentRunsTable } from "#/components/dashboard/recent-runs-table";
 import { StatCard } from "#/components/dashboard/stat-card";
 import { ViolationsChart } from "#/components/dashboard/violations-chart";
 import { Button } from "#/components/ui/button";
+import { Card, CardContent } from "#/components/ui/card";
+import { Input } from "#/components/ui/input";
 import {
 	type DashboardOverview,
 	getDashboardCharts,

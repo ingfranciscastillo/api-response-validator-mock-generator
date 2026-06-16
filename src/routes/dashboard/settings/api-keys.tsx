@@ -7,13 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
 import { EmptyState } from "#/components/ui/empty-state";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "#/components/ui/select";
 import { Skeleton } from "#/components/ui/skeleton";
 import {
 	createApiKey,
@@ -25,12 +18,24 @@ export const Route = createFileRoute("/dashboard/settings/api-keys")({
 	component: ApiKeysPage,
 });
 
+const ALL_SCOPES = [
+	"mocks:read",
+	"mocks:write",
+	"validation:read",
+	"validation:write",
+	"specs:read",
+	"specs:write",
+] as const;
+
 function ApiKeysPage() {
 	const [keys, setKeys] = useState<Awaited<ReturnType<typeof listApiKeys>>>([]);
 	const [loading, setLoading] = useState(true);
 	const [showCreate, setShowCreate] = useState(false);
 	const [newName, setNewName] = useState("");
-	const [newScope, setNewScope] = useState("mocks:read");
+	const [selectedScopes, setSelectedScopes] = useState<Set<string>>(
+		new Set(["mocks:read"]),
+	);
+	const [expiryDate, setExpiryDate] = useState("");
 	const [creating, setCreating] = useState(false);
 	const [newKeyRaw, setNewKeyRaw] = useState("");
 
@@ -50,10 +55,16 @@ function ApiKeysPage() {
 		setCreating(true);
 		try {
 			const result = await createApiKey({
-				data: { name: newName, scopes: [newScope] },
+				data: {
+					name: newName,
+					scopes: Array.from(selectedScopes),
+					expiresAt: expiryDate || undefined,
+				},
 			});
 			setNewKeyRaw(result.rawKey);
 			setNewName("");
+			setSelectedScopes(new Set(["mocks:read"]));
+			setExpiryDate("");
 			fetchKeys();
 		} finally {
 			setCreating(false);
@@ -67,6 +78,18 @@ function ApiKeysPage() {
 
 	const copyToClipboard = (text: string) => {
 		navigator.clipboard.writeText(text);
+	};
+
+	const toggleScope = (scope: string) => {
+		setSelectedScopes((prev) => {
+			const next = new Set(prev);
+			if (next.has(scope)) {
+				next.delete(scope);
+			} else {
+				next.add(scope);
+			}
+			return next;
+		});
 	};
 
 	return (
@@ -122,22 +145,31 @@ function ApiKeysPage() {
 									/>
 								</div>
 								<div className="space-y-1">
-									<Label>Scope</Label>
-									<Select value={newScope} onValueChange={setNewScope}>
-										<SelectTrigger>
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="mocks:read">mocks:read</SelectItem>
-											<SelectItem value="mocks:write">mocks:write</SelectItem>
-											<SelectItem value="validation:read">
-												validation:read
-											</SelectItem>
-											<SelectItem value="validation:write">
-												validation:write
-											</SelectItem>
-										</SelectContent>
-									</Select>
+									<Label>Scopes</Label>
+									<div className="grid grid-cols-2 gap-2">
+										{ALL_SCOPES.map((scope) => (
+											<label
+												key={scope}
+												className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm cursor-pointer hover:bg-muted/50 has-checked:border-accent-blue has-checked:bg-accent-blue/5"
+											>
+												<input
+													type="checkbox"
+													checked={selectedScopes.has(scope)}
+													onChange={() => toggleScope(scope)}
+													className="size-4 rounded border-input accent-accent-blue"
+												/>
+												<code className="text-xs font-mono">{scope}</code>
+											</label>
+										))}
+									</div>
+								</div>
+								<div className="space-y-1">
+									<Label>Expiry (optional)</Label>
+									<Input
+										type="date"
+										value={expiryDate}
+										onChange={(e) => setExpiryDate(e.target.value)}
+									/>
 								</div>
 								<Button onClick={handleCreate} disabled={!newName || creating}>
 									{creating ? "Creating..." : "Generate Key"}

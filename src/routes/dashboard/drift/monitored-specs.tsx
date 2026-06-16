@@ -36,7 +36,7 @@ function MonitoredSpecsPage() {
 
 	const fetchData = () => {
 		setLoading(true);
-		Promise.all([getDriftChecks(), getSpecs()])
+		Promise.all([getDriftChecks(), getSpecs({ data: {} })])
 			.then(([checksData, specsData]) => {
 				setChecks(checksData);
 				setSpecs(specsData);

@@ -68,7 +68,7 @@ function MocksPage() {
 	}, [fetchMocks]);
 
 	useEffect(() => {
-		getSpecs().then(setSpecs);
+		getSpecs({ data: {} }).then(setSpecs);
 	}, []);
 
 	const handleSearch = () => {

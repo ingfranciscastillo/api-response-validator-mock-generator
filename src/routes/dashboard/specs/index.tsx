@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BookUp, ChevronRight } from "lucide-react";
+import { BookUp, ChevronRight, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "#/components/ui/button";
 import { EmptyState } from "#/components/ui/empty-state";
+import { Input } from "#/components/ui/input";
 import { Skeleton } from "#/components/ui/skeleton";
 import { getSpecs } from "#/lib/specs/functions";
 
@@ -14,9 +15,11 @@ function SpecsPage() {
 	const [specs, setSpecs] = useState<Awaited<ReturnType<typeof getSpecs>>>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const [search, setSearch] = useState("");
 
-	useEffect(() => {
-		getSpecs()
+	const fetchSpecs = (searchTerm: string) => {
+		setLoading(true);
+		getSpecs({ data: { search: searchTerm || undefined } })
 			.then(setSpecs)
 			.catch((err) =>
 				setError(
@@ -24,6 +27,10 @@ function SpecsPage() {
 				),
 			)
 			.finally(() => setLoading(false));
+	};
+
+	useEffect(() => {
+		fetchSpecs("");
 	}, []);
 
 	return (
@@ -41,6 +48,19 @@ function SpecsPage() {
 						Add Specification
 					</Link>
 				</Button>
+			</div>
+
+			<div className="relative max-w-sm">
+				<Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+				<Input
+					placeholder="Search specifications..."
+					value={search}
+					onChange={(e) => setSearch(e.target.value)}
+					onKeyDown={(e) => {
+						if (e.key === "Enter") fetchSpecs(search);
+					}}
+					className="pl-9"
+				/>
 			</div>
 
 			{loading ? (

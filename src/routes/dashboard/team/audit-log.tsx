@@ -35,6 +35,9 @@ function AuditLogPage() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [actionFilter, setActionFilter] = useState("");
+	const [entityTypeFilter, setEntityTypeFilter] = useState("");
+	const [dateFrom, setDateFrom] = useState("");
+	const [dateTo, setDateTo] = useState("");
 	const [page, setPage] = useState(1);
 	const [pageSize, setPageSize] = useState(50);
 
@@ -44,6 +47,9 @@ function AuditLogPage() {
 		listAuditLog({
 			data: {
 				action: actionFilter || undefined,
+				entityType: entityTypeFilter || undefined,
+				dateFrom: dateFrom || undefined,
+				dateTo: dateTo || undefined,
 				page,
 				pageSize,
 			},
@@ -59,20 +65,40 @@ function AuditLogPage() {
 
 	useEffect(() => {
 		setPage(1);
-	}, [actionFilter]);
+	}, [actionFilter, entityTypeFilter, dateFrom, dateTo]);
 
 	useEffect(() => {
 		fetchLogs();
-	}, [actionFilter, page, pageSize]);
+	}, [actionFilter, entityTypeFilter, dateFrom, dateTo, page, pageSize]);
 
 	return (
 		<div className="flex flex-col gap-4">
-			<div className="flex items-center gap-3">
+			<div className="flex flex-wrap items-center gap-2">
 				<Input
 					placeholder="Filter by action..."
 					className="max-w-xs"
 					value={actionFilter}
 					onChange={(e) => setActionFilter(e.target.value)}
+				/>
+				<Input
+					placeholder="Filter by entity type..."
+					className="max-w-xs"
+					value={entityTypeFilter}
+					onChange={(e) => setEntityTypeFilter(e.target.value)}
+				/>
+				<Input
+					type="date"
+					value={dateFrom}
+					onChange={(e) => setDateFrom(e.target.value)}
+					className="w-[150px]"
+					placeholder="From date"
+				/>
+				<Input
+					type="date"
+					value={dateTo}
+					onChange={(e) => setDateTo(e.target.value)}
+					className="w-[150px]"
+					placeholder="To date"
 				/>
 			</div>
 

@@ -3,25 +3,45 @@ import { ShieldAlert, ShieldOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { DriftAlertCard } from "#/components/drift/drift-alert-card";
 import { EmptyState } from "#/components/ui/empty-state";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "#/components/ui/select";
 import { Skeleton } from "#/components/ui/skeleton";
 import { getDriftAlerts, resolveDriftAlert } from "#/lib/drift/functions";
+import { getSpecs } from "#/lib/specs/functions";
 
 export const Route = createFileRoute("/dashboard/drift/")({
 	component: DriftPage,
 });
 
+type DriftAlert = Awaited<ReturnType<typeof getDriftAlerts>>[number];
+
+const severityOptions = ["high", "medium", "low"] as const;
+const typeOptions = ["breaking", "warning", "info"] as const;
+const statusOptions = ["open", "resolved", "acknowledged"] as const;
+
 function DriftPage() {
-	const [alerts, setAlerts] = useState<
-		Awaited<ReturnType<typeof getDriftAlerts>>
-	>([]);
+	const [alerts, setAlerts] = useState<DriftAlert[]>([]);
 	const [loading, setLoading] = useState(true);
-	const [filter, setFilter] = useState<string>("open");
+	const [statusFilter, setStatusFilter] = useState<string>("open");
+	const [specFilter, setSpecFilter] = useState<string>("all");
+	const [severityFilter, setSeverityFilter] = useState<string>("all");
+	const [typeFilter, setTypeFilter] = useState<string>("all");
+
+	const [specs, setSpecs] = useState<Awaited<ReturnType<typeof getSpecs>>>([]);
 
 	const fetchAlerts = () => {
 		setLoading(true);
 		getDriftAlerts({
 			data: {
-				status: filter === "all" ? undefined : filter,
+				status: statusFilter === "all" ? undefined : statusFilter,
+				specId: specFilter === "all" ? undefined : specFilter,
+				severity: severityFilter === "all" ? undefined : severityFilter,
+				type: typeFilter === "all" ? undefined : typeFilter,
 			},
 		})
 			.then(setAlerts)
@@ -30,7 +50,11 @@ function DriftPage() {
 
 	useEffect(() => {
 		fetchAlerts();
-	}, [filter]);
+	}, [statusFilter, specFilter, severityFilter, typeFilter]);
+
+	useEffect(() => {
+		getSpecs({ data: {} }).then(setSpecs);
+	}, []);
 
 	const handleResolve = async (id: string) => {
 		await resolveDriftAlert({ data: { alertId: id } });
@@ -59,15 +83,61 @@ function DriftPage() {
 				<div className="flex items-center gap-2 text-sm text-muted-foreground">
 					<span>{resolvedCount} resolved</span>
 				</div>
-				<select
-					className="ml-auto rounded-md border border-input bg-background px-3 py-1 text-sm"
-					value={filter}
-					onChange={(e) => setFilter(e.target.value)}
-				>
-					<option value="open">Open</option>
-					<option value="resolved">Resolved</option>
-					<option value="all">All</option>
-				</select>
+			</div>
+
+			<div className="flex flex-wrap items-center gap-2">
+				<Select value={statusFilter} onValueChange={setStatusFilter}>
+					<SelectTrigger className="w-[140px]">
+						<SelectValue placeholder="Status" />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="all">All Statuses</SelectItem>
+						{statusOptions.map((s) => (
+							<SelectItem key={s} value={s}>
+								{s.charAt(0).toUpperCase() + s.slice(1)}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
+				<Select value={specFilter} onValueChange={setSpecFilter}>
+					<SelectTrigger className="w-[180px]">
+						<SelectValue placeholder="All specs" />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="all">All Specs</SelectItem>
+						{specs.map((spec) => (
+							<SelectItem key={spec.id} value={spec.id}>
+								{spec.name}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
+				<Select value={severityFilter} onValueChange={setSeverityFilter}>
+					<SelectTrigger className="w-[140px]">
+						<SelectValue placeholder="All severities" />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="all">All Severities</SelectItem>
+						{severityOptions.map((s) => (
+							<SelectItem key={s} value={s}>
+								{s.charAt(0).toUpperCase() + s.slice(1)}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
+				<Select value={typeFilter} onValueChange={setTypeFilter}>
+					<SelectTrigger className="w-[140px]">
+						<SelectValue placeholder="All types" />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="all">All Types</SelectItem>
+						{typeOptions.map((t) => (
+							<SelectItem key={t} value={t}>
+								{t.charAt(0).toUpperCase() + t.slice(1)}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
 			</div>
 
 			{loading ? (
@@ -101,7 +171,7 @@ function DriftPage() {
 								status: alert.status,
 								detectedAt: alert.detectedAt,
 							}}
-							onResolve={filter === "open" ? handleResolve : undefined}
+							onResolve={statusFilter === "open" ? handleResolve : undefined}
 						/>
 					))}
 				</div>
