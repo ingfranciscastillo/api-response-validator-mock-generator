@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { and, desc, eq, ilike } from "drizzle-orm";
+import { buildStorageKey, isR2Configured, uploadToR2 } from "#/lib/storage";
 import { db } from "@/db";
 import { endpoint, specification, specificationVersion } from "@/db/schema";
 import { writeAuditLog } from "@/lib/audit/functions";
@@ -27,6 +28,20 @@ export const importSpec = createServerFn({ method: "POST" })
 
 		const summary = buildSummary(parsed.endpoints, parsed.tags);
 
+		const rawStr = data.specContent ?? JSON.stringify(parsed);
+		let storageKey: string | null = null;
+		let finalRawDocument: Record<string, unknown> | null =
+			parsed as unknown as Record<string, unknown>;
+		let finalDereferencedSchema: Record<string, unknown> | null = null;
+
+		if (isR2Configured() && Buffer.byteLength(rawStr) > 200 * 1024) {
+			const key = buildStorageKey(orgId, "specs", specId, "v1/document.json");
+			await uploadToR2(key, rawStr, "application/json");
+			storageKey = key;
+			finalRawDocument = null;
+			finalDereferencedSchema = null;
+		}
+
 		await db.insert(specification).values({
 			id: specId,
 			name: data.name,
@@ -38,7 +53,8 @@ export const importSpec = createServerFn({ method: "POST" })
 			id: versionId,
 			specId,
 			version: 1,
-			openapiSpec: parsed as unknown as Record<string, unknown>,
+			openapiSpec: finalRawDocument ?? finalDereferencedSchema,
+			storageKey,
 			summary,
 		});
 

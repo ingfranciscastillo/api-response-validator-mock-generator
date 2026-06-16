@@ -31,7 +31,8 @@ export const specificationVersion = pgTable(
 			.notNull()
 			.references(() => specification.id, { onDelete: "cascade" }),
 		version: integer("version").notNull(),
-		openapiSpec: json("openapi_spec").notNull(),
+		openapiSpec: json("openapi_spec"),
+		storageKey: text("storage_key"),
 		summary: json("summary"),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 	},
