@@ -1,8 +1,13 @@
 "use client";
 
+import { useGSAP } from "@gsap/react";
 import { SiBuymeacoffee, SiGithub, SiX } from "@icons-pack/react-simple-icons";
-import { Menu } from "lucide-react";
-import { useState } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Menu, X } from "lucide-react";
+import { useRef, useState } from "react";
+
+gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 import { ModeToggle } from "#/components/mode-toggle";
 import { Button } from "#/components/ui/button";
@@ -21,18 +26,54 @@ const navLinks = [
 
 export function AppNavbar() {
 	const [open, setOpen] = useState(false);
+	const headerRef = useRef<HTMLElement>(null);
+
+	useGSAP(
+		() => {
+			let lastScroll = 0;
+
+			ScrollTrigger.create({
+				start: "top top",
+				onUpdate: () => {
+					const st = window.scrollY;
+					if (st > lastScroll && st > 100) {
+						gsap.to(headerRef.current, {
+							y: "-100%",
+							duration: 0.3,
+							ease: "power2.out",
+						});
+					} else if (st < lastScroll) {
+						gsap.to(headerRef.current, {
+							y: 0,
+							duration: 0.3,
+							ease: "power2.out",
+						});
+					}
+					lastScroll = st;
+				},
+			});
+		},
+		{ scope: headerRef },
+	);
 
 	return (
-		<header className="fixed top-0 z-50 w-full backdrop-blur-md">
-			<div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-				<a href="/" className="flex items-center gap-2">
-					<div className="flex size-8 items-center justify-center rounded-lg bg-accent-blue text-sm font-bold text-white">
-						AV
-					</div>
-					<span className="font-semibold text-text-primary">API Validator</span>
-				</a>
+		<header
+			ref={headerRef}
+			className="fixed top-0 z-50 w-full backdrop-blur-md"
+		>
+			<div className="mx-auto grid h-16 max-w-6xl grid-cols-3 items-center px-4">
+				<div className="flex justify-start">
+					<a href="/" className="flex items-center gap-2">
+						<div className="flex size-8 items-center justify-center rounded-lg bg-accent-blue text-sm font-bold text-white">
+							AV
+						</div>
+						<span className="font-semibold text-text-primary">
+							API Validator
+						</span>
+					</a>
+				</div>
 
-				<nav className="hidden md:flex md:items-center md:gap-1">
+				<nav className="hidden justify-center md:flex md:items-center md:gap-1">
 					{navLinks.map((link) => (
 						<Button key={link.label} variant="ghost" asChild>
 							<a href={link.href}>{link.label}</a>
@@ -40,24 +81,24 @@ export function AppNavbar() {
 					))}
 				</nav>
 
-				<div className="flex items-center gap-1 sm:gap-2">
+				<div className="flex justify-end items-center gap-2">
 					<a
 						href="#"
-						className="hidden text-text-tertiary transition-colors hover:text-text-primary sm:block"
+						className="flex size-8 items-center justify-center text-text-tertiary transition-colors hover:text-text-primary"
 						aria-label="GitHub"
 					>
 						<SiGithub className="size-4" />
 					</a>
 					<a
 						href="#"
-						className="hidden text-text-tertiary transition-colors hover:text-text-primary sm:block"
+						className="flex size-8 items-center justify-center text-text-tertiary transition-colors hover:text-text-primary"
 						aria-label="X (Twitter)"
 					>
 						<SiX className="size-4" />
 					</a>
 					<a
 						href="#"
-						className="hidden text-text-tertiary transition-colors hover:text-text-primary sm:block"
+						className="flex size-8 items-center justify-center text-text-tertiary transition-colors hover:text-text-primary"
 						aria-label="Buy Me a Coffee"
 					>
 						<SiBuymeacoffee className="size-4" />

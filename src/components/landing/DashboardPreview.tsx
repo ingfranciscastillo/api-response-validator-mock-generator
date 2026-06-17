@@ -1,4 +1,10 @@
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Activity, CheckCircle, FileText, Zap } from "lucide-react";
+import { useRef } from "react";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const stats = [
 	{ icon: FileText, label: "APIs Monitored", value: "12" },
@@ -18,9 +24,69 @@ const recentRuns = [
 	{ name: "User Service", outcome: "Warning", checks: "22/24", date: "1h ago" },
 ];
 
+const barHeights = [48, 64, 32, 72, 56, 44, 60];
+
 export function DashboardPreview() {
+	const sectionRef = useRef<HTMLElement>(null);
+
+	useGSAP(
+		() => {
+			gsap.fromTo(
+				".dashboard-stats > *",
+				{ y: 30, opacity: 0 },
+				{
+					y: 0,
+					opacity: 1,
+					duration: 0.5,
+					stagger: 0.1,
+					ease: "power2.out",
+					scrollTrigger: {
+						trigger: sectionRef.current,
+						start: "top 75%",
+						toggleActions: "play none none none",
+					},
+				},
+			);
+
+			gsap.fromTo(
+				".dashboard-bar",
+				{ height: 0, opacity: 0 },
+				{
+					height: (i) => barHeights[i],
+					opacity: 1,
+					duration: 0.6,
+					stagger: 0.08,
+					ease: "back.out(1.4)",
+					scrollTrigger: {
+						trigger: sectionRef.current,
+						start: "top 70%",
+						toggleActions: "play none none none",
+					},
+				},
+			);
+
+			gsap.fromTo(
+				".dashboard-row",
+				{ x: -20, opacity: 0 },
+				{
+					x: 0,
+					opacity: 1,
+					duration: 0.4,
+					stagger: 0.08,
+					ease: "power2.out",
+					scrollTrigger: {
+						trigger: sectionRef.current,
+						start: "top 65%",
+						toggleActions: "play none none none",
+					},
+				},
+			);
+		},
+		{ scope: sectionRef },
+	);
+
 	return (
-		<section className="px-4 py-24" id="demo-preview">
+		<section ref={sectionRef} className="px-4 py-24" id="demo-preview">
 			<div className="mx-auto max-w-5xl text-center">
 				<h2 className="text-display-sm font-bold text-text-primary">
 					See your API health at a glance
@@ -40,7 +106,7 @@ export function DashboardPreview() {
 						</div>
 					</div>
 					<div className="p-6">
-						<div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+						<div className="dashboard-stats mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 							{stats.map((stat) => (
 								<div
 									key={stat.label}
@@ -58,11 +124,10 @@ export function DashboardPreview() {
 						</div>
 						<div className="mb-6">
 							<div className="flex items-end gap-2">
-								{Array.from({ length: 7 }).map((_, i) => (
+								{barHeights.map((_, i) => (
 									<div
 										key={i}
-										className="flex-1 rounded-t bg-accent-blue/20"
-										style={{ height: `${30 + Math.random() * 50}px` }}
+										className="dashboard-bar flex-1 rounded-t bg-accent-blue/20"
 									/>
 								))}
 							</div>
@@ -78,7 +143,10 @@ export function DashboardPreview() {
 							</thead>
 							<tbody>
 								{recentRuns.map((run) => (
-									<tr key={run.name} className="border-b border-border/50">
+									<tr
+										key={run.name}
+										className="dashboard-row border-b border-border/50"
+									>
 										<td className="py-3 text-text-primary">{run.name}</td>
 										<td className="py-3">
 											<span

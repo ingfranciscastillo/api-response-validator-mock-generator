@@ -1,4 +1,10 @@
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { FileSearch, GitCompareArrows, WandSparkles } from "lucide-react";
+import { useRef } from "react";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const features = [
 	{
@@ -22,8 +28,32 @@ const features = [
 ];
 
 export function FeaturesGrid() {
+	const sectionRef = useRef<HTMLElement>(null);
+
+	useGSAP(
+		() => {
+			gsap.fromTo(
+				".feature-card",
+				{ y: 50, opacity: 0 },
+				{
+					y: 0,
+					opacity: 1,
+					duration: 0.6,
+					stagger: 0.15,
+					ease: "power3.out",
+					scrollTrigger: {
+						trigger: sectionRef.current,
+						start: "top 80%",
+						toggleActions: "play none none none",
+					},
+				},
+			);
+		},
+		{ scope: sectionRef },
+	);
+
 	return (
-		<section className="px-4 py-24" id="features">
+		<section ref={sectionRef} className="px-4 py-24" id="features">
 			<div className="mx-auto max-w-6xl">
 				<div className="mb-16 text-center">
 					<h2 className="text-display-sm font-bold text-text-primary">
@@ -37,7 +67,7 @@ export function FeaturesGrid() {
 					{features.map((feature) => (
 						<div
 							key={feature.title}
-							className="gradient-border-card group rounded-xl border border-border bg-surface p-6 transition-shadow hover:shadow-glow-blue"
+							className="feature-card gradient-border-card group rounded-xl border border-border bg-surface p-6 transition-shadow hover:shadow-glow-blue"
 						>
 							<div
 								className="mb-4 flex size-12 items-center justify-center rounded-lg bg-accent-blue/10 text-accent-blue"
