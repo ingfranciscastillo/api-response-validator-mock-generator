@@ -1,4 +1,5 @@
-import { Plus, Send, X } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { Plus, Save, Send, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { MonacoEditor } from "#/components/editors/monaco-editor";
@@ -94,6 +95,7 @@ export function ValidationRequestBuilder({
 	endpoint,
 	onResult,
 }: RequestBuilderProps) {
+	const navigate = useNavigate();
 	const [method, setMethod] = useState(endpoint.method);
 	const [urlBase, setUrlBase] = useState("");
 	const [pathParams, setPathParams] = useState<PathParamValue[]>([]);
@@ -101,7 +103,14 @@ export function ValidationRequestBuilder({
 	const [headersText, setHeadersText] = useState("{}");
 	const [bodyText, setBodyText] = useState("");
 	const [sending, setSending] = useState(false);
+	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [lastPayload, setLastPayload] = useState<{
+		url: string;
+		method: string;
+		headers: Record<string, string>;
+		body: unknown;
+	} | null>(null);
 
 	const specParams = useMemo(() => {
 		const params = endpoint.parameters;
@@ -198,6 +207,7 @@ export function ValidationRequestBuilder({
 	async function handleSend() {
 		setSending(true);
 		setError(null);
+		setLastPayload(null);
 
 		try {
 			let parsedHeaders: Record<string, string> = {};
@@ -253,10 +263,44 @@ export function ValidationRequestBuilder({
 				> | null,
 			};
 			onResult?.(validationResult);
+			setLastPayload({
+				url: constructedUrl,
+				method,
+				headers: parsedHeaders,
+				body: parsedBody,
+			});
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Request failed");
 		} finally {
 			setSending(false);
+		}
+	}
+
+	async function handleSave() {
+		if (!lastPayload) return;
+		setSaving(true);
+		try {
+			const response = await runValidation({
+				data: {
+					specId,
+					endpointId,
+					url: lastPayload.url,
+					method: lastPayload.method,
+					headers: lastPayload.headers,
+					body: lastPayload.body,
+					save: true,
+				},
+			});
+			if (response.runId) {
+				navigate({
+					to: "/dashboard/validation/runs/$runId",
+					params: { runId: response.runId },
+				});
+			}
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Failed to save run");
+		} finally {
+			setSaving(false);
 		}
 	}
 
@@ -460,10 +504,18 @@ export function ValidationRequestBuilder({
 						</div>
 					)}
 
-					<Button onClick={handleSend} disabled={sending || !constructedUrl}>
-						<Send className="size-4" />
-						{sending ? "Sending..." : "Send Request"}
-					</Button>
+					<div className="flex items-center gap-2">
+						<Button onClick={handleSend} disabled={sending || !constructedUrl}>
+							<Send className="size-4" />
+							{sending ? "Sending..." : "Send Request"}
+						</Button>
+						{lastPayload && (
+							<Button variant="outline" onClick={handleSave} disabled={saving}>
+								<Save className="size-4" />
+								{saving ? "Saving..." : "Save Run"}
+							</Button>
+						)}
+					</div>
 				</CardContent>
 			</Card>
 		</div>
