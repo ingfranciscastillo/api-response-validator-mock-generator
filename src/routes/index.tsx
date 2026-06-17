@@ -13,13 +13,13 @@ import {
 import { useCallback, useRef } from "react";
 
 import { AdvancedFeatures } from "#/components/landing/AdvancedFeatures";
+import { AppNavbar } from "#/components/landing/AppNavbar";
 import { CtaSection } from "#/components/landing/CtaSection";
 import { DashboardPreview } from "#/components/landing/DashboardPreview";
 import { FeatureDeepDive } from "#/components/landing/FeatureDeepDive";
 import { FeaturesGrid } from "#/components/landing/FeaturesGrid";
 import { Footer } from "#/components/landing/Footer";
 import { HeroSection } from "#/components/landing/HeroSection";
-import { TrustBar } from "#/components/landing/TrustBar";
 
 export const Route = createFileRoute("/")({
 	component: LandingPage,
@@ -34,8 +34,8 @@ function LandingPage() {
 
 	return (
 		<main className="min-h-svh bg-background">
+			<AppNavbar />
 			<HeroSection onViewDemo={scrollToDemo} />
-			<TrustBar />
 			<FeaturesGrid />
 
 			<section id="schema-validation">

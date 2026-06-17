@@ -1,5 +1,4 @@
 import { ArrowRight, Play } from "lucide-react";
-import { HeroPipeline } from "#/components/landing/HeroPipeline";
 import { Button } from "#/components/ui/button";
 
 interface HeroSectionProps {
@@ -11,17 +10,10 @@ export function HeroSection({ onViewDemo }: HeroSectionProps) {
 		<section className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden px-4 py-24">
 			<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(59,130,246,0.15),transparent),radial-gradient(ellipse_60%_40%_at_80%_10%,rgba(167,139,250,0.1),transparent)]" />
 			<div className="relative z-10 mx-auto max-w-3xl text-center">
-				<div className="mb-4 inline-flex items-center gap-2 rounded-full border border-accent-blue/20 bg-accent-blue/5 px-4 py-1.5 text-xs font-medium text-accent-blue">
-					<span className="relative flex size-2">
-						<span className="absolute inline-flex size-full animate-ping rounded-full bg-accent-blue opacity-75" />
-						<span className="relative inline-flex size-2 rounded-full bg-accent-blue" />
-					</span>
-					Now in Public Beta
-				</div>
 				<h1 className="text-display text-balance font-bold tracking-tight">
 					Validate API Responses.
 					<br />
-					<span className="bg-linear-to-r from-accent-blue via-accent-cyan to-accent-violet bg-clip-text text-transparent">
+					<span className="bg-accent-blue bg-clip-text text-transparent">
 						Generate Perfect Mocks.
 					</span>
 					<br />
@@ -45,7 +37,6 @@ export function HeroSection({ onViewDemo }: HeroSectionProps) {
 					</Button>
 				</div>
 			</div>
-			<HeroPipeline />
 		</section>
 	);
 }

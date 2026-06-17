@@ -5,7 +5,7 @@ export function CtaSection() {
 	return (
 		<section className="px-4 py-24">
 			<div className="mx-auto max-w-3xl">
-				<div className="rounded-2xl bg-linear-to-br from-accent-blue via-accent-cyan to-accent-violet p-1">
+				<div className="rounded-2xl p-1">
 					<div className="rounded-[calc(1rem-1px)] bg-background px-8 py-16 text-center">
 						<h2 className="text-display-sm font-bold text-text-primary">
 							Ship APIs your team can trust
