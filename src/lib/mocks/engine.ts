@@ -92,6 +92,290 @@ function applyFieldOverrides(
 	return payload;
 }
 
+function fakerifyValue(
+	key: string,
+	propSchema: Record<string, unknown>,
+): unknown {
+	const type = propSchema.type as string | undefined;
+	const enumValues = propSchema.enum as Array<unknown> | undefined;
+
+	if (enumValues) {
+		return faker.helpers.arrayElement(enumValues);
+	}
+
+	if (type === "string") {
+		const format = propSchema.format as string | undefined;
+		if (format === "date" || format === "date-time") {
+			return faker.date.recent().toISOString();
+		}
+		if (format === "email") return faker.internet.email();
+		if (format === "uri" || format === "url") return faker.internet.url();
+		if (format === "phone") return faker.phone.number();
+		if (format === "uuid") return faker.string.uuid();
+
+		return generateFakerString(key);
+	}
+
+	if (type === "integer") {
+		const min = (propSchema.minimum as number) ?? 0;
+		const max = (propSchema.maximum as number) ?? 9999;
+		return faker.number.int({ min, max });
+	}
+
+	if (type === "number") {
+		const min = (propSchema.minimum as number) ?? 0;
+		const max = (propSchema.maximum as number) ?? 9999;
+		return faker.number.float({ min, max, fractionDigits: 2 });
+	}
+
+	if (type === "boolean") {
+		return faker.datatype.boolean();
+	}
+
+	return undefined;
+}
+
+const STRING_RULES: Array<{
+	test: (name: string) => boolean;
+	fn: () => string;
+}> = [
+	{
+		test: (n) => /^first[_ ]?name$|^nombre$|^nombre_pila$/i.test(n),
+		fn: () => faker.person.firstName(),
+	},
+	{
+		test: (n) => /^last[_ ]?name$|^apellido/i.test(n),
+		fn: () => faker.person.lastName(),
+	},
+	{
+		test: (n) => /^full[_ ]?name$|^nombre_completo/i.test(n),
+		fn: () => faker.person.fullName(),
+	},
+	{
+		test: (n) => /^username$|^usuario$/i.test(n),
+		fn: () => faker.internet.username(),
+	},
+	{ test: (n) => /name|nombre/.test(n), fn: () => faker.person.firstName() },
+	{
+		test: (n) => /^email$|^correo$/i.test(n),
+		fn: () => faker.internet.email(),
+	},
+	{
+		test: (n) => /^phone$|^tel[eé]fono$|^celular$|^m[oó]vil$/i.test(n),
+		fn: () => faker.phone.number(),
+	},
+	{
+		test: (n) => /^address$|^direcci[oó]n$/i.test(n),
+		fn: () => faker.location.streetAddress(),
+	},
+	{ test: (n) => /^city$|^ciudad$/i.test(n), fn: () => faker.location.city() },
+	{
+		test: (n) => /^state$|^estado$|^provincia$/i.test(n),
+		fn: () => faker.location.state(),
+	},
+	{
+		test: (n) => /^country$|^pa[ií]s$/i.test(n),
+		fn: () => faker.location.country(),
+	},
+	{
+		test: (n) => /^zip|^postal|c[oó]digo.postal/i.test(n),
+		fn: () => faker.location.zipCode(),
+	},
+	{
+		test: (n) => /^street$|^calle$/i.test(n),
+		fn: () => faker.location.street(),
+	},
+	{
+		test: (n) => /^company$|^empresa$/i.test(n),
+		fn: () => faker.company.name(),
+	},
+	{
+		test: (n) => /^job$|^title$|^cargo$|^puesto$|position/i.test(n),
+		fn: () => faker.person.jobTitle(),
+	},
+	{
+		test: (n) => /^description$|^descripci[oó]n$/i.test(n),
+		fn: () => faker.lorem.sentence(),
+	},
+	{
+		test: (n) => /^summary$|^resumen$/i.test(n),
+		fn: () => faker.lorem.paragraph(),
+	},
+	{
+		test: (n) => /^title$|^t[ií]tulo$/i.test(n),
+		fn: () => faker.lorem.sentence(),
+	},
+	{
+		test: (n) => /^content$|^contenido$/i.test(n),
+		fn: () => faker.lorem.paragraphs(2),
+	},
+	{
+		test: (n) => /^message$|^mensaje$/i.test(n),
+		fn: () => faker.lorem.sentence(),
+	},
+	{
+		test: (n) => /^comment$|^comentario$/i.test(n),
+		fn: () => faker.lorem.sentence(),
+	},
+	{
+		test: (n) => /^url$|^website$|^sitio$/i.test(n),
+		fn: () => faker.internet.url(),
+	},
+	{
+		test: (n) => /^avatar$|^photo$|^foto$|^imagen$|^image$/i.test(n),
+		fn: () => faker.image.avatar(),
+	},
+	{ test: (n) => /^uuid$|^id$/i.test(n), fn: () => faker.string.uuid() },
+	{ test: (n) => /^token$/i.test(n), fn: () => faker.string.alphanumeric(32) },
+	{ test: (n) => /^color$/i.test(n), fn: () => faker.color.human() },
+	{
+		test: (n) => /^category$|^categor[ií]a$/i.test(n),
+		fn: () => faker.commerce.department(),
+	},
+	{
+		test: (n) => /^product$|^producto$/i.test(n),
+		fn: () => faker.commerce.productName(),
+	},
+	{
+		test: (n) => /^price$|^precio$/i.test(n),
+		fn: () => faker.commerce.price(),
+	},
+	{
+		test: (n) => /^quantity$|^cantidad$/i.test(n),
+		fn: () => String(faker.number.int({ min: 1, max: 100 })),
+	},
+	{
+		test: (n) => /^date$|^fecha$/i.test(n),
+		fn: () => faker.date.recent().toISOString(),
+	},
+	{
+		test: (n) => /^status$/i.test(n),
+		fn: () =>
+			faker.helpers.arrayElement([
+				"active",
+				"inactive",
+				"pending",
+				"completed",
+				"failed",
+			]),
+	},
+	{
+		test: (n) => /^type$|^tipo$/i.test(n),
+		fn: () => faker.helpers.arrayElement(["A", "B", "C"]),
+	},
+	{
+		test: (n) => /^language$|^idioma$/i.test(n),
+		fn: () => faker.helpers.arrayElement(["en", "es", "fr", "de", "ja"]),
+	},
+	{ test: (n) => /^role$|^rol$/i.test(n), fn: () => faker.person.jobTitle() },
+	{
+		test: (n) => /^gender$|^g[ée]nero$/i.test(n),
+		fn: () => faker.helpers.arrayElement(["male", "female", "other"]),
+	},
+	{
+		test: (n) => /^birthday$|^birth_date$|^cumpleaños$/i.test(n),
+		fn: () => faker.date.birthdate().toISOString(),
+	},
+	{
+		test: (n) => /^age$|^edad$/i.test(n),
+		fn: () => String(faker.number.int({ min: 18, max: 90 })),
+	},
+	{
+		test: (n) => /^rating$|^puntuaci[oó]n$/i.test(n),
+		fn: () => String(faker.number.int({ min: 1, max: 5 })),
+	},
+	{
+		test: (n) => /^score$|^puntaje$/i.test(n),
+		fn: () => String(faker.number.int({ min: 0, max: 100 })),
+	},
+	{
+		test: (n) => /^error$|^errores$/i.test(n),
+		fn: () => faker.lorem.sentence(),
+	},
+];
+
+function generateFakerString(propertyName: string): string {
+	const lower = propertyName.replace(/[-_\s]/g, "_");
+	for (const rule of STRING_RULES) {
+		if (rule.test(lower)) return rule.fn();
+	}
+	return faker.lorem.word();
+}
+
+function generateNestedObject(
+	schema: Record<string, unknown>,
+): Record<string, unknown> {
+	const obj: Record<string, unknown> = {};
+	const props = schema.properties as Record<string, unknown> | undefined;
+	if (!props) return obj;
+
+	for (const [key, propSchema] of Object.entries(props)) {
+		const ps = propSchema as Record<string, unknown>;
+		const propType = ps.type as string | undefined;
+
+		if (propType === "object") {
+			obj[key] = generateNestedObject(ps);
+		} else if (propType === "array") {
+			obj[key] = [];
+		} else {
+			const value = fakerifyValue(key, ps);
+			if (value !== undefined) obj[key] = value;
+		}
+	}
+	return obj;
+}
+
+function fakerifyPayload(
+	payload: unknown,
+	schema: Record<string, unknown>,
+	propertyName?: string,
+): unknown {
+	if (payload === null || payload === undefined) return payload;
+
+	const schemaType = schema.type as string | undefined;
+	const props = schema.properties as Record<string, unknown> | undefined;
+	const items = schema.items as Record<string, unknown> | undefined;
+
+	if (
+		schemaType === "object" &&
+		props &&
+		typeof payload === "object" &&
+		!Array.isArray(payload)
+	) {
+		const obj = payload as Record<string, unknown>;
+		for (const [key, propSchema] of Object.entries(props)) {
+			const ps = propSchema as Record<string, unknown>;
+			const propType = ps.type as string | undefined;
+
+			if (propType === "object" && ps.properties) {
+				obj[key] = fakerifyPayload(obj[key], ps, key);
+				if (obj[key] === undefined) {
+					obj[key] = generateNestedObject(ps);
+				}
+			} else if (propType === "array" && ps.items) {
+				obj[key] = fakerifyPayload(obj[key], ps, key);
+			} else {
+				const value = fakerifyValue(key, ps);
+				if (value !== undefined) obj[key] = value;
+			}
+		}
+		return obj;
+	}
+
+	if (schemaType === "array" && Array.isArray(payload) && items) {
+		return (payload as Array<unknown>).map((item) =>
+			fakerifyPayload(item, items, propertyName),
+		);
+	}
+
+	if (propertyName && (schemaType === "string" || !schemaType)) {
+		const value = fakerifyValue(propertyName, schema);
+		if (value !== undefined) return value;
+	}
+
+	return payload;
+}
+
 export async function generateMock(
 	schema: Record<string, unknown>,
 	rules?: GenerationRules | null,
@@ -108,6 +392,8 @@ export async function generateMock(
 	if (!payload || typeof payload !== "object") {
 		payload = {};
 	}
+
+	payload = fakerifyPayload(payload, schema) as Record<string, unknown>;
 
 	if (rules) {
 		payload = applyFieldOverrides(payload, rules);
