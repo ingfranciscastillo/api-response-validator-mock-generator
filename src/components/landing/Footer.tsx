@@ -1,4 +1,4 @@
-import { Github } from "lucide-react";
+import { SiBuymeacoffee, SiGithub, SiX } from "@icons-pack/react-simple-icons";
 
 const sections = [
 	{
@@ -29,7 +29,7 @@ const sections = [
 
 export function Footer() {
 	return (
-		<footer className="border-t border-border px-4 py-16">
+		<footer className="border-t border-border px-4 py-8">
 			<div className="mx-auto max-w-6xl">
 				<div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
 					<div>
@@ -72,11 +72,25 @@ export function Footer() {
 					</p>
 					<div className="flex items-center gap-4">
 						<a
-							href="#"
+							href="https://github.com/ingfranciscastillo"
 							className="text-text-tertiary transition-colors hover:text-text-primary"
 							aria-label="GitHub"
 						>
-							<Github className="size-5" />
+							<SiGithub className="size-5" />
+						</a>
+						<a
+							href="https://x.com/ingfranciscas"
+							className="text-text-tertiary transition-colors hover:text-text-primary"
+							aria-label="X (Twitter)"
+						>
+							<SiX className="size-4" />
+						</a>
+						<a
+							href="buymeacoffee.com/ingfranciscastillo"
+							className="text-text-tertiary transition-colors hover:text-text-primary"
+							aria-label="Buy Me a Coffee"
+						>
+							<SiBuymeacoffee className="size-4" />
 						</a>
 					</div>
 				</div>

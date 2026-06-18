@@ -55,9 +55,18 @@ export function AdvancedFeatures() {
 	);
 
 	return (
-		<section ref={sectionRef} className="border-y border-border px-4 py-20">
+		<section ref={sectionRef} className="px-4 py-20">
 			<div className="mx-auto max-w-5xl">
-				<h2 className="sr-only">Advanced features</h2>
+				<div className="mb-12 text-center">
+					<h2 className="text-display-sm font-bold text-text-primary">
+						Scale with Confidence
+					</h2>
+
+					<p className="mt-4 text-lg text-text-secondary">
+						Detect drift, prevent breaking changes, and collaborate across your
+						organization.
+					</p>
+				</div>
 				<div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
 					{features.map((f) => (
 						<div key={f.label} className="af-item text-center">
