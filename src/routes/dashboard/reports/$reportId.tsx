@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Download, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
@@ -19,6 +20,7 @@ export const Route = createFileRoute("/dashboard/reports/$reportId")({
 });
 
 function ReportDetailPage() {
+	const { t } = useTranslation();
 	const { reportId } = Route.useParams();
 	const [report, setReport] = useState<Awaited<
 		ReturnType<typeof getReport>
@@ -101,10 +103,12 @@ function ReportDetailPage() {
 					className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
 				>
 					<ArrowLeft className="size-4" />
-					Back to reports
+					{t("dashboard:reports.backToReports")}
 				</Link>
 				<div className="rounded-lg border border-border bg-surface p-8 text-center">
-					<p className="text-muted-foreground">Report not found</p>
+					<p className="text-muted-foreground">
+						{t("dashboard:reports.reportNotFound")}
+					</p>
 				</div>
 			</div>
 		);
@@ -151,21 +155,21 @@ function ReportDetailPage() {
 						className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
 					>
 						<ArrowLeft className="size-4" />
-						Back
+						{t("common:back")}
 					</Link>
 				</div>
 				<div className="flex items-center gap-2">
 					<Button variant="outline" size="sm" onClick={handleDownloadJson}>
 						<Download className="size-4" />
-						JSON
+						{t("dashboard:reports.downloadJson")}
 					</Button>
 					<Button variant="outline" size="sm" onClick={handleDownloadHtml}>
 						<Download className="size-4" />
-						HTML
+						{t("dashboard:reports.downloadHtml")}
 					</Button>
 					<Button variant="outline" size="sm" onClick={handleDownloadPdf}>
 						<Download className="size-4" />
-						PDF
+						{t("dashboard:reports.downloadPdf")}
 					</Button>
 				</div>
 			</div>
@@ -188,7 +192,7 @@ function ReportDetailPage() {
 					<Card>
 						<CardHeader className="pb-2">
 							<CardTitle className="text-xs text-muted-foreground">
-								Total Runs
+								{t("dashboard:reports.totalRuns")}
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
@@ -198,7 +202,7 @@ function ReportDetailPage() {
 					<Card>
 						<CardHeader className="pb-2">
 							<CardTitle className="text-xs text-muted-foreground">
-								Total Checks
+								{t("dashboard:reports.totalChecks")}
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
@@ -210,7 +214,7 @@ function ReportDetailPage() {
 					<Card>
 						<CardHeader className="pb-2">
 							<CardTitle className="text-xs text-muted-foreground">
-								Pass Rate
+								{t("dashboard:reports.passRate")}
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
@@ -222,7 +226,7 @@ function ReportDetailPage() {
 					<Card>
 						<CardHeader className="pb-2">
 							<CardTitle className="text-xs text-muted-foreground">
-								Warning Rate
+								{t("dashboard:reports.warningRate")}
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
@@ -234,7 +238,7 @@ function ReportDetailPage() {
 					<Card>
 						<CardHeader className="pb-2">
 							<CardTitle className="text-xs text-muted-foreground">
-								Fail Rate
+								{t("dashboard:reports.failRate")}
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
@@ -249,24 +253,32 @@ function ReportDetailPage() {
 			{data.endpointSummary && data.endpointSummary.length > 0 && (
 				<Card>
 					<CardHeader>
-						<CardTitle className="text-sm">Endpoint Summary</CardTitle>
+						<CardTitle className="text-sm">
+							{t("dashboard:reports.endpointSummary")}
+						</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className="overflow-x-auto">
 							<table className="w-full text-sm">
 								<thead>
 									<tr className="border-b text-left text-muted-foreground">
-										<th className="pb-2 font-medium">Method</th>
-										<th className="pb-2 font-medium">Path</th>
-										<th className="pb-2 text-right font-medium">Total</th>
+										<th className="pb-2 font-medium">
+											{t("dashboard:reports.tableMethod")}
+										</th>
+										<th className="pb-2 font-medium">
+											{t("dashboard:reports.tablePath")}
+										</th>
+										<th className="pb-2 text-right font-medium">
+											{t("dashboard:reports.tableTotal")}
+										</th>
 										<th className="pb-2 text-right font-medium text-green-600">
-											Pass
+											{t("dashboard:reports.tablePass")}
 										</th>
 										<th className="pb-2 text-right font-medium text-yellow-600">
-											Warning
+											{t("dashboard:reports.tableWarning")}
 										</th>
 										<th className="pb-2 text-right font-medium text-red-600">
-											Fail
+											{t("dashboard:reports.tableFail")}
 										</th>
 									</tr>
 								</thead>
@@ -300,16 +312,24 @@ function ReportDetailPage() {
 			{data.topViolations && data.topViolations.length > 0 && (
 				<Card>
 					<CardHeader>
-						<CardTitle className="text-sm">Top Violations</CardTitle>
+						<CardTitle className="text-sm">
+							{t("dashboard:reports.topViolations")}
+						</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className="overflow-x-auto">
 							<table className="w-full text-sm">
 								<thead>
 									<tr className="border-b text-left text-muted-foreground">
-										<th className="pb-2 font-medium">Type</th>
-										<th className="pb-2 text-right font-medium">Count</th>
-										<th className="pb-2 text-right font-medium">Severity</th>
+										<th className="pb-2 font-medium">
+											{t("dashboard:reports.tableType")}
+										</th>
+										<th className="pb-2 text-right font-medium">
+											{t("dashboard:reports.tableCount")}
+										</th>
+										<th className="pb-2 text-right font-medium">
+											{t("dashboard:reports.tableSeverity")}
+										</th>
 									</tr>
 								</thead>
 								<tbody>

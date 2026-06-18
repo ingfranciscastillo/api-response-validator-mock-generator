@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BarChart3, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ReportCard } from "#/components/reports/report-card";
 import { ReportGenerateDialog } from "#/components/reports/report-generate-dialog";
 import { Button } from "#/components/ui/button";
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/dashboard/reports/")({
 });
 
 function ReportsPage() {
+	const { t } = useTranslation();
 	const [reports, setReports] = useState<
 		Awaited<ReturnType<typeof getReports>>
 	>([]);
@@ -68,14 +70,14 @@ function ReportsPage() {
 		<div className="flex flex-col gap-4">
 			<div className="flex items-center justify-between">
 				<div>
-					<h2 className="text-2xl font-bold">Reports</h2>
+					<h2 className="text-2xl font-bold">{t("dashboard:reports.title")}</h2>
 					<p className="text-muted-foreground mt-1">
-						View analytics and usage reports for your APIs
+						{t("dashboard:reports.description")}
 					</p>
 				</div>
 				<Button onClick={() => setDialogOpen(true)}>
 					<Plus className="size-4" />
-					Generate Report
+					{t("dashboard:reports.generateReport")}
 				</Button>
 			</div>
 
@@ -93,8 +95,8 @@ function ReportsPage() {
 			) : reports.length === 0 ? (
 				<EmptyState
 					icon={<BarChart3 className="size-8" />}
-					title="No reports available"
-					description="Generate your first report to see validation analytics"
+					title={t("dashboard:reports.noReports")}
+					description={t("dashboard:reports.noReportsDescription")}
 				/>
 			) : (
 				<div className="grid gap-3">
