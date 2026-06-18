@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { and, desc, eq, ilike } from "drizzle-orm";
 import {
 	buildStorageKey,
+	deleteFromR2,
 	downloadFromR2,
 	isR2Configured,
 	uploadToR2,
@@ -310,6 +311,52 @@ export const getSpecVersions = createServerFn({ method: "GET" })
 			.from(specificationVersion)
 			.where(eq(specificationVersion.specId, data.specId))
 			.orderBy(desc(specificationVersion.version));
+	});
+
+export const deleteSpec = createServerFn({ method: "POST" })
+	.validator((input: { specId: string }) => input)
+	.handler(async ({ data }) => {
+		const { orgId, userId, ipAddress } = await requireOrg();
+
+		const spec = await db
+			.select()
+			.from(specification)
+			.where(
+				and(
+					eq(specification.id, data.specId),
+					eq(specification.organizationId, orgId),
+				),
+			)
+			.then((r) => r[0] ?? null);
+
+		if (!spec) throw new Error("Spec not found");
+
+		if (isR2Configured()) {
+			const versions = await db
+				.select()
+				.from(specificationVersion)
+				.where(eq(specificationVersion.specId, data.specId));
+
+			for (const version of versions) {
+				if (version.storageKey) {
+					await deleteFromR2(version.storageKey).catch(() => {});
+				}
+			}
+		}
+
+		await db.delete(specification).where(eq(specification.id, data.specId));
+
+		await writeAuditLog({
+			workspaceId: orgId,
+			actorId: userId,
+			action: "spec.deleted",
+			entityType: "specification",
+			entityId: data.specId,
+			metadata: { name: spec.name },
+			ipAddress,
+		});
+
+		return { success: true };
 	});
 
 export const compareVersions = createServerFn({ method: "GET", strict: false })

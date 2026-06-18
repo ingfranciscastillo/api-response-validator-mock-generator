@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import {
 	ArrowLeft,
 	ChevronDown,
@@ -6,6 +6,7 @@ import {
 	FlaskConical,
 	GitCompare,
 	Play,
+	Trash2,
 	Upload,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -27,6 +28,7 @@ import { Switch } from "#/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { getDriftChecks, updateDriftCheck } from "#/lib/drift/functions";
 import {
+	deleteSpec,
 	getEndpoints,
 	getSpec,
 	getSpecContent,
@@ -62,6 +64,7 @@ const methodColors: Record<string, string> = {
 
 function SpecDetailPage() {
 	const { specId } = Route.useParams();
+	const router = useRouter();
 	const [spec, setSpec] = useState<SpecData | null>(null);
 	const [endpoints, setEndpoints] = useState<EndpointData[]>([]);
 	const [versions, setVersions] = useState<VersionRow[]>([]);
@@ -86,6 +89,20 @@ function SpecDetailPage() {
 	const [updateSpecContent, setUpdateSpecContent] = useState("");
 	const [updateSpecUrl, setUpdateSpecUrl] = useState("");
 	const [updateSpecSubmitting, setUpdateSpecSubmitting] = useState(false);
+	const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+	const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+
+	const handleDeleteSpec = async () => {
+		setDeleteSubmitting(true);
+		try {
+			await deleteSpec({ data: { specId } });
+			router.navigate({ to: "/dashboard/specs" });
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Failed to delete spec");
+			setDeleteSubmitting(false);
+			setDeleteConfirmOpen(false);
+		}
+	};
 
 	useEffect(() => {
 		getSpec({ data: { specId } })
@@ -275,6 +292,14 @@ function SpecDetailPage() {
 							</Link>
 						</Button>
 					)}
+					<Button
+						variant="destructive"
+						size="sm"
+						onClick={() => setDeleteConfirmOpen(true)}
+					>
+						<Trash2 className="size-3.5" />
+						Delete
+					</Button>
 				</div>
 			</div>
 
@@ -434,6 +459,35 @@ function SpecDetailPage() {
 				onGenerated={() => {}}
 				defaultSpecId={specId}
 			/>
+
+			<Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+				<DialogContent className="sm:max-w-md">
+					<DialogHeader>
+						<DialogTitle>Delete Specification</DialogTitle>
+						<DialogDescription>
+							Are you sure you want to delete <strong>{spec.name}</strong>? This
+							action cannot be undone. All versions, endpoints, and associated
+							data will be permanently removed.
+						</DialogDescription>
+					</DialogHeader>
+					<div className="flex justify-end gap-2">
+						<Button
+							variant="outline"
+							onClick={() => setDeleteConfirmOpen(false)}
+							disabled={deleteSubmitting}
+						>
+							Cancel
+						</Button>
+						<Button
+							variant="destructive"
+							onClick={handleDeleteSpec}
+							disabled={deleteSubmitting}
+						>
+							{deleteSubmitting ? "Deleting..." : "Delete"}
+						</Button>
+					</div>
+				</DialogContent>
+			</Dialog>
 
 			<Dialog open={updateSpecOpen} onOpenChange={setUpdateSpecOpen}>
 				<DialogContent>

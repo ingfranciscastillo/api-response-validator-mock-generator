@@ -83,21 +83,21 @@ export function AppNavbar() {
 
 				<div className="flex justify-end items-center gap-2">
 					<a
-						href="#"
+						href="https://github.com/ingfranciscastillo"
 						className="flex size-8 items-center justify-center text-text-tertiary transition-colors hover:text-text-primary"
 						aria-label="GitHub"
 					>
 						<SiGithub className="size-4" />
 					</a>
 					<a
-						href="#"
+						href="https://x.com/ingfranciscas"
 						className="flex size-8 items-center justify-center text-text-tertiary transition-colors hover:text-text-primary"
 						aria-label="X (Twitter)"
 					>
 						<SiX className="size-4" />
 					</a>
 					<a
-						href="#"
+						href="buymeacoffee.com/ingfranciscastillo"
 						className="flex size-8 items-center justify-center text-text-tertiary transition-colors hover:text-text-primary"
 						aria-label="Buy Me a Coffee"
 					>
@@ -139,13 +139,22 @@ export function AppNavbar() {
 									</Button>
 								))}
 								<div className="mt-4 flex items-center gap-3 border-t border-border pt-4">
-									<a href="#" aria-label="GitHub">
+									<a
+										href="https://github.com/ingfranciscastillo"
+										aria-label="GitHub"
+									>
 										<SiGithub className="size-5 text-text-tertiary transition-colors hover:text-text-primary" />
 									</a>
-									<a href="#" aria-label="X (Twitter)">
+									<a
+										href="https://x.com/ingfranciscas"
+										aria-label="X (Twitter)"
+									>
 										<SiX className="size-5 text-text-tertiary transition-colors hover:text-text-primary" />
 									</a>
-									<a href="#" aria-label="Buy Me a Coffee">
+									<a
+										href="buymeacoffee.com/ingfranciscastillo"
+										aria-label="Buy Me a Coffee"
+									>
 										<SiBuymeacoffee className="size-5 text-text-tertiary transition-colors hover:text-text-primary" />
 									</a>
 									<div className="ml-auto">

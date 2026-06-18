@@ -1,4 +1,8 @@
-import Editor, { type OnChange, type OnMount } from "@monaco-editor/react";
+import Editor, {
+	loader,
+	type OnChange,
+	type OnMount,
+} from "@monaco-editor/react";
 import { useTheme } from "next-themes";
 import { useCallback, useRef } from "react";
 
