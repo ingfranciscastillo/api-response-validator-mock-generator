@@ -392,8 +392,12 @@
 			"trendDown": "Down {{value}} from last month"
 		},
 		"sidebar": {
+			"navigation": "Navigation",
+			"manage": "Manage",
+			"workspaces": "Workspaces",
 			"dashboard": "Dashboard",
 			"specs": "API Specs",
+			"testingWorkspace": "Testing Workspace",
 			"validation": "Validation",
 			"validationRuns": "Validation Runs",
 			"mocks": "Mocks",
@@ -417,8 +421,18 @@
 			"notifications": "Notifications",
 			"noNotifications": "No notifications",
 			"userMenu": "User menu",
-			"whatsNew": "What’s new",
-			"openCommandPalette": "Open command palette"
+			"whatsNew": "What's new",
+			"openCommandPalette": "Open command palette",
+			"accountSettings": "Account Settings",
+			"driftAlerts": "Drift alerts",
+			"pendingCount": "({{count}} pending)",
+			"dashboard": "Dashboard",
+			"specs": "Specifications",
+			"validation": "Validation",
+			"mocks": "Mocks",
+			"settings": "Settings",
+			"team": "Team",
+			"reports": "Reports"
 		},
 		"specs": {
 			"title": "API Specs",

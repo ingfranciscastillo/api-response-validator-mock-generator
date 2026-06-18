@@ -13,6 +13,7 @@ import {
 	Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
 	DropdownMenu,
@@ -56,6 +57,7 @@ interface AppSidebarProps {
 }
 
 function AppSidebar({ user: propUser }: AppSidebarProps) {
+	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const { data: session } = authClient.useSession();
 	const [orgs, setOrgs] = useState<Org[]>([]);
@@ -110,7 +112,7 @@ function AppSidebar({ user: propUser }: AppSidebarProps) {
 								className="w-(--sidebar-width) rounded-lg"
 							>
 								<DropdownMenuLabel className="text-xs text-text-tertiary">
-									Workspaces
+									{t("dashboard:sidebar.workspaces")}
 								</DropdownMenuLabel>
 								{orgs.map((org) => (
 									<DropdownMenuItem
@@ -132,14 +134,20 @@ function AppSidebar({ user: propUser }: AppSidebarProps) {
 
 			<SidebarContent>
 				<SidebarGroup>
-					<SidebarGroupLabel>Navigation</SidebarGroupLabel>
+					<SidebarGroupLabel>
+						{t("dashboard:sidebar.navigation")}
+					</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<SidebarMenu>
 							<SidebarMenuItem>
-								<SidebarMenuButton asChild isActive={false} tooltip="Dashboard">
+								<SidebarMenuButton
+									asChild
+									isActive={false}
+									tooltip={t("dashboard:sidebar.dashboard")}
+								>
 									<Link to="/dashboard">
 										<LayoutDashboard />
-										<span>Dashboard</span>
+										<span>{t("dashboard:sidebar.dashboard")}</span>
 									</Link>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
@@ -147,11 +155,11 @@ function AppSidebar({ user: propUser }: AppSidebarProps) {
 								<SidebarMenuButton
 									asChild
 									isActive={false}
-									tooltip="Specifications"
+									tooltip={t("dashboard:sidebar.specs")}
 								>
 									<Link to="/dashboard/specs">
 										<FileText />
-										<span>Specifications</span>
+										<span>{t("dashboard:sidebar.specs")}</span>
 									</Link>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
@@ -159,28 +167,32 @@ function AppSidebar({ user: propUser }: AppSidebarProps) {
 								<SidebarMenuButton
 									asChild
 									isActive={false}
-									tooltip="Validation"
+									tooltip={t("dashboard:sidebar.validation")}
 								>
 									<Link to="/dashboard/validation">
 										<ShieldCheck />
-										<span>Validation</span>
+										<span>{t("dashboard:sidebar.validation")}</span>
 									</Link>
 								</SidebarMenuButton>
 								<SidebarMenuSub>
 									<SidebarMenuSubItem>
 										<SidebarMenuSubButton asChild isActive={false}>
 											<Link to="/dashboard/validation/workspace">
-												<span>Testing Workspace</span>
+												<span>{t("dashboard:sidebar.testingWorkspace")}</span>
 											</Link>
 										</SidebarMenuSubButton>
 									</SidebarMenuSubItem>
 								</SidebarMenuSub>
 							</SidebarMenuItem>
 							<SidebarMenuItem>
-								<SidebarMenuButton asChild isActive={false} tooltip="Mocks">
+								<SidebarMenuButton
+									asChild
+									isActive={false}
+									tooltip={t("dashboard:sidebar.mocks")}
+								>
 									<Link to="/dashboard/mocks">
 										<FlaskConical />
-										<span>Mocks</span>
+										<span>{t("dashboard:sidebar.mocks")}</span>
 									</Link>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
@@ -188,11 +200,11 @@ function AppSidebar({ user: propUser }: AppSidebarProps) {
 								<SidebarMenuButton
 									asChild
 									isActive={false}
-									tooltip="Drift Detection"
+									tooltip={t("dashboard:sidebar.drift")}
 								>
 									<Link to="/dashboard/drift">
 										<ShieldAlert />
-										<span>Drift Detection</span>
+										<span>{t("dashboard:sidebar.drift")}</span>
 									</Link>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
@@ -203,76 +215,88 @@ function AppSidebar({ user: propUser }: AppSidebarProps) {
 				<SidebarSeparator />
 
 				<SidebarGroup>
-					<SidebarGroupLabel>Manage</SidebarGroupLabel>
+					<SidebarGroupLabel>{t("dashboard:sidebar.manage")}</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<SidebarMenu>
 							<SidebarMenuItem>
-								<SidebarMenuButton asChild isActive={false} tooltip="Team">
+								<SidebarMenuButton
+									asChild
+									isActive={false}
+									tooltip={t("dashboard:sidebar.team")}
+								>
 									<Link to="/dashboard/team/members">
 										<Users />
-										<span>Team</span>
+										<span>{t("dashboard:sidebar.team")}</span>
 									</Link>
 								</SidebarMenuButton>
 								<SidebarMenuSub>
 									<SidebarMenuSubItem>
 										<SidebarMenuSubButton asChild isActive={false}>
 											<Link to="/dashboard/team/members">
-												<span>Members</span>
+												<span>{t("dashboard:sidebar.teamMembers")}</span>
 											</Link>
 										</SidebarMenuSubButton>
 									</SidebarMenuSubItem>
 									<SidebarMenuSubItem>
 										<SidebarMenuSubButton asChild isActive={false}>
 											<Link to="/dashboard/team/audit-log">
-												<span>Audit Log</span>
+												<span>{t("dashboard:sidebar.auditLog")}</span>
 											</Link>
 										</SidebarMenuSubButton>
 									</SidebarMenuSubItem>
 									<SidebarMenuSubItem>
 										<SidebarMenuSubButton asChild isActive={false}>
 											<Link to="/dashboard/team/invitations">
-												<span>Invitations</span>
+												<span>{t("dashboard:sidebar.teamInvitations")}</span>
 											</Link>
 										</SidebarMenuSubButton>
 									</SidebarMenuSubItem>
 								</SidebarMenuSub>
 							</SidebarMenuItem>
 							<SidebarMenuItem>
-								<SidebarMenuButton asChild isActive={false} tooltip="Settings">
+								<SidebarMenuButton
+									asChild
+									isActive={false}
+									tooltip={t("dashboard:sidebar.settings")}
+								>
 									<Link to="/dashboard/settings/account">
 										<Settings />
-										<span>Settings</span>
+										<span>{t("dashboard:sidebar.settings")}</span>
 									</Link>
 								</SidebarMenuButton>
 								<SidebarMenuSub>
 									<SidebarMenuSubItem>
 										<SidebarMenuSubButton asChild isActive={false}>
 											<Link to="/dashboard/settings/account">
-												<span>Account</span>
+												<span>{t("dashboard:sidebar.account")}</span>
 											</Link>
 										</SidebarMenuSubButton>
 									</SidebarMenuSubItem>
 									<SidebarMenuSubItem>
 										<SidebarMenuSubButton asChild isActive={false}>
 											<Link to="/dashboard/settings/workspace">
-												<span>Workspace</span>
+												<span>{t("dashboard:sidebar.workspace")}</span>
 											</Link>
 										</SidebarMenuSubButton>
 									</SidebarMenuSubItem>
 									<SidebarMenuSubItem>
 										<SidebarMenuSubButton asChild isActive={false}>
 											<Link to="/dashboard/settings/api-keys">
-												<span>API Keys</span>
+												<span>{t("dashboard:sidebar.apiKeys")}</span>
 											</Link>
 										</SidebarMenuSubButton>
 									</SidebarMenuSubItem>
 								</SidebarMenuSub>
 							</SidebarMenuItem>
 							<SidebarMenuItem>
-								<SidebarMenuButton asChild isActive={false} tooltip="Reports">
+								<SidebarMenuButton
+									asChild
+									isActive={false}
+									tooltip={t("dashboard:sidebar.reports")}
+								>
 									<Link to="/dashboard/reports">
 										<BarChart />
-										<span>Reports</span>
+										<span>{t("dashboard:sidebar.reports")}</span>
 									</Link>
 								</SidebarMenuButton>
 							</SidebarMenuItem>

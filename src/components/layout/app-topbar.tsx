@@ -1,8 +1,10 @@
 "use client";
 
 import { useLocation, useNavigate } from "@tanstack/react-router";
+import type { TFunction } from "i18next";
 import { Bell, ChevronDown, ChevronRight, LogOut, User } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ModeToggle } from "#/components/mode-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
 import { Button } from "#/components/ui/button";
@@ -17,30 +19,32 @@ import {
 import { SidebarTrigger } from "#/components/ui/sidebar";
 import { authClient } from "#/lib/auth-client";
 import { getDriftAlerts } from "#/lib/drift/functions";
+import { LanguageSwitcher } from "../language-switcher";
 
 interface BreadcrumbItem {
 	label: string;
 	href?: string;
 }
 
-const routeLabels: Record<string, string> = {
-	"/dashboard": "Dashboard",
-	"/dashboard/specs": "Specifications",
-	"/dashboard/validation": "Validation",
-	"/dashboard/mocks": "Mocks",
-	"/dashboard/settings": "Settings",
-	"/dashboard/team": "Team",
-	"/dashboard/reports": "Reports",
+const routeKeys: Record<string, string> = {
+	"/dashboard": "dashboard:topbar.dashboard",
+	"/dashboard/specs": "dashboard:topbar.specs",
+	"/dashboard/validation": "dashboard:topbar.validation",
+	"/dashboard/mocks": "dashboard:topbar.mocks",
+	"/dashboard/settings": "dashboard:topbar.settings",
+	"/dashboard/team": "dashboard:topbar.team",
+	"/dashboard/reports": "dashboard:topbar.reports",
 };
 
-function getBreadcrumbs(pathname: string): BreadcrumbItem[] {
+function getBreadcrumbs(pathname: string, t: TFunction): BreadcrumbItem[] {
 	const segments = pathname.split("/").filter(Boolean);
 	const breadcrumbs: BreadcrumbItem[] = [];
 
 	let currentPath = "";
 	for (const segment of segments) {
 		currentPath += `/${segment}`;
-		const label = routeLabels[currentPath] ?? segment;
+		const key = routeKeys[currentPath];
+		const label = key ? t(key) : segment;
 		breadcrumbs.push({ label, href: currentPath });
 	}
 
@@ -48,13 +52,14 @@ function getBreadcrumbs(pathname: string): BreadcrumbItem[] {
 }
 
 function AppTopbar() {
+	const { t } = useTranslation();
 	const location = useLocation();
 	const navigate = useNavigate();
 	const { data: session, isPending } = authClient.useSession();
 	const signOut = authClient.signOut;
 	const [alertCount, setAlertCount] = useState(0);
 
-	const breadcrumbs = getBreadcrumbs(location.pathname);
+	const breadcrumbs = getBreadcrumbs(location.pathname, t);
 
 	useEffect(() => {
 		getDriftAlerts({ data: { status: "open" } })
@@ -93,12 +98,13 @@ function AppTopbar() {
 			</nav>
 
 			<div className="ml-auto flex items-center gap-2">
+				<LanguageSwitcher />
 				<ModeToggle />
 				<Button
 					variant="ghost"
 					size="icon"
 					className="relative"
-					aria-label={`Drift alerts${alertCount > 0 ? ` (${alertCount} pending)` : ""}`}
+					aria-label={`${t("dashboard:topbar.driftAlerts")}${alertCount > 0 ? ` ${t("dashboard:topbar.pendingCount", { count: alertCount })}` : ""}`}
 					onClick={() => navigate({ to: "/dashboard/drift" })}
 				>
 					<Bell className="size-5" />
@@ -118,7 +124,7 @@ function AppTopbar() {
 								variant="ghost"
 								size="sm"
 								className="gap-2"
-								aria-label="User menu"
+								aria-label={t("dashboard:topbar.userMenu")}
 							>
 								<Avatar
 									className="bg-accent-blue text-white text-xs font-medium"
@@ -152,7 +158,7 @@ function AppTopbar() {
 									className="flex items-center gap-2"
 								>
 									<User className="size-4" />
-									<span>Account Settings</span>
+									<span>{t("dashboard:topbar.accountSettings")}</span>
 								</a>
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
@@ -162,13 +168,13 @@ function AppTopbar() {
 								data-allow-propagation
 							>
 								<LogOut className="size-4" />
-								<span>Sign Out</span>
+								<span>{t("common:signOut")}</span>
 							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
 				) : (
 					<Button variant="ghost" size="sm" asChild>
-						<a href="/login">Sign In</a>
+						<a href="/login">{t("common:signIn")}</a>
 					</Button>
 				)}
 			</div>

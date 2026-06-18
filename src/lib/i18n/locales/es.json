@@ -372,8 +372,12 @@
 			"trendDown": "Bajó {{value}} respecto al mes anterior"
 		},
 		"sidebar": {
+			"navigation": "Navegación",
+			"manage": "Gestión",
+			"workspaces": "Espacios de Trabajo",
 			"dashboard": "Panel",
 			"specs": "Especificaciones de API",
+			"testingWorkspace": "Área de Pruebas",
 			"validation": "Validación",
 			"validationRuns": "Ejecuciones de Validación",
 			"mocks": "Mocks",
@@ -398,7 +402,17 @@
 			"noNotifications": "Sin notificaciones",
 			"userMenu": "Menú de usuario",
 			"whatsNew": "Novedades",
-			"openCommandPalette": "Abrir paleta de comandos"
+			"openCommandPalette": "Abrir paleta de comandos",
+			"accountSettings": "Configuración de Cuenta",
+			"driftAlerts": "Alertas de deriva",
+			"pendingCount": "({{count}} pendientes)",
+			"dashboard": "Panel",
+			"specs": "Especificaciones",
+			"validation": "Validación",
+			"mocks": "Mocks",
+			"settings": "Configuración",
+			"team": "Equipo",
+			"reports": "Informes"
 		},
 		"specs": {
 			"title": "Especificaciones de API",
