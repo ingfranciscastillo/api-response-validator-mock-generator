@@ -1,10 +1,8 @@
 # API Response Validator & Mock Generator
 
 [![Live Demo](https://img.shields.io/badge/Live-Demo-1e3a8a?style=for-the-badge&logo=terminal)](https://portfolio-code-workspace.vercel.app/)
-[![behance](https://img.shields.io/badge/behance-1769FF?style=for-the-badge&logo=behance&logoColor=white)](https://www.behance.net/ingfranciscastillo)
 [![github_stars](https://img.shields.io/github/stars/ingfranciscastillo/api-response-validator-mock-generator?style=for-the-badge)](https://github.com/ingfranciscastillo/api-response-validator-mock-generator/stargazers)
 [![license](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](LICENSE)
-[![linkedin](https://img.shields.io/badge/linkedin-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/ingfranciscastillo)
 [![last_commit](https://img.shields.io/github/last-commit/ingfranciscastillo/api-response-validator-mock-generator?style=for-the-badge)](https://github.com/ingfranciscastillo/api-response-validator-mock-generator/commits/main)
 
 <!-- README-I18N:START -->
@@ -13,7 +11,9 @@
 
 <!-- README-I18N:END -->
 
-Full-stack SaaS platform for API teams to validate responses against OpenAPI specs, generate realistic mock data, and detect contract drift.
+![Screenshot](./Screenshot.png)
+
+Full-stack SaaS platform for API teams to validate responses against OpenAPI specs, generate realistic mock data, and detect contract drift. Built with TanStack Start, React 19, and Neon Postgres — designed for teams that ship APIs and need to catch breaking changes before they reach production.
 
 ## Features
 
@@ -24,6 +24,16 @@ Full-stack SaaS platform for API teams to validate responses against OpenAPI spe
 - **Export Reports** — Export validation results as HTML, PDF, or JSON.
 - **Workspace Multitenancy** — Organization-scoped teams with role-based access control (owner, admin, member).
 - **Dark Mode** — Built-in dark mode support with system-aware toggling.
+
+## What This Does
+
+Every API change carries risk. A missing field, a renamed property, or a response body that no longer matches the spec can break consumers — mobile apps, third-party integrations, internal microservices. This platform gives API teams a safety net:
+
+- **Validate** live responses against your OpenAPI spec and get structured violation reports before shipping.
+- **Generate** realistic mock payloads directly from your schema so consumers can develop against accurate data.
+- **Detect** contract drift automatically — scheduled jobs compare live endpoints against your spec and alert you when something changes.
+
+Think of it as a CI/CD pipeline for API contracts: catch issues early, ship with confidence.
 
 ## Tech Stack
 
@@ -54,6 +64,8 @@ Full-stack SaaS platform for API teams to validate responses against OpenAPI spe
 ### Installation
 
 ```bash
+git clone https://github.com/ingfranciscastillo/api-response-validator-mock-generator.git
+cd api-response-validator-mock-generator
 pnpm install
 ```
 
@@ -170,31 +182,3 @@ Comprehensive design and architecture docs are available in the [`docs/`](./docs
 - [Component Library](./docs/components.md)
 - [Design System](./docs/design_system.md)
 - [Roadmap](./docs/roadmap.md)
-
-## Contributing
-
-Contributions are welcome! Please open an issue or pull request.
-
-### Development Setup
-
-```bash
-git clone https://github.com/ingfranciscastillo/api-response-validator-mock-generator.git
-cd api-response-validator-mock-generator
-pnpm install
-cp .env.local.example .env.local
-# Fill in your DATABASE_URL and auth secret
-pnpm db:push
-pnpm dev
-```
-
-### Lint & Format
-
-```bash
-pnpm lint
-pnpm format
-pnpm check
-```
-
-## License
-
-[MIT](./LICENSE) © Francis Castillo.

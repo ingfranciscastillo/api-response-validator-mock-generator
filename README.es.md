@@ -1,10 +1,8 @@
 # API Response Validator & Mock Generator
 
 [![Live Demo](https://img.shields.io/badge/Live-Demo-1e3a8a?style=for-the-badge&logo=terminal)](https://portfolio-code-workspace.vercel.app/)
-[![behance](https://img.shields.io/badge/behance-1769FF?style=for-the-badge&logo=behance&logoColor=white)](https://www.behance.net/ingfranciscastillo)
 [![github_stars](https://img.shields.io/github/stars/ingfranciscastillo/api-response-validator-mock-generator?style=for-the-badge)](https://github.com/ingfranciscastillo/api-response-validator-mock-generator/stargazers)
 [![license](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](LICENSE)
-[![linkedin](https://img.shields.io/badge/linkedin-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/ingfranciscastillo)
 [![last_commit](https://img.shields.io/github/last-commit/ingfranciscastillo/api-response-validator-mock-generator?style=for-the-badge)](https://github.com/ingfranciscastillo/api-response-validator-mock-generator/commits/main)
 
 <!-- README-I18N:START -->
@@ -13,7 +11,9 @@
 
 <!-- README-I18N:END -->
 
-Plataforma SaaS full-stack para equipos de API que necesitan validar respuestas contra especificaciones OpenAPI, generar datos mock realistas y detectar desviaciones de contrato.
+![Screenshot](./Screenshot.png)
+
+Plataforma SaaS full-stack para equipos de API. Valida respuestas contra especificaciones OpenAPI, genera datos mock realistas y detecta desviaciones de contrato. Construida con TanStack Start, React 19 y Neon Postgres — diseñada para equipos que distribuyen APIs y necesitan detectar cambios disruptivos antes de que lleguen a producción.
 
 ## Características
 
@@ -24,6 +24,16 @@ Plataforma SaaS full-stack para equipos de API que necesitan validar respuestas 
 - **Exportación de Reportes** — Exporta resultados de validación como HTML, PDF o JSON.
 - **Multiinquilino por Espacio de Trabajo** — Equipos organizacionales con control de acceso basado en roles (propietario, administrador, miembro).
 - **Modo Oscuro** — Soporte integrado de modo oscuro con alternancia según la preferencia del sistema.
+
+## ¿Qué Hace Esto?
+
+Cada cambio en una API conlleva un riesgo. Un campo faltante, una propiedad renombrada o un cuerpo de respuesta que ya no coincide con la especificación puede romper a los consumidores — aplicaciones móviles, integraciones de terceros, microservicios internos. Esta plataforma ofrece a los equipos de API una red de seguridad:
+
+- **Valida** respuestas en vivo contra tu especificación OpenAPI y obtén reportes estructurados de violaciones antes de lanzar.
+- **Genera** payloads mock realistas directamente desde tu esquema para que los consumidores puedan desarrollar con datos precisos.
+- **Detecta** desviaciones de contrato automáticamente — trabajos programados comparan tus endpoints en vivo contra tu especificación y te alertan cuando algo cambia.
+
+Piénsalo como un pipeline CI/CD para contratos de API: detecta problemas temprano, lanza con confianza.
 
 ## Stack Tecnológico
 
@@ -54,6 +64,8 @@ Plataforma SaaS full-stack para equipos de API que necesitan validar respuestas 
 ### Instalación
 
 ```bash
+git clone https://github.com/ingfranciscastillo/api-response-validator-mock-generator.git
+cd api-response-validator-mock-generator
 pnpm install
 ```
 
@@ -162,31 +174,3 @@ La documentación completa de diseño y arquitectura está disponible en el dire
 - [Librería de Componentes](./docs/components.md)
 - [Sistema de Diseño](./docs/design_system.md)
 - [Hoja de Ruta](./docs/roadmap.md)
-
-## Contribuir
-
-¡Las contribuciones son bienvenidas! Por favor abre un issue o pull request.
-
-### Configuración de Desarrollo
-
-```bash
-git clone https://github.com/ingfranciscastillo/api-response-validator-mock-generator.git
-cd api-response-validator-mock-generator
-pnpm install
-cp .env.local.example .env.local
-# Completa tu DATABASE_URL y el secreto de autenticación
-pnpm db:push
-pnpm dev
-```
-
-### Lint y Formato
-
-```bash
-pnpm lint
-pnpm format
-pnpm check
-```
-
-## Licencia
-
-[MIT](./LICENSE) © Francis Castillo.
