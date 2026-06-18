@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { Button } from "#/components/ui/button";
 import { ScrollArea } from "#/components/ui/scroll-area";
@@ -39,6 +40,7 @@ const methodColors: Record<string, string> = {
 };
 
 function ValidationWorkspacePage() {
+	const { t } = useTranslation();
 	const { specId: initialSpecId, endpointId: initialEndpointId } =
 		Route.useSearch();
 	const [specs, setSpecs] = useState<SpecSummary[]>([]);
@@ -87,13 +89,17 @@ function ValidationWorkspacePage() {
 						<ArrowLeft className="size-4" />
 					</a>
 				</Button>
-				<h2 className="text-2xl font-bold">API Testing Workspace</h2>
+				<h2 className="text-2xl font-bold">
+					{t("dashboard:validation.workspaceTitle")}
+				</h2>
 			</div>
 
 			<div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-4">
 				<div className="rounded-md border p-3 flex flex-col gap-3 max-h-[calc(100dvh-13rem)] overflow-hidden">
 					<div>
-						<h4 className="text-sm font-medium mb-2">Specification</h4>
+						<h4 className="text-sm font-medium mb-2">
+							{t("dashboard:validation.workspaceSpecification")}
+						</h4>
 						{loadingSpecs ? (
 							<div className="h-20 animate-pulse rounded bg-muted" />
 						) : (
@@ -118,7 +124,7 @@ function ValidationWorkspacePage() {
 								))}
 								{specs.length === 0 && (
 									<p className="text-xs text-muted-foreground">
-										No specs available
+										{t("dashboard:validation.workspaceNoSpecs")}
 									</p>
 								)}
 							</div>
@@ -127,7 +133,9 @@ function ValidationWorkspacePage() {
 
 					{selectedSpecId && (
 						<>
-							<h4 className="text-sm font-medium mb-2">Endpoints</h4>
+							<h4 className="text-sm font-medium mb-2">
+								{t("dashboard:validation.workspaceEndpoints")}
+							</h4>
 							{loadingEndpoints ? (
 								<div className="space-y-1.5">
 									<div className="h-7 animate-pulse rounded bg-muted" />
@@ -163,7 +171,7 @@ function ValidationWorkspacePage() {
 								</ScrollArea>
 							) : (
 								<p className="text-xs text-muted-foreground">
-									No endpoints found
+									{t("dashboard:validation.workspaceNoEndpoints")}
 								</p>
 							)}
 						</>
@@ -180,13 +188,15 @@ function ValidationWorkspacePage() {
 						/>
 					) : (
 						<div className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-							Select a specification and endpoint to start testing
+							{t("dashboard:validation.workspaceSelectPrompt")}
 						</div>
 					)}
 
 					{latestResult ? (
 						<div className="flex flex-col gap-2 animate-rise-in">
-							<h4 className="text-sm font-medium">Response</h4>
+							<h4 className="text-sm font-medium">
+								{t("dashboard:validation.workspaceResponse")}
+							</h4>
 							<ValidationResultCard result={latestResult} expanded />
 						</div>
 					) : null}

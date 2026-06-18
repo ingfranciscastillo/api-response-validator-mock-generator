@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Beaker, Clock } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
@@ -31,13 +32,6 @@ export const Route = createFileRoute("/dashboard/validation/")({
 	component: ValidationPage,
 });
 
-const triggerLabels: Record<string, string> = {
-	manual: "Manual",
-	workspace: "Workspace",
-	drift_scheduled: "Scheduled",
-	api: "API",
-};
-
 const statusOptions = ["completed", "failed", "processing"] as const;
 const triggerOptions = [
 	"manual",
@@ -49,6 +43,7 @@ const triggerOptions = [
 const DEFAULT_PAGE_SIZE = 25;
 
 function ValidationPage() {
+	const { t } = useTranslation();
 	const [page, setPage] = useState(1);
 	const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 	const [specFilter, setSpecFilter] = useState("all");
@@ -56,6 +51,13 @@ function ValidationPage() {
 	const [triggerFilter, setTriggerFilter] = useState("all");
 	const [dateFrom, setDateFrom] = useState("");
 	const [dateTo, setDateTo] = useState("");
+
+	const triggerLabels: Record<string, string> = {
+		manual: t("dashboard:validation.triggerManual"),
+		workspace: t("dashboard:validation.triggerWorkspace"),
+		drift_scheduled: t("dashboard:validation.triggerScheduled"),
+		api: t("dashboard:validation.triggerApi"),
+	};
 
 	const { data: specs } = useQuery({
 		queryKey: ["specs"],
@@ -98,15 +100,17 @@ function ValidationPage() {
 		<div className="flex flex-col gap-6">
 			<div className="flex items-center justify-between">
 				<div>
-					<h2 className="text-2xl font-bold">Validation Runs</h2>
+					<h2 className="text-2xl font-bold">
+						{t("dashboard:validation.pageTitle")}
+					</h2>
 					<p className="text-muted-foreground mt-1">
-						View and manage API validation results
+						{t("dashboard:validation.pageDescription")}
 					</p>
 				</div>
 				<Button asChild>
 					<Link to="/dashboard/validation/workspace">
 						<Beaker className="size-4" />
-						New Validation Run
+						{t("dashboard:validation.newValidation")}
 					</Link>
 				</Button>
 			</div>
@@ -114,10 +118,12 @@ function ValidationPage() {
 			<div className="flex flex-wrap items-center gap-2">
 				<Select value={specFilter} onValueChange={setSpecFilter}>
 					<SelectTrigger className="w-[180px]">
-						<SelectValue placeholder="All specs" />
+						<SelectValue placeholder={t("dashboard:validation.allSpecs")} />
 					</SelectTrigger>
 					<SelectContent>
-						<SelectItem value="all">All Specs</SelectItem>
+						<SelectItem value="all">
+							{t("dashboard:validation.allSpecs")}
+						</SelectItem>
 						{(specs ?? []).map((spec) => (
 							<SelectItem key={spec.id} value={spec.id}>
 								{spec.name}
@@ -127,26 +133,34 @@ function ValidationPage() {
 				</Select>
 				<Select value={statusFilter} onValueChange={setStatusFilter}>
 					<SelectTrigger className="w-[150px]">
-						<SelectValue placeholder="All statuses" />
+						<SelectValue placeholder={t("dashboard:validation.allStatuses")} />
 					</SelectTrigger>
 					<SelectContent>
-						<SelectItem value="all">All Statuses</SelectItem>
+						<SelectItem value="all">
+							{t("dashboard:validation.allStatuses")}
+						</SelectItem>
 						{statusOptions.map((s) => (
 							<SelectItem key={s} value={s}>
-								{s.charAt(0).toUpperCase() + s.slice(1)}
+								{s === "completed"
+									? t("dashboard:validation.statusCompleted")
+									: s === "failed"
+										? t("dashboard:validation.statusFailed")
+										: t("dashboard:validation.statusProcessing")}
 							</SelectItem>
 						))}
 					</SelectContent>
 				</Select>
 				<Select value={triggerFilter} onValueChange={setTriggerFilter}>
 					<SelectTrigger className="w-[160px]">
-						<SelectValue placeholder="All triggers" />
+						<SelectValue placeholder={t("dashboard:validation.allTriggers")} />
 					</SelectTrigger>
 					<SelectContent>
-						<SelectItem value="all">All Triggers</SelectItem>
-						{triggerOptions.map((t) => (
-							<SelectItem key={t} value={t}>
-								{triggerLabels[t]}
+						<SelectItem value="all">
+							{t("dashboard:validation.allTriggers")}
+						</SelectItem>
+						{triggerOptions.map((opt) => (
+							<SelectItem key={opt} value={opt}>
+								{triggerLabels[opt]}
 							</SelectItem>
 						))}
 					</SelectContent>
@@ -156,14 +170,14 @@ function ValidationPage() {
 					value={dateFrom}
 					onChange={(e) => setDateFrom(e.target.value)}
 					className="w-[150px]"
-					placeholder="From date"
+					placeholder={t("dashboard:validation.fromDate")}
 				/>
 				<Input
 					type="date"
 					value={dateTo}
 					onChange={(e) => setDateTo(e.target.value)}
 					className="w-[150px]"
-					placeholder="To date"
+					placeholder={t("dashboard:validation.toDate")}
 				/>
 			</div>
 
@@ -183,13 +197,13 @@ function ValidationPage() {
 			) : runs.length === 0 ? (
 				<EmptyState
 					icon={<Beaker className="size-8" />}
-					title="No validation runs yet"
-					description="Send a request to an endpoint to start validating"
+					title={t("dashboard:validation.noValidations")}
+					description={t("dashboard:validation.noValidationsDescription")}
 					action={
 						<Button asChild>
 							<Link to="/dashboard/validation/workspace">
 								<Beaker className="size-4" />
-								New Validation Run
+								{t("dashboard:validation.newValidation")}
 							</Link>
 						</Button>
 					}
@@ -212,7 +226,8 @@ function ValidationPage() {
 											</Badge>
 											<div className="flex-1 min-w-0">
 												<p className="text-sm font-medium truncate">
-													{run.name ?? `Run ${run.id.slice(0, 8)}`}
+													{run.name ??
+														`${t("dashboard:validation.runPrefix")} ${run.id.slice(0, 8)}`}
 												</p>
 												<div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
 													<span>
@@ -242,7 +257,11 @@ function ValidationPage() {
 												}
 												className="shrink-0"
 											>
-												{run.status}
+												{run.status === "completed"
+													? t("dashboard:validation.statusCompleted")
+													: run.status === "failed"
+														? t("dashboard:validation.statusFailed")
+														: t("dashboard:validation.statusProcessing")}
 											</Badge>
 										</div>
 										<div className="flex items-center gap-2 mt-2">
@@ -250,22 +269,30 @@ function ValidationPage() {
 												<span className="text-green-600 dark:text-green-400 font-medium">
 													{run.passedChecks}
 												</span>
-												<span className="text-muted-foreground">pass</span>
+												<span className="text-muted-foreground">
+													{t("dashboard:validation.pass")}
+												</span>
 											</div>
 											<div className="flex items-center gap-1.5 text-xs">
 												<span className="text-amber-600 dark:text-amber-400 font-medium">
 													{run.warningChecks}
 												</span>
-												<span className="text-muted-foreground">warn</span>
+												<span className="text-muted-foreground">
+													{t("dashboard:validation.warn")}
+												</span>
 											</div>
 											<div className="flex items-center gap-1.5 text-xs">
 												<span className="text-red-500 font-medium">
 													{run.failedChecks}
 												</span>
-												<span className="text-muted-foreground">fail</span>
+												<span className="text-muted-foreground">
+													{t("dashboard:validation.fail")}
+												</span>
 											</div>
 											<span className="text-xs text-muted-foreground ml-auto">
-												{run.totalChecks} checks
+												{t("dashboard:validation.checksCount", {
+													count: run.totalChecks,
+												})}
 											</span>
 										</div>
 									</CardContent>

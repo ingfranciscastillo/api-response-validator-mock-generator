@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CommentsSection } from "#/components/shared/CommentsSection";
 import { Badge } from "#/components/ui/badge";
@@ -30,6 +31,7 @@ const triggerLabels: Record<string, string> = {
 };
 
 function ValidationRunDetailPage() {
+	const { t } = useTranslation();
 	const { runId } = Route.useParams();
 	const [run, setRun] = useState<RunDetail | null>(null);
 	const [loading, setLoading] = useState(true);
@@ -51,9 +53,13 @@ function ValidationRunDetailPage() {
 	if (!run) {
 		return (
 			<div className="flex flex-col items-center gap-4 py-12">
-				<p className="text-muted-foreground">Validation run not found</p>
+				<p className="text-muted-foreground">
+					{t("dashboard:validation.notFound")}
+				</p>
 				<Button asChild>
-					<Link to="/dashboard/validation">Back to runs</Link>
+					<Link to="/dashboard/validation">
+						{t("dashboard:validation.backToRuns")}
+					</Link>
 				</Button>
 			</div>
 		);
@@ -96,7 +102,11 @@ function ValidationRunDetailPage() {
 						</Badge>
 					</div>
 					<div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-						{run.specName && <span>Spec: {run.specName}</span>}
+						{run.specName && (
+							<span>
+								{t("dashboard:validation.specLabel", { name: run.specName })}
+							</span>
+						)}
 						<span>
 							{new Date(run.createdAt).toLocaleDateString()}{" "}
 							{new Date(run.createdAt).toLocaleTimeString()}
@@ -116,28 +126,36 @@ function ValidationRunDetailPage() {
 					<span className="text-green-600 dark:text-green-400 font-semibold">
 						{run.passedChecks}
 					</span>
-					<span className="text-muted-foreground">passed</span>
+					<span className="text-muted-foreground">
+						{t("dashboard:validation.passed")}
+					</span>
 				</div>
 				<div className="flex items-center gap-2 text-sm">
 					<span className="text-amber-600 dark:text-amber-400 font-semibold">
 						{run.warningChecks}
 					</span>
-					<span className="text-muted-foreground">warnings</span>
+					<span className="text-muted-foreground">
+						{t("dashboard:validation.warnings")}
+					</span>
 				</div>
 				<div className="flex items-center gap-2 text-sm">
 					<span className="text-red-500 font-semibold">{run.failedChecks}</span>
-					<span className="text-muted-foreground">failed</span>
+					<span className="text-muted-foreground">
+						{t("dashboard:validation.failed")}
+					</span>
 				</div>
 				<span className="text-xs text-muted-foreground ml-auto">
-					{run.totalChecks} total checks
+					{t("dashboard:validation.totalChecks", { count: run.totalChecks })}
 				</span>
 			</div>
 
 			<div className="space-y-2">
-				<h3 className="text-sm font-medium">Results</h3>
+				<h3 className="text-sm font-medium">
+					{t("dashboard:validation.results")}
+				</h3>
 				{run.results.length === 0 ? (
 					<div className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-						No results
+						{t("dashboard:validation.noResults")}
 					</div>
 				) : (
 					run.results.map((result) => (
