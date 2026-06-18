@@ -2,6 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Github, ShieldCheck } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { Button } from "#/components/ui/button";
@@ -50,6 +51,7 @@ function RegisterPage() {
 	const navigate = useNavigate();
 	const { redirect } = Route.useSearch();
 	const { data: session, isPending } = authClient.useSession();
+	const { t } = useTranslation();
 	const [serverError, setServerError] = useState<string | null>(null);
 
 	const form = useForm({
@@ -93,8 +95,10 @@ function RegisterPage() {
 					>
 						<ShieldCheck className="size-6" />
 					</div>
-					<CardTitle className="text-2xl">Create an account</CardTitle>
-					<CardDescription>Enter your details to get started</CardDescription>
+					<CardTitle className="text-2xl">{t("auth:createAccount")}</CardTitle>
+					<CardDescription>
+						{t("auth:createAccountDescription")}
+					</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<form
@@ -111,11 +115,13 @@ function RegisterPage() {
 										field.state.meta.isTouched && !field.state.meta.isValid;
 									return (
 										<Field data-invalid={isInvalid}>
-											<FieldLabel htmlFor={field.name}>Name</FieldLabel>
+											<FieldLabel htmlFor={field.name}>
+												{t("common:name")}
+											</FieldLabel>
 											<Input
 												id={field.name}
 												type="text"
-												placeholder="Your name"
+												placeholder={t("auth:yourName")}
 												autoComplete="name"
 												value={field.state.value}
 												onBlur={field.handleBlur}
@@ -136,11 +142,13 @@ function RegisterPage() {
 										field.state.meta.isTouched && !field.state.meta.isValid;
 									return (
 										<Field data-invalid={isInvalid}>
-											<FieldLabel htmlFor={field.name}>Email</FieldLabel>
+											<FieldLabel htmlFor={field.name}>
+												{t("common:email")}
+											</FieldLabel>
 											<Input
 												id={field.name}
 												type="email"
-												placeholder="you@example.com"
+												placeholder={t("auth:emailPlaceholder")}
 												autoComplete="email"
 												value={field.state.value}
 												onBlur={field.handleBlur}
@@ -161,7 +169,9 @@ function RegisterPage() {
 										field.state.meta.isTouched && !field.state.meta.isValid;
 									return (
 										<Field data-invalid={isInvalid}>
-											<FieldLabel htmlFor={field.name}>Password</FieldLabel>
+											<FieldLabel htmlFor={field.name}>
+												{t("common:password")}
+											</FieldLabel>
 											<Input
 												id={field.name}
 												type="password"
@@ -196,7 +206,9 @@ function RegisterPage() {
 										disabled={!canSubmit || isSubmitting}
 										className="w-full"
 									>
-										{isSubmitting ? "Creating account..." : "Create Account"}
+										{isSubmitting
+											? t("auth:creatingAccount")
+											: t("auth:createAccount")}
 									</Button>
 								)}
 							</form.Subscribe>
@@ -217,7 +229,7 @@ function RegisterPage() {
 							}
 						>
 							<Github className="size-4" />
-							Continue with GitHub
+							{t("auth:continueWithGitHub")}
 						</Button>
 						<Button
 							variant="outline"
@@ -247,16 +259,16 @@ function RegisterPage() {
 									fill="#EA4335"
 								/>
 							</svg>
-							Continue with Google
+							{t("auth:continueWithGoogle")}
 						</Button>
 					</div>
 					<div className="text-center text-sm text-muted-foreground">
-						Already have an account?{" "}
+						{t("auth:hasAccountSignIn")}{" "}
 						<Link
 							to="/login"
 							className="underline-offset-4 underline hover:text-foreground"
 						>
-							Sign in
+							{t("common:signIn")}
 						</Link>
 					</div>
 				</CardFooter>

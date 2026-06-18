@@ -2,8 +2,8 @@ import { useForm } from "@tanstack/react-form";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Github, ShieldCheck } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
-
 import { Button } from "#/components/ui/button";
 import {
 	Card,
@@ -42,6 +42,7 @@ function LoginPage() {
 	const navigate = useNavigate();
 	const { redirect } = Route.useSearch();
 	const { data: session, isPending } = authClient.useSession();
+	const { t } = useTranslation();
 	const [serverError, setServerError] = useState<string | null>(null);
 
 	const form = useForm({
@@ -92,8 +93,10 @@ function LoginPage() {
 					>
 						<ShieldCheck className="size-6" />
 					</div>
-					<CardTitle className="text-2xl">Welcome back</CardTitle>
-					<CardDescription>Sign in to your account to continue</CardDescription>
+					<CardTitle className="text-2xl">{t("auth:welcomeBack")}</CardTitle>
+					<CardDescription>
+						{t("auth:signInToAccountDescription")}
+					</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<form
@@ -110,11 +113,13 @@ function LoginPage() {
 										field.state.meta.isTouched && !field.state.meta.isValid;
 									return (
 										<Field data-invalid={isInvalid}>
-											<FieldLabel htmlFor={field.name}>Email</FieldLabel>
+											<FieldLabel htmlFor={field.name}>
+												{t("common:email")}
+											</FieldLabel>
 											<Input
 												id={field.name}
 												type="email"
-												placeholder="you@example.com"
+												placeholder={t("auth:emailPlaceholder")}
 												autoComplete="email"
 												value={field.state.value}
 												onBlur={field.handleBlur}
@@ -133,7 +138,9 @@ function LoginPage() {
 										field.state.meta.isTouched && !field.state.meta.isValid;
 									return (
 										<Field data-invalid={isInvalid}>
-											<FieldLabel htmlFor={field.name}>Password</FieldLabel>
+											<FieldLabel htmlFor={field.name}>
+												{t("common:password")}
+											</FieldLabel>
 											<Input
 												id={field.name}
 												type="password"
@@ -168,7 +175,7 @@ function LoginPage() {
 										disabled={!canSubmit || isSubmitting}
 										className="w-full"
 									>
-										{isSubmitting ? "Signing in..." : "Sign In"}
+										{isSubmitting ? t("auth:signingIn") : t("common:signIn")}
 									</Button>
 								)}
 							</form.Subscribe>
@@ -189,7 +196,7 @@ function LoginPage() {
 							}
 						>
 							<Github className="size-4" />
-							Continue with GitHub
+							{t("auth:continueWithGitHub")}
 						</Button>
 						<Button
 							variant="outline"
@@ -219,7 +226,7 @@ function LoginPage() {
 									fill="#EA4335"
 								/>
 							</svg>
-							Continue with Google
+							{t("auth:continueWithGoogle")}
 						</Button>
 					</div>
 					<div className="text-center text-sm text-muted-foreground">
@@ -227,16 +234,16 @@ function LoginPage() {
 							to="/reset-password"
 							className="underline-offset-4 underline hover:text-foreground"
 						>
-							Forgot your password?
+							{t("common:forgotPassword")}
 						</Link>
 					</div>
 					<div className="text-center text-sm text-muted-foreground">
-						Don't have an account?{" "}
+						{t("auth:noAccount")}{" "}
 						<Link
 							to="/register"
 							className="underline-offset-4 underline hover:text-foreground"
 						>
-							Sign up
+							{t("common:signUp")}
 						</Link>
 					</div>
 				</CardFooter>

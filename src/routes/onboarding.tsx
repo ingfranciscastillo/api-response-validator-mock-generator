@@ -2,6 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { Building2 } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { Button } from "#/components/ui/button";
@@ -58,6 +59,7 @@ export const Route = createFileRoute("/onboarding")({
 function OnboardingPage() {
 	const navigate = useNavigate();
 	const { data: session, isPending } = authClient.useSession();
+	const { t } = useTranslation();
 	const [serverError, setServerError] = useState<string | null>(null);
 
 	const form = useForm({
@@ -105,9 +107,11 @@ function OnboardingPage() {
 					<div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl bg-accent-blue text-white">
 						<Building2 className="size-6" />
 					</div>
-					<CardTitle className="text-2xl">Create your workspace</CardTitle>
+					<CardTitle className="text-2xl">
+						{t("auth:onboardingTitle")}
+					</CardTitle>
 					<CardDescription>
-						Name your workspace to get started. You can change this later.
+						{t("auth:onboardingFieldDescription")}
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
@@ -126,11 +130,11 @@ function OnboardingPage() {
 									return (
 										<Field data-invalid={isInvalid}>
 											<FieldLabel htmlFor={field.name}>
-												Workspace Name
+												{t("auth:workspaceNameLabel")}
 											</FieldLabel>
 											<Input
 												id={field.name}
-												placeholder="My Workspace"
+												placeholder={t("auth:workspaceNamePlaceholder")}
 												value={field.state.value}
 												onBlur={field.handleBlur}
 												onChange={(e) => {
@@ -154,10 +158,12 @@ function OnboardingPage() {
 										field.state.meta.isTouched && !field.state.meta.isValid;
 									return (
 										<Field data-invalid={isInvalid}>
-											<FieldLabel htmlFor={field.name}>Slug</FieldLabel>
+											<FieldLabel htmlFor={field.name}>
+												{t("auth:slug")}
+											</FieldLabel>
 											<Input
 												id={field.name}
-												placeholder="my-workspace"
+												placeholder={t("auth:slugPlaceholder")}
 												value={field.state.value}
 												onBlur={field.handleBlur}
 												onChange={(e) =>
@@ -191,8 +197,8 @@ function OnboardingPage() {
 										className="w-full"
 									>
 										{isSubmitting
-											? "Creating workspace..."
-											: "Create Workspace"}
+											? t("auth:creatingWorkspace")
+											: t("auth:createWorkspaceButton")}
 									</Button>
 								)}
 							</form.Subscribe>

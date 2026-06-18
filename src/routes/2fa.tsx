@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ShieldAlert } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "#/components/ui/button";
 import {
 	Card,
@@ -28,6 +29,7 @@ export const Route = createFileRoute("/2fa")({
 
 function TwoFactorPage() {
 	const navigate = useNavigate();
+	const { t } = useTranslation();
 	const [totpCode, setTotpCode] = useState("");
 	const [backupCode, setBackupCode] = useState("");
 	const [error, setError] = useState<string | null>(null);
@@ -78,39 +80,41 @@ function TwoFactorPage() {
 					<div className="mx-auto flex size-12 items-center justify-center rounded-full bg-accent-blue/10 mb-3">
 						<ShieldAlert className="size-6 text-accent-blue" />
 					</div>
-					<h1 className="text-xl font-bold">Two-Factor Authentication</h1>
+					<h1 className="text-xl font-bold">{t("auth:twoFactorTitle")}</h1>
 					<p className="text-sm text-text-tertiary mt-1">
-						Enter the code from your authenticator app
+						{t("auth:twoFactorSubtitle")}
 					</p>
 				</div>
 
 				<Tabs defaultValue="totp">
 					<TabsList className="w-full">
 						<TabsTrigger value="totp" className="flex-1">
-							Authenticator App
+							{t("auth:authenticatorApp")}
 						</TabsTrigger>
 						<TabsTrigger value="backup" className="flex-1">
-							Backup Code
+							{t("auth:backupCodeTab")}
 						</TabsTrigger>
 					</TabsList>
 
 					<TabsContent value="totp">
 						<Card>
 							<CardHeader>
-								<CardTitle className="text-sm">Authenticator Code</CardTitle>
+								<CardTitle className="text-sm">
+									{t("auth:authenticatorCodeTitle")}
+								</CardTitle>
 								<CardDescription>
-									Enter the 6-digit code from your authenticator app
+									{t("auth:authenticatorCodeDescription")}
 								</CardDescription>
 							</CardHeader>
 							<CardContent className="space-y-3">
 								<div className="space-y-1">
-									<Label>Code</Label>
+									<Label>{t("auth:code")}</Label>
 									<Input
 										value={totpCode}
 										onChange={(e) =>
 											setTotpCode(e.target.value.replace(/\D/g, "").slice(0, 6))
 										}
-										placeholder="000000"
+										placeholder={t("auth:verificationCodePlaceholder")}
 										maxLength={6}
 										className="text-center text-lg tracking-widest font-mono"
 										autoFocus
@@ -122,7 +126,7 @@ function TwoFactorPage() {
 									onClick={handleVerifyTotp}
 									disabled={loading || totpCode.length < 6}
 								>
-									{loading ? "Verifying..." : "Verify"}
+									{loading ? t("auth:verifying") : t("common:verify")}
 								</Button>
 							</CardContent>
 						</Card>
@@ -131,18 +135,20 @@ function TwoFactorPage() {
 					<TabsContent value="backup">
 						<Card>
 							<CardHeader>
-								<CardTitle className="text-sm">Backup Code</CardTitle>
+								<CardTitle className="text-sm">
+									{t("auth:backupCodeTitle")}
+								</CardTitle>
 								<CardDescription>
-									Enter one of your recovery codes
+									{t("auth:backupCodeDescription")}
 								</CardDescription>
 							</CardHeader>
 							<CardContent className="space-y-3">
 								<div className="space-y-1">
-									<Label>Backup Code</Label>
+									<Label>{t("auth:backupCodeTitle")}</Label>
 									<Input
 										value={backupCode}
 										onChange={(e) => setBackupCode(e.target.value)}
-										placeholder="Enter backup code"
+										placeholder={t("auth:enterBackupCode")}
 									/>
 								</div>
 								{error && <p className="text-xs text-destructive">{error}</p>}
@@ -151,7 +157,7 @@ function TwoFactorPage() {
 									onClick={handleVerifyBackupCode}
 									disabled={loading || !backupCode}
 								>
-									{loading ? "Verifying..." : "Verify"}
+									{loading ? t("auth:verifying") : t("common:verify")}
 								</Button>
 							</CardContent>
 						</Card>

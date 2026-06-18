@@ -2,6 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ShieldCheck } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { Button } from "#/components/ui/button";
@@ -52,6 +53,7 @@ export const Route = createFileRoute("/reset-password")({
 });
 
 function ResetPasswordPage() {
+	const { t } = useTranslation();
 	const { token, error: urlError } = Route.useSearch();
 	const { data: session, isPending } = authClient.useSession();
 	const [serverError, setServerError] = useState<string | null>(null);
@@ -117,14 +119,14 @@ function ResetPasswordPage() {
 						<div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl bg-accent-blue text-white">
 							<ShieldCheck className="size-6" />
 						</div>
-						<CardTitle className="text-2xl">Password reset</CardTitle>
-						<CardDescription>
-							Your password has been reset successfully.
-						</CardDescription>
+						<CardTitle className="text-2xl">
+							{t("auth:passwordReset")}
+						</CardTitle>
+						<CardDescription>{t("auth:passwordResetSuccess")}</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<Button asChild className="w-full">
-							<Link to="/login">Sign in with your new password</Link>
+							<Link to="/login">{t("auth:signInWithNewPassword")}</Link>
 						</Button>
 					</CardContent>
 				</Card>
@@ -140,15 +142,16 @@ function ResetPasswordPage() {
 						<div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl bg-accent-blue text-white">
 							<ShieldCheck className="size-6" />
 						</div>
-						<CardTitle className="text-2xl">Check your email</CardTitle>
+						<CardTitle className="text-2xl">
+							{t("auth:checkYourEmail")}
+						</CardTitle>
 						<CardDescription>
-							If an account with that email exists, we've sent a reset link.
-							Check your spam folder if you don't see it.
+							{t("auth:resetLinkSentDescription")}
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<Button asChild className="w-full">
-							<Link to="/login">Back to Sign In</Link>
+							<Link to="/login">{t("auth:backToSignIn")}</Link>
 						</Button>
 					</CardContent>
 				</Card>
@@ -165,14 +168,20 @@ function ResetPasswordPage() {
 					</div>
 					{isTokenMode ? (
 						<>
-							<CardTitle className="text-2xl">Reset password</CardTitle>
-							<CardDescription>Enter your new password</CardDescription>
+							<CardTitle className="text-2xl">
+								{t("auth:resetPassword")}
+							</CardTitle>
+							<CardDescription>
+								{t("auth:resetPasswordDescription")}
+							</CardDescription>
 						</>
 					) : (
 						<>
-							<CardTitle className="text-2xl">Reset password</CardTitle>
+							<CardTitle className="text-2xl">
+								{t("auth:resetPassword")}
+							</CardTitle>
 							<CardDescription>
-								Enter your email address and we'll send you a reset link
+								{t("auth:resetPasswordDescription")}
 							</CardDescription>
 						</>
 					)}
@@ -181,8 +190,8 @@ function ResetPasswordPage() {
 					{urlError && (
 						<div className="mb-4 rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
 							{urlError === "INVALID_TOKEN"
-								? "This reset link is invalid or has expired. Please request a new one."
-								: "Something went wrong. Please try again."}
+								? t("auth:invalidTokenError")
+								: t("auth:genericError")}
 						</div>
 					)}
 
@@ -208,7 +217,7 @@ function ResetPasswordPage() {
 										return (
 											<Field data-invalid={isInvalid}>
 												<FieldLabel htmlFor={field.name}>
-													New password
+													{t("auth:newPassword")}
 												</FieldLabel>
 												<Input
 													id={field.name}
@@ -232,7 +241,7 @@ function ResetPasswordPage() {
 										return (
 											<Field data-invalid={isInvalid}>
 												<FieldLabel htmlFor={field.name}>
-													Confirm password
+													{t("common:confirmPassword")}
 												</FieldLabel>
 												<Input
 													id={field.name}
@@ -260,7 +269,9 @@ function ResetPasswordPage() {
 											disabled={!canSubmit || isSubmitting}
 											className="w-full"
 										>
-											{isSubmitting ? "Resetting..." : "Reset Password"}
+											{isSubmitting
+												? t("auth:resetting")
+												: t("auth:resetPasswordButton")}
 										</Button>
 									)}
 								</resetForm.Subscribe>
@@ -281,11 +292,13 @@ function ResetPasswordPage() {
 											field.state.meta.isTouched && !field.state.meta.isValid;
 										return (
 											<Field data-invalid={isInvalid}>
-												<FieldLabel htmlFor={field.name}>Email</FieldLabel>
+												<FieldLabel htmlFor={field.name}>
+													{t("common:email")}
+												</FieldLabel>
 												<Input
 													id={field.name}
 													type="email"
-													placeholder="you@example.com"
+													placeholder={t("auth:emailPlaceholder")}
 													autoComplete="email"
 													value={field.state.value}
 													onBlur={field.handleBlur}
@@ -309,7 +322,9 @@ function ResetPasswordPage() {
 											disabled={!canSubmit || isSubmitting}
 											className="w-full"
 										>
-											{isSubmitting ? "Sending..." : "Send Reset Link"}
+											{isSubmitting
+												? t("auth:sending")
+												: t("auth:sendResetLink")}
 										</Button>
 									)}
 								</requestForm.Subscribe>
@@ -320,12 +335,12 @@ function ResetPasswordPage() {
 				{!isSubmitted && (
 					<CardFooter className="flex flex-col gap-4">
 						<div className="text-center text-sm text-muted-foreground">
-							Remember your password?{" "}
+							{t("auth:rememberPassword")}{" "}
 							<Link
 								to="/login"
 								className="underline-offset-4 underline hover:text-foreground"
 							>
-								Sign in
+								{t("common:signIn")}
 							</Link>
 						</div>
 					</CardFooter>
