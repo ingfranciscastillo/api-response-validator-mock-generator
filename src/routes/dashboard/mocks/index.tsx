@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { FlaskConical, Search, TestTubes } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { MockCard } from "#/components/mocks/mock-card";
 import { MockGenerationModal } from "#/components/mocks/mock-generation-modal";
 import { Button } from "#/components/ui/button";
@@ -35,6 +36,7 @@ export const Route = createFileRoute("/dashboard/mocks/")({
 const DEFAULT_PAGE_SIZE = 25;
 
 function MocksPage() {
+	const { t } = useTranslation();
 	const [mocks, setMocks] = useState<MockRow[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -87,14 +89,14 @@ function MocksPage() {
 		<div className="flex flex-col gap-4">
 			<div className="flex items-center justify-between">
 				<div>
-					<h2 className="text-2xl font-bold">Mocks</h2>
+					<h2 className="text-2xl font-bold">{t("dashboard:mocks.title")}</h2>
 					<p className="text-muted-foreground mt-1">
-						Generate and manage mock data for your API endpoints
+						{t("dashboard:mocks.description")}
 					</p>
 				</div>
 				<Button onClick={() => setModalOpen(true)} className="gap-1">
 					<FlaskConical className="size-4" />
-					Generate Mock
+					{t("dashboard:mocks.generateMock")}
 				</Button>
 			</div>
 
@@ -102,7 +104,7 @@ function MocksPage() {
 				<div className="relative flex-1">
 					<Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 					<Input
-						placeholder="Search mocks..."
+						placeholder={t("dashboard:mocks.searchPlaceholder")}
 						value={search}
 						onChange={(e) => setSearch(e.target.value)}
 						onKeyDown={(e) => {
@@ -113,10 +115,10 @@ function MocksPage() {
 				</div>
 				<Select value={specFilter} onValueChange={setSpecFilter}>
 					<SelectTrigger className="w-[200px]">
-						<SelectValue placeholder="All specs" />
+						<SelectValue placeholder={t("dashboard:mocks.allSpecs")} />
 					</SelectTrigger>
 					<SelectContent>
-						<SelectItem value="all">All Specs</SelectItem>
+						<SelectItem value="all">{t("dashboard:mocks.allSpecs")}</SelectItem>
 						{specs.map((spec) => (
 							<SelectItem key={spec.id} value={spec.id}>
 								{spec.name}
@@ -144,8 +146,8 @@ function MocksPage() {
 			) : mocks.length === 0 ? (
 				<EmptyState
 					icon={<TestTubes className="size-8" />}
-					title="No mock datasets yet"
-					description="Generate mocks from your specifications"
+					title={t("dashboard:mocks.noMocks")}
+					description={t("dashboard:mocks.noMocksDescription")}
 				/>
 			) : (
 				<>

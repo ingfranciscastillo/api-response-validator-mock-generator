@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Copy, FlaskConical, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { MockPayloadViewer } from "#/components/mocks/mock-payload-viewer";
 import { CommentsSection } from "#/components/shared/CommentsSection";
 import { Badge } from "#/components/ui/badge";
@@ -38,6 +39,7 @@ export const Route = createFileRoute("/dashboard/mocks/$mockId")({
 type HeaderPair = { key: string; value: string };
 
 function MockDetailPage() {
+	const { t } = useTranslation();
 	const { mockId } = Route.useParams();
 	const navigate = useNavigate();
 	const [data, setData] = useState<Awaited<ReturnType<typeof getMock>> | null>(
@@ -169,7 +171,7 @@ function MockDetailPage() {
 			<div className="flex flex-col items-center gap-4 py-12">
 				<p className="text-destructive">{error}</p>
 				<Button asChild>
-					<Link to="/dashboard/mocks">Back to Mocks</Link>
+					<Link to="/dashboard/mocks">{t("dashboard:mocks.backToMocks")}</Link>
 				</Button>
 			</div>
 		);
@@ -178,9 +180,11 @@ function MockDetailPage() {
 	if (!data || !data.mock) {
 		return (
 			<div className="flex flex-col items-center gap-4 py-12">
-				<p className="text-muted-foreground">Mock not found</p>
+				<p className="text-muted-foreground">
+					{t("dashboard:mocks.mockNotFound")}
+				</p>
 				<Button asChild>
-					<Link to="/dashboard/mocks">Back to Mocks</Link>
+					<Link to="/dashboard/mocks">{t("dashboard:mocks.backToMocks")}</Link>
 				</Button>
 			</div>
 		);
@@ -200,7 +204,8 @@ function MockDetailPage() {
 					<div>
 						<h2 className="text-2xl font-bold">{mock.name}</h2>
 						<p className="text-muted-foreground text-sm mt-1">
-							Created {new Date(mock.createdAt).toLocaleString()}
+							{t("dashboard:mocks.createdLabel")}{" "}
+							{new Date(mock.createdAt).toLocaleString()}
 						</p>
 					</div>
 				</div>
@@ -212,31 +217,31 @@ function MockDetailPage() {
 					className="gap-1"
 				>
 					<Trash2 className="size-3.5" />
-					{deleting ? "Deleting..." : "Delete"}
+					{deleting ? t("dashboard:mocks.deleting") : t("common:delete")}
 				</Button>
 			</div>
 
 			<MockPayloadViewer
 				payload={(mock.payload ?? {}) as JsonValue}
-				title="Mock Payload"
+				title={t("dashboard:mocks.mockPayload")}
 			/>
 
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2 text-sm">
 						<FlaskConical className="size-4" />
-						Serving Configuration
+						{t("dashboard:mocks.servingConfiguration")}
 					</CardTitle>
 					<CardDescription>
-						Control how this mock is served via the public API
+						{t("dashboard:mocks.servingConfigurationDescription")}
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
 					<div className="flex items-center justify-between">
 						<div className="space-y-0.5">
-							<Label>Public Serving</Label>
+							<Label>{t("dashboard:mocks.publicServing")}</Label>
 							<p className="text-sm text-muted-foreground">
-								Enable to make this mock available at the public endpoint
+								{t("dashboard:mocks.publicServingDescription")}
 							</p>
 						</div>
 						<Switch
@@ -253,7 +258,7 @@ function MockDetailPage() {
 
 					<div className="flex items-end gap-4">
 						<div className="space-y-2 flex-1">
-							<Label>Latency (ms)</Label>
+							<Label>{t("dashboard:mocks.latency")}</Label>
 							<Input
 								type="number"
 								value={latencyMs}
@@ -268,7 +273,7 @@ function MockDetailPage() {
 							onClick={handleUpdateLatency}
 							disabled={isUpdating}
 						>
-							{isUpdating ? "Saving..." : "Update"}
+							{isUpdating ? t("common:saving") : t("common:update")}
 						</Button>
 					</div>
 					{latencyError && (
@@ -279,7 +284,7 @@ function MockDetailPage() {
 
 					<div className="space-y-2">
 						<div className="flex items-center justify-between">
-							<Label>Response Header Overrides</Label>
+							<Label>{t("dashboard:mocks.responseHeaderOverrides")}</Label>
 							<Button
 								variant="outline"
 								size="sm"
@@ -287,24 +292,24 @@ function MockDetailPage() {
 								className="gap-1"
 							>
 								<Plus className="size-3" />
-								Add Header
+								{t("dashboard:mocks.addHeader")}
 							</Button>
 						</div>
 						{headerOverrides.length === 0 && (
 							<p className="text-sm text-muted-foreground">
-								No custom headers configured
+								{t("dashboard:mocks.noCustomHeaders")}
 							</p>
 						)}
 						{headerOverrides.map((pair, i) => (
 							<div key={i} className="flex items-center gap-2">
 								<Input
-									placeholder="Header name"
+									placeholder={t("dashboard:mocks.headerName")}
 									value={pair.key}
 									onChange={(e) => updateHeaderRow(i, "key", e.target.value)}
 									className="flex-1"
 								/>
 								<Input
-									placeholder="Header value"
+									placeholder={t("dashboard:mocks.headerValue")}
 									value={pair.value}
 									onChange={(e) => updateHeaderRow(i, "value", e.target.value)}
 									className="flex-1"
@@ -323,7 +328,7 @@ function MockDetailPage() {
 					{servingConfig?.isEnabled && (
 						<div className="rounded-md bg-muted p-3 flex items-center justify-between gap-2">
 							<p className="text-xs text-muted-foreground break-all">
-								Public URL:{" "}
+								{t("dashboard:mocks.publicUrl")}{" "}
 								<code className="font-mono">/api/public/mocks/{mock.id}</code>
 							</p>
 							<Button
@@ -333,7 +338,9 @@ function MockDetailPage() {
 								className="shrink-0 gap-1"
 							>
 								<Copy className="size-3" />
-								{curlCopied ? "Copied!" : "Copy Curl"}
+								{curlCopied
+									? t("common:copied")
+									: t("dashboard:mocks.copyCurl")}
 							</Button>
 						</div>
 					)}
@@ -344,16 +351,22 @@ function MockDetailPage() {
 
 			<Card>
 				<CardHeader>
-					<CardTitle className="text-sm">Details</CardTitle>
+					<CardTitle className="text-sm">
+						{t("dashboard:mocks.details")}
+					</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<dl className="grid grid-cols-2 gap-4 text-sm">
 						<div>
-							<dt className="text-muted-foreground">Status Code</dt>
+							<dt className="text-muted-foreground">
+								{t("dashboard:mocks.statusCode")}
+							</dt>
 							<dd>{mock.statusCode}</dd>
 						</div>
 						<div>
-							<dt className="text-muted-foreground">Variant Type</dt>
+							<dt className="text-muted-foreground">
+								{t("dashboard:mocks.variantType")}
+							</dt>
 							<dd>
 								<Badge variant="secondary">
 									{mock.variantType.replace("_", " ")}
@@ -362,13 +375,17 @@ function MockDetailPage() {
 						</div>
 						{mock.variantLabel && (
 							<div>
-								<dt className="text-muted-foreground">Variant Label</dt>
+								<dt className="text-muted-foreground">
+									{t("dashboard:mocks.variantLabel")}
+								</dt>
 								<dd>{mock.variantLabel}</dd>
 							</div>
 						)}
 						{mock.seed && (
 							<div>
-								<dt className="text-muted-foreground">Seed</dt>
+								<dt className="text-muted-foreground">
+									{t("dashboard:mocks.seed")}
+								</dt>
 								<dd className="font-mono">{mock.seed}</dd>
 							</div>
 						)}
