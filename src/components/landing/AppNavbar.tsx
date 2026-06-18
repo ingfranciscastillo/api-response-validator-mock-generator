@@ -6,9 +6,11 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Menu, X } from "lucide-react";
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
+import { LanguageSwitcher } from "#/components/language-switcher";
 import { ModeToggle } from "#/components/mode-toggle";
 import { Button } from "#/components/ui/button";
 import {
@@ -18,15 +20,16 @@ import {
 	SheetTrigger,
 } from "#/components/ui/sheet";
 
-const navLinks = [
-	{ label: "Features", href: "#features" },
-	{ label: "Docs", href: "#" },
-	{ label: "Pricing", href: "#" },
-];
-
 export function AppNavbar() {
 	const [open, setOpen] = useState(false);
 	const headerRef = useRef<HTMLElement>(null);
+	const { t } = useTranslation();
+
+	const navLinks = [
+		{ label: t("landing:nav.features"), href: "#features" },
+		{ label: t("landing:nav.docs"), href: "#" },
+		{ label: t("landing:nav.pricing"), href: "#" },
+	];
 
 	useGSAP(
 		() => {
@@ -105,6 +108,9 @@ export function AppNavbar() {
 					</a>
 
 					<div className="hidden sm:block">
+						<LanguageSwitcher />
+					</div>
+					<div className="hidden sm:block">
 						<ModeToggle />
 					</div>
 
@@ -114,18 +120,20 @@ export function AppNavbar() {
 						asChild
 						className="hidden sm:inline-flex"
 					>
-						<a href="/login">Sign In</a>
+						<a href="/login">{t("landing:nav.signIn")}</a>
 					</Button>
 
 					<Sheet open={open} onOpenChange={setOpen}>
 						<SheetTrigger asChild>
 							<Button variant="ghost" size="icon" className="md:hidden">
 								{open ? <X className="size-5" /> : <Menu className="size-5" />}
-								<span className="sr-only">Toggle menu</span>
+								<span className="sr-only">{t("common:toggleMenu")}</span>
 							</Button>
 						</SheetTrigger>
 						<SheetContent side="right">
-							<SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+							<SheetTitle className="sr-only">
+								{t("common:navigationMenu")}
+							</SheetTitle>
 							<nav className="mt-8 flex flex-col gap-2">
 								{navLinks.map((link) => (
 									<Button
@@ -157,12 +165,13 @@ export function AppNavbar() {
 									>
 										<SiBuymeacoffee className="size-5 text-text-tertiary transition-colors hover:text-text-primary" />
 									</a>
-									<div className="ml-auto">
+									<div className="ml-auto flex items-center gap-1">
+										<LanguageSwitcher />
 										<ModeToggle />
 									</div>
 								</div>
 								<Button variant="outline" asChild className="mt-2">
-									<a href="/login">Sign In</a>
+									<a href="/login">{t("landing:nav.signIn")}</a>
 								</Button>
 							</nav>
 						</SheetContent>

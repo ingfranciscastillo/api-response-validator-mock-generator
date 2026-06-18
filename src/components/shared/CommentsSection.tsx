@@ -2,6 +2,7 @@
 
 import { MessageSquare, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "#/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
@@ -30,9 +31,11 @@ function CommentsSection({
 	entityType,
 	entityId,
 }: {
+
 	entityType: string;
 	entityId: string;
 }) {
+	const { t } = useTranslation();
 	const { data: session } = authClient.useSession();
 	const [comments, setComments] = useState<Comment[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -108,7 +111,7 @@ function CommentsSection({
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2 text-sm">
 					<MessageSquare className="size-4" />
-					Comments ({comments.length})
+					{t("dashboard:comments.title")} ({comments.length})
 				</CardTitle>
 			</CardHeader>
 			<CardContent className="space-y-4">
@@ -120,7 +123,7 @@ function CommentsSection({
 					<p className="py-4 text-center text-sm text-red-500">{fetchError}</p>
 				) : comments.length === 0 ? (
 					<p className="py-4 text-center text-sm text-muted-foreground">
-						No comments yet. Be the first to comment.
+						{t("dashboard:comments.noComments")} {t("dashboard:comments.noCommentsDescription")}
 					</p>
 				) : (
 					<div className="space-y-3">
@@ -141,14 +144,14 @@ function CommentsSection({
 												{c.authorName}
 											</span>
 											<span className="text-xs text-muted-foreground">
-												{formatRelativeTime(c.createdAt)}
+												{formatRelativeTime(c.createdAt, t)}
 											</span>
 											{isAuthor && (
 												<button
 													type="button"
 													onClick={() => handleDelete(c.id)}
 													className="ml-auto text-muted-foreground hover:text-error transition-colors"
-													title="Delete comment"
+													title={t("dashboard:comments.deleteConfirm")}
 												>
 													<Trash2 className="size-3" />
 												</button>
@@ -166,7 +169,7 @@ function CommentsSection({
 				{submitError && <p className="text-xs text-red-500">{submitError}</p>}
 				<div className="flex gap-2 pt-2">
 					<Textarea
-						placeholder="Write a comment..."
+						placeholder={t("dashboard:comments.placeholder")}
 						value={body}
 						onChange={(e) => setBody(e.target.value)}
 						rows={2}
@@ -178,7 +181,7 @@ function CommentsSection({
 						disabled={!body.trim() || submitting}
 						className="shrink-0 self-end"
 					>
-						{submitting ? "Posting..." : "Comment"}
+						{submitting ? t("common:saving") : t("dashboard:comments.submit")}
 					</Button>
 				</div>
 			</CardContent>
@@ -186,17 +189,17 @@ function CommentsSection({
 	);
 }
 
-function formatRelativeTime(date: Date): string {
+function formatRelativeTime(date: Date, t: (key: string, opts?: Record<string, unknown>) => string): string {
 	const now = Date.now();
 	const diff = now - new Date(date).getTime();
 	const seconds = Math.floor(diff / 1000);
-	if (seconds < 60) return "just now";
+	if (seconds < 60) return t("dashboard:comments.justNow");
 	const minutes = Math.floor(seconds / 60);
-	if (minutes < 60) return `${minutes}m ago`;
+	if (minutes < 60) return t("dashboard:comments.minutesAgo", { count: minutes });
 	const hours = Math.floor(minutes / 60);
-	if (hours < 24) return `${hours}h ago`;
+	if (hours < 24) return t("dashboard:comments.hoursAgo", { count: hours });
 	const days = Math.floor(hours / 24);
-	if (days < 7) return `${days}d ago`;
+	if (days < 7) return t("dashboard:comments.daysAgo", { count: days });
 	return new Date(date).toLocaleDateString();
 }
 

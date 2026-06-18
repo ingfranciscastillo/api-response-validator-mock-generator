@@ -1,33 +1,35 @@
 import { SiBuymeacoffee, SiGithub, SiX } from "@icons-pack/react-simple-icons";
+import { useTranslation } from "react-i18next";
 
 const sections = [
 	{
-		title: "Product",
+		title: "landing:footer.product",
 		links: [
-			{ label: "Features", href: "#features" },
-			{ label: "Pricing", href: "#" },
-			{ label: "Changelog", href: "#" },
+			{ label: "landing:footer.features", href: "#features" },
+			{ label: "landing:footer.pricing", href: "#" },
+			{ label: "landing:footer.changelog", href: "#" },
 		],
 	},
 	{
-		title: "Docs",
+		title: "landing:footer.developers",
 		links: [
-			{ label: "Documentation", href: "#" },
-			{ label: "API Reference", href: "#" },
-			{ label: "Guides", href: "#" },
+			{ label: "landing:footer.documentation", href: "#" },
+			{ label: "landing:footer.apiReference", href: "#" },
+			{ label: "landing:footer.guides", href: "#" },
 		],
 	},
 	{
-		title: "Legal",
+		title: "landing:footer.legal",
 		links: [
-			{ label: "Privacy Policy", href: "#" },
-			{ label: "Terms of Service", href: "#" },
-			{ label: "Security", href: "#" },
+			{ label: "landing:footer.privacy", href: "#" },
+			{ label: "landing:footer.terms", href: "#" },
+			{ label: "landing:footer.security", href: "#" },
 		],
 	},
 ];
 
 export function Footer() {
+	const { t } = useTranslation();
 	return (
 		<footer className="border-t border-border px-4 py-8">
 			<div className="mx-auto max-w-6xl">
@@ -42,13 +44,13 @@ export function Footer() {
 							</span>
 						</div>
 						<p className="text-sm text-text-tertiary">
-							Validate, mock, and ship APIs with confidence.
+							{t("landing:footer.description")}
 						</p>
 					</div>
 					{sections.map((section) => (
 						<div key={section.title}>
 							<h2 className="mb-3 text-sm font-semibold text-text-primary">
-								{section.title}
+								{t(section.title)}
 							</h2>
 							<ul className="space-y-2">
 								{section.links.map((link) => (
@@ -57,7 +59,7 @@ export function Footer() {
 											href={link.href}
 											className="text-sm text-text-tertiary transition-colors hover:text-text-primary"
 										>
-											{link.label}
+											{t(link.label)}
 										</a>
 									</li>
 								))}
@@ -67,8 +69,7 @@ export function Footer() {
 				</div>
 				<div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row">
 					<p className="text-xs text-text-tertiary">
-						&copy; {new Date().getFullYear()} API Validator. All rights
-						reserved.
+						{t("landing:footer.copyright", { year: new Date().getFullYear() })}
 					</p>
 					<div className="flex items-center gap-4">
 						<a

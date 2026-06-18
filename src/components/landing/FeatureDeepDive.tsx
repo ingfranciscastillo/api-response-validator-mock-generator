@@ -3,6 +3,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { ReactNode } from "react";
 import { useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -22,6 +23,7 @@ export function FeatureDeepDive({
 	children,
 }: FeatureDeepDiveProps) {
 	const sectionRef = useRef<HTMLElement>(null);
+	const { t } = useTranslation();
 
 	useGSAP(
 		() => {
@@ -87,7 +89,7 @@ export function FeatureDeepDive({
 							href="/register"
 							className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-accent-cyan transition-colors hover:text-accent-cyan/80"
 						>
-							Try it now
+							{t("landing:featureDeepDive.realTimeValidation.tryItNow")}
 							<span aria-hidden="true">→</span>
 						</a>
 					</div>

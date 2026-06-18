@@ -3,31 +3,59 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Activity, CheckCircle, FileText, Zap } from "lucide-react";
 import { useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const stats = [
-	{ icon: FileText, label: "APIs Monitored", value: "12" },
-	{ icon: CheckCircle, label: "Success Rate", value: "94.2%" },
-	{ icon: Activity, label: "Violations", value: "8" },
-	{ icon: Zap, label: "Mocks Generated", value: "1,247" },
-];
-
-const recentRuns = [
-	{ name: "Petstore API", outcome: "Pass", checks: "24/24", date: "2m ago" },
-	{
-		name: "Payment Gateway",
-		outcome: "Fail",
-		checks: "18/24",
-		date: "15m ago",
-	},
-	{ name: "User Service", outcome: "Warning", checks: "22/24", date: "1h ago" },
-];
-
-const barHeights = [48, 64, 32, 72, 56, 44, 60];
-
 export function DashboardPreview() {
 	const sectionRef = useRef<HTMLElement>(null);
+	const { t } = useTranslation();
+
+	const recentRuns = [
+		{
+			name: "Petstore API",
+			outcomeKey: "Pass",
+			checks: "24/24",
+			date: "2m ago",
+		},
+		{
+			name: "Payment Gateway",
+			outcomeKey: "Fail",
+			checks: "18/24",
+			date: "15m ago",
+		},
+		{
+			name: "User Service",
+			outcomeKey: "Warning",
+			checks: "22/24",
+			date: "1h ago",
+		},
+	];
+
+	const barHeights = [48, 64, 32, 72, 56, 44, 60];
+
+	const stats = [
+		{
+			icon: FileText,
+			label: t("landing:dashboardPreview.apisMonitored"),
+			value: "12",
+		},
+		{
+			icon: CheckCircle,
+			label: t("landing:dashboardPreview.successRate"),
+			value: "94.2%",
+		},
+		{
+			icon: Activity,
+			label: t("landing:dashboardPreview.violations"),
+			value: "8",
+		},
+		{
+			icon: Zap,
+			label: t("landing:dashboardPreview.stats.mocksGenerated"),
+			value: "1,247",
+		},
+	];
 
 	useGSAP(
 		() => {
@@ -89,10 +117,10 @@ export function DashboardPreview() {
 		<section ref={sectionRef} className="px-4 py-24" id="demo-preview">
 			<div className="mx-auto max-w-5xl text-center">
 				<h2 className="text-display-sm font-bold text-text-primary">
-					See your API health at a glance
+					{t("landing:dashboardPreview.heading")}
 				</h2>
 				<p className="mt-4 mb-12 text-lg text-text-secondary">
-					A live dashboard that gives you full visibility into your API quality.
+					{t("landing:dashboardPreview.subtitle")}
 				</p>
 				<div className="glass-panel overflow-hidden text-left">
 					<div className="border-b border-border px-6 py-4">
@@ -101,7 +129,7 @@ export function DashboardPreview() {
 							<div className="size-3 rounded-full bg-warning" />
 							<div className="size-3 rounded-full bg-success" />
 							<span className="ml-2 text-sm text-text-tertiary">
-								Dashboard Overview
+								{t("landing:dashboardPreview.dashboardOverview")}
 							</span>
 						</div>
 					</div>
@@ -135,10 +163,18 @@ export function DashboardPreview() {
 						<table className="w-full text-sm">
 							<thead>
 								<tr className="border-b border-border text-left text-text-tertiary">
-									<th className="pb-2 font-medium">Run</th>
-									<th className="pb-2 font-medium">Outcome</th>
-									<th className="pb-2 font-medium">Checks</th>
-									<th className="pb-2 font-medium">Date</th>
+									<th className="pb-2 font-medium">
+										{t("landing:dashboardPreview.runLabel")}
+									</th>
+									<th className="pb-2 font-medium">
+										{t("landing:dashboardPreview.outcomeLabel")}
+									</th>
+									<th className="pb-2 font-medium">
+										{t("landing:dashboardPreview.checksLabel")}
+									</th>
+									<th className="pb-2 font-medium">
+										{t("landing:dashboardPreview.dateLabel")}
+									</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -151,14 +187,18 @@ export function DashboardPreview() {
 										<td className="py-3">
 											<span
 												className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-													run.outcome === "Pass"
+													run.outcomeKey === "Pass"
 														? "bg-success/10 text-success"
-														: run.outcome === "Fail"
+														: run.outcomeKey === "Fail"
 															? "bg-error/10 text-error"
 															: "bg-warning/10 text-warning"
 												}`}
 											>
-												{run.outcome}
+												{run.outcomeKey === "Pass"
+													? t("landing:dashboardPreview.pass")
+													: run.outcomeKey === "Fail"
+														? t("landing:dashboardPreview.fail")
+														: t("landing:dashboardPreview.warningLabel")}
 											</span>
 										</td>
 										<td className="py-3 text-text-secondary">{run.checks}</td>

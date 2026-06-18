@@ -3,34 +3,36 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { AlertTriangle, ArrowLeftRight, GitBranch, Users } from "lucide-react";
 import { useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const features = [
-	{
-		icon: GitBranch,
-		label: "Contract Drift Detection",
-		description: "Monitor specs for drift automatically",
-	},
-	{
-		icon: AlertTriangle,
-		label: "Breaking Change Alerts",
-		description: "Get notified before it breaks production",
-	},
-	{
-		icon: ArrowLeftRight,
-		label: "Version Comparison",
-		description: "See exactly what changed between versions",
-	},
-	{
-		icon: Users,
-		label: "Team Collaboration",
-		description: "Share specs, runs, and mocks with your team",
-	},
-];
-
 export function AdvancedFeatures() {
 	const sectionRef = useRef<HTMLElement>(null);
+	const { t } = useTranslation();
+
+	const features = [
+		{
+			icon: GitBranch,
+			label: t("landing:advancedFeatures.customRules.title"),
+			description: t("landing:advancedFeatures.customRules.description"),
+		},
+		{
+			icon: AlertTriangle,
+			label: t("landing:advancedFeatures.schemaComparison.title"),
+			description: t("landing:advancedFeatures.schemaComparison.description"),
+		},
+		{
+			icon: ArrowLeftRight,
+			label: t("landing:advancedFeatures.performanceMetrics.title"),
+			description: t("landing:advancedFeatures.performanceMetrics.description"),
+		},
+		{
+			icon: Users,
+			label: t("landing:advancedFeatures.webhookAlerts.title"),
+			description: t("landing:advancedFeatures.webhookAlerts.description"),
+		},
+	];
 
 	useGSAP(
 		() => {
@@ -59,12 +61,11 @@ export function AdvancedFeatures() {
 			<div className="mx-auto max-w-5xl">
 				<div className="mb-12 text-center">
 					<h2 className="text-display-sm font-bold text-text-primary">
-						Scale with Confidence
+						{t("landing:advancedFeatures.heading")}
 					</h2>
 
 					<p className="mt-4 text-lg text-text-secondary">
-						Detect drift, prevent breaking changes, and collaborate across your
-						organization.
+						{t("landing:advancedFeatures.subtitle")}
 					</p>
 				</div>
 				<div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">

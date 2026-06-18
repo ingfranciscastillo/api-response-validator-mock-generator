@@ -3,32 +3,31 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { FileSearch, GitCompareArrows, WandSparkles } from "lucide-react";
 import { useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const features = [
-	{
-		icon: FileSearch,
-		title: "Schema Validation",
-		description:
-			"Automatically validate every API response against your OpenAPI spec. Catch missing fields, type mismatches, and contract violations before they reach production.",
-	},
-	{
-		icon: WandSparkles,
-		title: "Automated Mock Generation",
-		description:
-			"Generate realistic mock responses from your schema. Smart field-name heuristics, edge case coverage, and seeded deterministic output.",
-	},
-	{
-		icon: GitCompareArrows,
-		title: "Difference Detection",
-		description:
-			"Compare spec versions to identify breaking changes instantly. Know exactly what changed and whether it affects your consumers.",
-	},
-];
-
 export function FeaturesGrid() {
 	const sectionRef = useRef<HTMLElement>(null);
+	const { t } = useTranslation();
+
+	const features = [
+		{
+			icon: FileSearch,
+			title: t("landing:features.validation.title"),
+			description: t("landing:features.validation.description"),
+		},
+		{
+			icon: WandSparkles,
+			title: t("landing:features.mockGeneration.title"),
+			description: t("landing:features.mockGeneration.description"),
+		},
+		{
+			icon: GitCompareArrows,
+			title: t("landing:features.driftDetection.title"),
+			description: t("landing:features.driftDetection.description"),
+		},
+	];
 
 	useGSAP(
 		() => {
@@ -57,10 +56,10 @@ export function FeaturesGrid() {
 			<div className="mx-auto max-w-6xl">
 				<div className="mb-16 text-center">
 					<h2 className="text-display-sm font-bold text-text-primary">
-						Everything you need for API quality
+						{t("landing:features.heading")}
 					</h2>
 					<p className="mt-4 text-lg text-text-secondary">
-						From validation to mocks, a unified platform for your API lifecycle.
+						{t("landing:features.subtitle")}
 					</p>
 				</div>
 				<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -82,10 +81,10 @@ export function FeaturesGrid() {
 								{feature.description}
 							</p>
 							<a
-								href={`#${feature.title.toLowerCase().replace(/\s+/g, "-")}`}
+								href="#features"
 								className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent-cyan transition-colors hover:text-accent-cyan/80"
 							>
-								Learn more
+								{t("common:learnMore")}
 								<span aria-hidden="true" className="text-xs">
 									→
 								</span>

@@ -5,22 +5,15 @@ import {
 	Scripts,
 } from "@tanstack/react-router";
 import { Suspense, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ThemeProvider } from "#/components/theme-provider";
 import TanstackQueryProvider from "#/integrations/tanstack-query/root-provider";
+import { I18nProvider } from "#/lib/i18n/provider";
 import appCss from "../styles.css?url";
 
 interface MyRouterContext {
 	queryClient: QueryClient;
 }
-
-const organizationSchema = {
-	"@context": "https://schema.org",
-	"@type": "Organization",
-	name: "API Response Validator & Mock Generator",
-	url: "https://apivalidator.io",
-	description:
-		"Validate API responses, generate perfect mocks, ship with confidence",
-};
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
 	head: () => ({
@@ -112,12 +105,13 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 });
 
 function SkipLink() {
+	const { t } = useTranslation();
 	return (
 		<a
 			href="#main-content"
 			className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:shadow-lg focus:outline-none"
 		>
-			Skip to main content
+			{t("common:skipToMain")}
 		</a>
 	);
 }
@@ -127,19 +121,15 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 		<html lang="en" suppressHydrationWarning>
 			<head>
 				<HeadContent />
-				<script
-					type="application/ld+json"
-					dangerouslySetInnerHTML={{
-						__html: JSON.stringify(organizationSchema),
-					}}
-				/>
 			</head>
 			<body>
 				<SkipLink />
 				<div id="main-content">
 					<TanstackQueryProvider>
 						<ThemeProvider>
-							<Suspense fallback={null}>{children}</Suspense>
+							<I18nProvider>
+								<Suspense fallback={null}>{children}</Suspense>
+							</I18nProvider>
 						</ThemeProvider>
 					</TanstackQueryProvider>
 				</div>

@@ -3,6 +3,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowRight } from "lucide-react";
 import { useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -10,6 +11,7 @@ import { Button } from "#/components/ui/button";
 
 export function CtaSection() {
 	const sectionRef = useRef<HTMLElement>(null);
+	const { t } = useTranslation();
 
 	useGSAP(
 		() => {
@@ -38,15 +40,14 @@ export function CtaSection() {
 				<div className="rounded-2xl p-1">
 					<div className="cta-content rounded-[calc(1rem-1px)] bg-background px-8 py-16 text-center">
 						<h2 className="text-display-sm font-bold text-text-primary">
-							Ship APIs your team can trust
+							{t("landing:cta.heading")}
 						</h2>
 						<p className="mx-auto mt-4 max-w-lg text-lg text-text-secondary">
-							Join teams that use API Validator to catch issues before they
-							reach production.
+							{t("landing:cta.subtitle")}
 						</p>
 						<Button size="lg" className="mt-8" asChild>
 							<a href="/register">
-								Start Validating APIs
+								{t("landing:cta.startFreeTrial")}
 								<ArrowRight className="ml-2 size-4" />
 							</a>
 						</Button>

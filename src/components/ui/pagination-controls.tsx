@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "#/components/ui/button";
 import {
 	Select,
@@ -25,10 +26,11 @@ function PaginationControls({
 	onPageChange,
 	onPageSizeChange,
 }: PaginationControlsProps) {
+	const { t } = useTranslation();
 	return (
 		<div className="flex items-center justify-between pt-2">
 			<p className="text-sm text-text-secondary">
-				{total} result{total !== 1 ? "s" : ""}
+				{t("common:resultCount", { count: total })}
 			</p>
 			<div className="flex items-center gap-2">
 				{onPageSizeChange && (
@@ -56,7 +58,7 @@ function PaginationControls({
 					<ChevronLeft className="size-4" />
 				</Button>
 				<span className="text-sm text-text-secondary tabular-nums min-w-[4rem] text-center">
-					{page} / {totalPages}
+					{t("dashboard:pagination.pageInfo", { current: page, total: totalPages })}
 				</span>
 				<Button
 					variant="outline"
