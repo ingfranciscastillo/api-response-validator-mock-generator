@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Bell, BellOff, BellPlus, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
@@ -49,6 +50,7 @@ export const Route = createFileRoute("/dashboard/drift/notifications")({
 });
 
 function NotificationsPage() {
+	const { t } = useTranslation();
 	const [channels, setChannels] = useState<
 		Awaited<ReturnType<typeof getNotificationChannels>>
 	>([]);
@@ -124,60 +126,62 @@ function NotificationsPage() {
 		<div className="flex flex-col gap-4">
 			<div className="flex items-center justify-between">
 				<p className="text-sm text-muted-foreground">
-					{channels.length} channel{channels.length !== 1 ? "s" : ""}
+					{t("dashboard:drift.channelCount", { count: channels.length })}
 				</p>
 				<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
 					<DialogTrigger asChild>
 						<Button size="sm">
 							<Plus className="size-4 mr-1" />
-							Add Channel
+							{t("dashboard:drift.addChannel")}
 						</Button>
 					</DialogTrigger>
 					<DialogContent>
 						<DialogHeader>
-							<DialogTitle>New Notification Channel</DialogTitle>
+							<DialogTitle>{t("dashboard:drift.newChannel")}</DialogTitle>
 							<DialogDescription>
-								Receive alerts when breaking changes are detected
+								{t("dashboard:drift.newChannelDescription")}
 							</DialogDescription>
 						</DialogHeader>
 						<div className="space-y-4 py-2">
 							<div className="space-y-1">
-								<Label>Name</Label>
+								<Label>{t("dashboard:drift.channelName")}</Label>
 								<Input
-									placeholder="e.g. Slack Webhook"
+									placeholder={t("dashboard:drift.channelNamePlaceholder")}
 									value={formName}
 									onChange={(e) => setFormName(e.target.value)}
 								/>
 							</div>
 							<div className="space-y-1">
-								<Label>Type</Label>
+								<Label>{t("dashboard:drift.channelType")}</Label>
 								<Select value={formType} onValueChange={setFormType}>
 									<SelectTrigger>
 										<SelectValue />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="webhook">Webhook</SelectItem>
-										<SelectItem value="email">Email</SelectItem>
+										<SelectItem value="webhook">
+											{t("dashboard:drift.typeWebhook")}
+										</SelectItem>
+										<SelectItem value="email">
+											{t("dashboard:drift.typeEmail")}
+										</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>
 							{formType === "webhook" ? (
 								<div className="space-y-1">
-									<Label>Webhook URL</Label>
+									<Label>{t("dashboard:drift.webhookUrl")}</Label>
 									<Input
-										placeholder="https://hooks.example.com/..."
+										placeholder={t("dashboard:drift.webhookUrlPlaceholder")}
 										value={formUrl}
 										onChange={(e) => setFormUrl(e.target.value)}
 									/>
 								</div>
 							) : (
 								<div className="space-y-1">
-									<Label>Email</Label>
+									<Label>{t("dashboard:drift.typeEmail")}</Label>
 									<Input
 										type="email"
-										placeholder="team@example.com"
-										value={formEmail}
-										onChange={(e) => setFormEmail(e.target.value)}
+										placeholder={t("dashboard:drift.emailPlaceholder")}
 									/>
 								</div>
 							)}
@@ -190,10 +194,10 @@ function NotificationsPage() {
 									setDialogOpen(false);
 								}}
 							>
-								Cancel
+								{t("common:cancel")}
 							</Button>
 							<Button onClick={handleSave} disabled={!formName || saving}>
-								{saving ? "Saving..." : "Save"}
+								{saving ? t("common:saving") : t("common:save")}
 							</Button>
 						</DialogFooter>
 					</DialogContent>
@@ -217,8 +221,8 @@ function NotificationsPage() {
 			) : channels.length === 0 ? (
 				<EmptyState
 					icon={<BellPlus className="size-8" />}
-					title="No notification channels"
-					description="Add a channel to receive alerts when breaking changes are detected"
+					title={t("dashboard:drift.noChannels")}
+					description={t("dashboard:drift.noChannelsDescription")}
 				/>
 			) : (
 				<div className="space-y-2">

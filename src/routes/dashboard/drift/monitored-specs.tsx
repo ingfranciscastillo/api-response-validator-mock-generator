@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Clock, Play, ShieldOff } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
@@ -34,6 +35,7 @@ export const Route = createFileRoute("/dashboard/drift/monitored-specs")({
 });
 
 function MonitoredSpecsPage() {
+	const { t } = useTranslation();
 	const [checks, setChecks] = useState<
 		Awaited<ReturnType<typeof getDriftChecks>>
 	>([]);
@@ -94,8 +96,10 @@ function MonitoredSpecsPage() {
 		<div className="flex flex-col gap-4">
 			<div className="flex items-center justify-between">
 				<p className="text-sm text-muted-foreground">
-					{checks.filter((c) => c.enabled).length} monitored of {specs.length}{" "}
-					specs
+					{t("dashboard:drift.monitoredCount", {
+						monitored: checks.filter((c) => c.enabled).length,
+						total: specs.length,
+					})}
 				</p>
 			</div>
 
@@ -116,8 +120,8 @@ function MonitoredSpecsPage() {
 			) : specs.length === 0 ? (
 				<EmptyState
 					icon={<ShieldOff className="size-8" />}
-					title="No specs available"
-					description="Upload an API specification first to enable drift monitoring"
+					title={t("dashboard:drift.noSpecs")}
+					description={t("dashboard:drift.noSpecsDescription")}
 				/>
 			) : (
 				<div className="space-y-2">
@@ -140,7 +144,9 @@ function MonitoredSpecsPage() {
 													variant={isEnabled ? "default" : "secondary"}
 													className="text-xs"
 												>
-													{isEnabled ? "Monitoring" : "Paused"}
+													{isEnabled
+														? t("dashboard:drift.monitoring")
+														: t("dashboard:drift.paused")}
 												</Badge>
 											)}
 										</div>
@@ -148,7 +154,8 @@ function MonitoredSpecsPage() {
 											{isMonitored && check?.lastRunAt && (
 												<span className="flex items-center gap-1 text-xs text-muted-foreground">
 													<Clock className="size-3" />
-													Last run: {new Date(check.lastRunAt).toLocaleString()}
+													{t("dashboard:drift.lastRun")}{" "}
+													{new Date(check.lastRunAt).toLocaleString()}
 												</span>
 											)}
 											{isMonitored && check?.schedule && (
@@ -168,7 +175,9 @@ function MonitoredSpecsPage() {
 												className="gap-1"
 											>
 												<Play className="size-3" />
-												{isChecking ? "Checking..." : "Check Now"}
+												{isChecking
+													? t("dashboard:drift.checking")
+													: t("dashboard:drift.checkNow")}
 											</Button>
 										)}
 										<Switch

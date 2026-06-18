@@ -4,26 +4,31 @@ import {
 	Outlet,
 	useLocation,
 } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/dashboard/drift")({
 	component: DriftLayout,
 });
 
-const tabs = [
-	{ id: "alerts", label: "Alerts", path: "/dashboard/drift" },
-	{
-		id: "notifications",
-		label: "Notifications",
-		path: "/dashboard/drift/notifications",
-	},
-	{
-		id: "monitored-specs",
-		label: "Monitored Specs",
-		path: "/dashboard/drift/monitored-specs",
-	},
-];
-
 function DriftLayout() {
+	const { t } = useTranslation();
+	const tabs = [
+		{
+			id: "alerts",
+			label: t("dashboard:drift.alerts"),
+			path: "/dashboard/drift",
+		},
+		{
+			id: "notifications",
+			label: t("dashboard:drift.notifications"),
+			path: "/dashboard/drift/notifications",
+		},
+		{
+			id: "monitored-specs",
+			label: t("dashboard:drift.monitoredSpecs"),
+			path: "/dashboard/drift/monitored-specs",
+		},
+	];
 	const location = useLocation();
 	const currentTab =
 		tabs.find((t) => location.pathname.endsWith(t.path))?.id ?? "alerts";
@@ -31,9 +36,9 @@ function DriftLayout() {
 	return (
 		<div className="flex flex-col gap-4">
 			<div>
-				<h2 className="text-2xl font-bold">Drift Detection</h2>
+				<h2 className="text-2xl font-bold">{t("dashboard:drift.title")}</h2>
 				<p className="text-muted-foreground mt-1">
-					Monitor API specifications for breaking changes and drift
+					{t("dashboard:drift.description")}
 				</p>
 			</div>
 			<div className="flex gap-4 border-b border-border">

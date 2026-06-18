@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ShieldAlert, ShieldOff } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { DriftAlertCard } from "#/components/drift/drift-alert-card";
 import { EmptyState } from "#/components/ui/empty-state";
 import {
@@ -32,6 +33,7 @@ const typeOptions = ["breaking", "warning", "info"] as const;
 const statusOptions = ["open", "resolved", "acknowledged"] as const;
 
 function DriftPage() {
+	const { t } = useTranslation();
 	const [alerts, setAlerts] = useState<DriftAlert[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [statusFilter, setStatusFilter] = useState<string>("open");
@@ -75,9 +77,9 @@ function DriftPage() {
 		<div className="flex flex-col gap-4">
 			<div className="flex items-center justify-between">
 				<div>
-					<h2 className="text-2xl font-bold">Drift Detection</h2>
+					<h2 className="text-2xl font-bold">{t("dashboard:drift.title")}</h2>
 					<p className="text-muted-foreground mt-1">
-						Monitor API specifications for breaking changes and drift
+						{t("dashboard:drift.description")}
 					</p>
 				</div>
 			</div>
@@ -85,33 +87,45 @@ function DriftPage() {
 			<div className="flex items-center gap-4">
 				<div className="flex items-center gap-2 text-sm">
 					<ShieldAlert className="size-4 text-red-500" />
-					<span className="font-medium">{openCount} open</span>
+					<span className="font-medium">
+						{t("dashboard:drift.openCount", { count: openCount })}
+					</span>
 				</div>
 				<div className="flex items-center gap-2 text-sm text-muted-foreground">
-					<span>{resolvedCount} resolved</span>
+					<span>
+						{t("dashboard:drift.resolvedCount", {
+							count: resolvedCount,
+						})}
+					</span>
 				</div>
 			</div>
 
 			<div className="flex flex-wrap items-center gap-2">
 				<Select value={statusFilter} onValueChange={setStatusFilter}>
 					<SelectTrigger className="w-[140px]">
-						<SelectValue placeholder="Status" />
+						<SelectValue placeholder={t("dashboard:drift.statusPlaceholder")} />
 					</SelectTrigger>
 					<SelectContent>
-						<SelectItem value="all">All Statuses</SelectItem>
+						<SelectItem value="all">
+							{t("dashboard:drift.allStatuses")}
+						</SelectItem>
 						{statusOptions.map((s) => (
 							<SelectItem key={s} value={s}>
-								{s.charAt(0).toUpperCase() + s.slice(1)}
+								{s === "open"
+									? t("dashboard:drift.statusOpen")
+									: s === "resolved"
+										? t("dashboard:drift.statusResolved")
+										: t("dashboard:drift.statusAcknowledged")}
 							</SelectItem>
 						))}
 					</SelectContent>
 				</Select>
 				<Select value={specFilter} onValueChange={setSpecFilter}>
 					<SelectTrigger className="w-[180px]">
-						<SelectValue placeholder="All specs" />
+						<SelectValue placeholder={t("dashboard:drift.allSpecs")} />
 					</SelectTrigger>
 					<SelectContent>
-						<SelectItem value="all">All Specs</SelectItem>
+						<SelectItem value="all">{t("dashboard:drift.allSpecs")}</SelectItem>
 						{specs.map((spec) => (
 							<SelectItem key={spec.id} value={spec.id}>
 								{spec.name}
@@ -121,26 +135,38 @@ function DriftPage() {
 				</Select>
 				<Select value={severityFilter} onValueChange={setSeverityFilter}>
 					<SelectTrigger className="w-[140px]">
-						<SelectValue placeholder="All severities" />
+						<SelectValue
+							placeholder={t("dashboard:drift.severityPlaceholder")}
+						/>
 					</SelectTrigger>
 					<SelectContent>
-						<SelectItem value="all">All Severities</SelectItem>
+						<SelectItem value="all">
+							{t("dashboard:drift.allSeverities")}
+						</SelectItem>
 						{severityOptions.map((s) => (
 							<SelectItem key={s} value={s}>
-								{s.charAt(0).toUpperCase() + s.slice(1)}
+								{s === "high"
+									? t("dashboard:drift.severityHigh")
+									: s === "medium"
+										? t("dashboard:drift.severityMedium")
+										: t("dashboard:drift.severityLow")}
 							</SelectItem>
 						))}
 					</SelectContent>
 				</Select>
 				<Select value={typeFilter} onValueChange={setTypeFilter}>
 					<SelectTrigger className="w-[140px]">
-						<SelectValue placeholder="All types" />
+						<SelectValue placeholder={t("dashboard:drift.typePlaceholder")} />
 					</SelectTrigger>
 					<SelectContent>
-						<SelectItem value="all">All Types</SelectItem>
-						{typeOptions.map((t) => (
-							<SelectItem key={t} value={t}>
-								{t.charAt(0).toUpperCase() + t.slice(1)}
+						<SelectItem value="all">{t("dashboard:drift.allTypes")}</SelectItem>
+						{typeOptions.map((typeOpt) => (
+							<SelectItem key={typeOpt} value={typeOpt}>
+								{typeOpt === "breaking"
+									? t("dashboard:drift.typeBreaking")
+									: typeOpt === "warning"
+										? t("dashboard:drift.typeWarning")
+										: t("dashboard:drift.typeInfo")}
 							</SelectItem>
 						))}
 					</SelectContent>
@@ -161,8 +187,8 @@ function DriftPage() {
 			) : alerts.length === 0 ? (
 				<EmptyState
 					icon={<ShieldOff className="size-8" />}
-					title="No drift alerts"
-					description="Alerts will appear when breaking changes are detected between spec versions"
+					title={t("dashboard:drift.noAlerts")}
+					description={t("dashboard:drift.noAlertsDescription")}
 				/>
 			) : (
 				<div className="space-y-3">
