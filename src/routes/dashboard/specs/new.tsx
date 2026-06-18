@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { Textarea } from "#/components/ui/textarea";
@@ -17,6 +18,7 @@ export const Route = createFileRoute("/dashboard/specs/new")({
 });
 
 function NewSpecPage() {
+	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const [name, setName] = useState("");
 	const [description, setDescription] = useState("");
@@ -41,17 +43,17 @@ function NewSpecPage() {
 		setError(null);
 
 		if (!name.trim()) {
-			setError("Name is required");
+			setError(t("dashboard:specs.import.nameRequired"));
 			return;
 		}
 
 		if (importMethod === "paste" && !pasteContent.trim()) {
-			setError("Please paste your specification content");
+			setError(t("dashboard:specs.import.pasteRequired"));
 			return;
 		}
 
 		if (importMethod === "url" && !url.trim()) {
-			setError("Please enter a specification URL");
+			setError(t("dashboard:specs.import.urlRequired"));
 			return;
 		}
 
@@ -68,7 +70,7 @@ function NewSpecPage() {
 			navigate({ to: "/dashboard/specs" });
 		} catch (err) {
 			setError(
-				err instanceof Error ? err.message : "Failed to import specification",
+				err instanceof Error ? err.message : t("dashboard:specs.import.failed"),
 			);
 		} finally {
 			setLoading(false);
@@ -78,41 +80,45 @@ function NewSpecPage() {
 	return (
 		<div className="flex flex-col gap-6 max-w-2xl">
 			<div>
-				<h2 className="text-2xl font-bold">Import Specification</h2>
+				<h2 className="text-2xl font-bold">
+					{t("dashboard:specs.import.title")}
+				</h2>
 				<p className="text-text-secondary mt-1">
-					Import an OpenAPI specification to get started
+					{t("dashboard:specs.import.description")}
 				</p>
 			</div>
 
 			<form onSubmit={handleSubmit} className="flex flex-col gap-4">
 				<div className="flex flex-col gap-2">
 					<label htmlFor="name" className="text-sm font-medium">
-						Name
+						{t("common:name")}
 					</label>
 					<Input
 						id="name"
 						type="text"
 						value={name}
 						onChange={(e) => setName(e.target.value)}
-						placeholder="My API"
+						placeholder={t("dashboard:specs.import.namePlaceholder")}
 					/>
 				</div>
 
 				<div className="flex flex-col gap-2">
 					<label htmlFor="description" className="text-sm font-medium">
-						Description (optional)
+						{t("common:description")} ({t("common:optional")})
 					</label>
 					<Input
 						id="description"
 						type="text"
 						value={description}
 						onChange={(e) => setDescription(e.target.value)}
-						placeholder="API description"
+						placeholder={t("dashboard:specs.import.descriptionPlaceholder")}
 					/>
 				</div>
 
 				<div className="flex flex-col gap-2">
-					<label className="text-sm font-medium">Import method</label>
+					<label className="text-sm font-medium">
+						{t("dashboard:specs.import.importMethod")}
+					</label>
 					<div className="flex gap-2">
 						{(["paste", "file", "url"] as const).map((method) => (
 							<Button
@@ -122,10 +128,10 @@ function NewSpecPage() {
 								onClick={() => setImportMethod(method)}
 							>
 								{method === "paste"
-									? "Paste"
+									? t("dashboard:specs.import.methodPaste")
 									: method === "file"
-										? "Upload"
-										: "URL"}
+										? t("dashboard:specs.import.methodUpload")
+										: t("dashboard:specs.import.methodUrl")}
 							</Button>
 						))}
 					</div>
@@ -134,7 +140,7 @@ function NewSpecPage() {
 				{importMethod === "paste" && (
 					<div className="flex flex-col gap-2">
 						<label htmlFor="spec" className="text-sm font-medium">
-							Specification content (JSON or YAML)
+							{t("dashboard:specs.import.contentLabel")}
 						</label>
 						<Textarea
 							id="spec"
@@ -149,7 +155,7 @@ function NewSpecPage() {
 				{importMethod === "file" && (
 					<div className="flex flex-col gap-2">
 						<label htmlFor="file" className="text-sm font-medium">
-							Upload JSON or YAML file
+							{t("dashboard:specs.import.fileLabel")}
 						</label>
 						<Input
 							id="file"
@@ -163,14 +169,14 @@ function NewSpecPage() {
 				{importMethod === "url" && (
 					<div className="flex flex-col gap-2">
 						<label htmlFor="url" className="text-sm font-medium">
-							Specification URL
+							{t("dashboard:specs.import.urlLabel")}
 						</label>
 						<Input
 							id="url"
 							type="url"
 							value={url}
 							onChange={(e) => setUrl(e.target.value)}
-							placeholder="https://example.com/openapi.json"
+							placeholder={t("dashboard:specs.import.urlPlaceholder")}
 						/>
 					</div>
 				)}
@@ -182,7 +188,9 @@ function NewSpecPage() {
 				)}
 
 				<Button type="submit" disabled={loading}>
-					{loading ? "Importing..." : "Import Specification"}
+					{loading
+						? t("dashboard:specs.import.importing")
+						: t("dashboard:specs.import.importButton")}
 				</Button>
 			</form>
 		</div>

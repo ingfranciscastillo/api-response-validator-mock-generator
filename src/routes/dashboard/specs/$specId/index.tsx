@@ -10,6 +10,7 @@ import {
 	Upload,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { MonacoEditor } from "#/components/editors/monaco-editor";
 import { MockGenerationModal } from "#/components/mocks/mock-generation-modal";
 import { CommentsSection } from "#/components/shared/CommentsSection";
@@ -63,6 +64,7 @@ const methodColors: Record<string, string> = {
 };
 
 function SpecDetailPage() {
+	const { t } = useTranslation();
 	const { specId } = Route.useParams();
 	const router = useRouter();
 	const [spec, setSpec] = useState<SpecData | null>(null);
@@ -98,7 +100,7 @@ function SpecDetailPage() {
 			await deleteSpec({ data: { specId } });
 			router.navigate({ to: "/dashboard/specs" });
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Failed to delete spec");
+			setError(err instanceof Error ? err.message : t("common:error"));
 			setDeleteSubmitting(false);
 			setDeleteConfirmOpen(false);
 		}
@@ -118,7 +120,7 @@ function SpecDetailPage() {
 				setEndpoints(eps);
 			})
 			.catch((err) => {
-				setError(err instanceof Error ? err.message : "Failed to load spec");
+				setError(err instanceof Error ? err.message : t("common:error"));
 			})
 			.finally(() => setLoading(false));
 
@@ -189,7 +191,7 @@ function SpecDetailPage() {
 			const vers = await getSpecVersions({ data: { specId } });
 			setVersions(vers);
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Failed to reimport spec");
+			setError(err instanceof Error ? err.message : t("common:error"));
 		} finally {
 			setUpdateSpecSubmitting(false);
 		}
@@ -208,7 +210,9 @@ function SpecDetailPage() {
 			<div className="flex flex-col items-center gap-4 py-12">
 				<p className="text-destructive">{error}</p>
 				<Button asChild>
-					<Link to="/dashboard/specs">Back to specs</Link>
+					<Link to="/dashboard/specs">
+						{t("dashboard:specs.detail.backToSpecs")}
+					</Link>
 				</Button>
 			</div>
 		);
@@ -217,9 +221,13 @@ function SpecDetailPage() {
 	if (!spec) {
 		return (
 			<div className="flex flex-col items-center gap-4 py-12">
-				<p className="text-muted-foreground">Spec not found</p>
+				<p className="text-muted-foreground">
+					{t("dashboard:specs.detail.notFound")}
+				</p>
 				<Button asChild>
-					<Link to="/dashboard/specs">Back to specs</Link>
+					<Link to="/dashboard/specs">
+						{t("dashboard:specs.detail.backToSpecs")}
+					</Link>
 				</Button>
 			</div>
 		);
@@ -249,14 +257,17 @@ function SpecDetailPage() {
 						</p>
 					)}
 					<p className="mt-1 text-xs text-muted-foreground">
-						Created {new Date(spec.createdAt).toLocaleDateString()}
+						{t("dashboard:specs.created")}{" "}
+						{new Date(spec.createdAt).toLocaleDateString()}
 						{" · "}
-						{endpoints.length} endpoints
+						{t("dashboard:specs.detail.endpointCount", {
+							count: endpoints.length,
+						})}
 					</p>
 				</div>
 				<div className="flex items-center gap-2">
 					<div className="flex items-center gap-2 text-sm text-muted-foreground">
-						<span>Monitor</span>
+						<span>{t("dashboard:specs.detail.monitor")}</span>
 						<Switch
 							checked={driftEnabled}
 							onCheckedChange={handleDriftToggle}
@@ -265,7 +276,7 @@ function SpecDetailPage() {
 					<Button variant="outline" size="sm" asChild>
 						<Link to="/dashboard/validation/workspace" search={{ specId }}>
 							<Play className="size-3.5" />
-							Run Validation
+							{t("dashboard:specs.detail.runValidation")}
 						</Link>
 					</Button>
 					<Button
@@ -274,7 +285,7 @@ function SpecDetailPage() {
 						onClick={() => setUpdateSpecOpen(true)}
 					>
 						<Upload className="size-3.5" />
-						Update Spec
+						{t("dashboard:specs.detail.updateSpec")}
 					</Button>
 					<Button
 						variant="outline"
@@ -282,13 +293,13 @@ function SpecDetailPage() {
 						onClick={() => setMockModalOpen(true)}
 					>
 						<FlaskConical className="size-3.5" />
-						Generate Mock
+						{t("dashboard:specs.detail.generateMock")}
 					</Button>
 					{versions.length > 1 && (
 						<Button variant="outline" size="sm" asChild>
 							<Link to="/dashboard/specs/$specId/compare" params={{ specId }}>
 								<GitCompare className="size-3.5" />
-								Compare Versions
+								{t("dashboard:specs.compareVersions")}
 							</Link>
 						</Button>
 					)}
@@ -298,28 +309,38 @@ function SpecDetailPage() {
 						onClick={() => setDeleteConfirmOpen(true)}
 					>
 						<Trash2 className="size-3.5" />
-						Delete
+						{t("dashboard:specs.detail.delete")}
 					</Button>
 				</div>
 			</div>
 
 			<Tabs value={tab} onValueChange={setTab}>
 				<TabsList>
-					<TabsTrigger value="endpoints">Endpoints</TabsTrigger>
-					<TabsTrigger value="schema">Schema</TabsTrigger>
-					<TabsTrigger value="versions">Versions</TabsTrigger>
-					<TabsTrigger value="drift">Drift Settings</TabsTrigger>
-					<TabsTrigger value="activity">Activity</TabsTrigger>
+					<TabsTrigger value="endpoints">
+						{t("dashboard:specs.detail.endpoints")}
+					</TabsTrigger>
+					<TabsTrigger value="schema">
+						{t("dashboard:specs.detail.schema")}
+					</TabsTrigger>
+					<TabsTrigger value="versions">
+						{t("dashboard:specs.detail.versions")}
+					</TabsTrigger>
+					<TabsTrigger value="drift">
+						{t("dashboard:specs.detail.driftSettings")}
+					</TabsTrigger>
+					<TabsTrigger value="activity">
+						{t("dashboard:specs.detail.activity")}
+					</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="endpoints">
 					<h3 className="text-sm font-medium text-muted-foreground mb-2">
-						Endpoints
+						{t("dashboard:specs.detail.endpoints")}
 					</h3>
 					<div className="rounded-md border">
 						{endpoints.length === 0 ? (
 							<div className="p-4 text-center text-sm text-muted-foreground">
-								No endpoints found
+								{t("dashboard:specs.detail.noEndpoints")}
 							</div>
 						) : (
 							<div className="divide-y">
@@ -335,7 +356,7 @@ function SpecDetailPage() {
 											) : (
 												<ChevronRight className="size-3" />
 											)}
-											{group.tag || "Ungrouped"}
+											{group.tag || t("dashboard:specs.detail.ungrouped")}
 											<span className="ml-auto">{group.endpoints.length}</span>
 										</button>
 										{expandedGroups[group.tag] !== false && (
@@ -373,7 +394,7 @@ function SpecDetailPage() {
 					<div className="rounded-md border">
 						{schemaLoading ? (
 							<div className="p-4 text-center text-sm text-muted-foreground">
-								Loading schema...
+								{t("dashboard:specs.detail.loadingSchema")}
 							</div>
 						) : schemaData ? (
 							<MonacoEditor
@@ -385,7 +406,7 @@ function SpecDetailPage() {
 							/>
 						) : (
 							<div className="p-4 text-center text-sm text-muted-foreground">
-								No schema data available
+								{t("dashboard:specs.detail.noSchema")}
 							</div>
 						)}
 					</div>
@@ -395,7 +416,7 @@ function SpecDetailPage() {
 					<div className="rounded-md border divide-y">
 						{versions.length === 0 ? (
 							<div className="p-4 text-center text-sm text-muted-foreground">
-								No versions found
+								{t("dashboard:specs.detail.noVersions")}
 							</div>
 						) : (
 							versions.map((v) => (
@@ -404,7 +425,11 @@ function SpecDetailPage() {
 									className="flex items-center justify-between px-4 py-3"
 								>
 									<div>
-										<p className="text-sm font-medium">Version {v.version}</p>
+										<p className="text-sm font-medium">
+											{t("dashboard:specs.detail.versionLabel", {
+												version: v.version,
+											})}
+										</p>
 										<p className="text-xs text-muted-foreground">
 											{new Date(v.createdAt).toLocaleString()}
 										</p>
@@ -415,7 +440,7 @@ function SpecDetailPage() {
 												to="/dashboard/specs/$specId/compare"
 												params={{ specId }}
 											>
-												Compare
+												{t("dashboard:specs.detail.compare")}
 											</Link>
 										</Button>
 									)}
@@ -429,9 +454,11 @@ function SpecDetailPage() {
 					<div className="rounded-md border p-4">
 						<div className="flex items-center justify-between">
 							<div>
-								<p className="text-sm font-medium">Drift Detection</p>
+								<p className="text-sm font-medium">
+									{t("dashboard:specs.detail.driftDetection")}
+								</p>
 								<p className="text-xs text-muted-foreground mt-1">
-									Automatically monitor this spec for breaking changes
+									{t("dashboard:specs.detail.driftDescription")}
 								</p>
 							</div>
 							<Switch
@@ -441,8 +468,7 @@ function SpecDetailPage() {
 						</div>
 						{driftEnabled && (
 							<p className="text-xs text-muted-foreground mt-3">
-								Breaking changes detected between spec versions will create
-								alerts visible on the Drift page.
+								{t("dashboard:specs.detail.driftHelp")}
 							</p>
 						)}
 					</div>
@@ -463,11 +489,11 @@ function SpecDetailPage() {
 			<Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
 				<DialogContent className="sm:max-w-md">
 					<DialogHeader>
-						<DialogTitle>Delete Specification</DialogTitle>
+						<DialogTitle>{t("dashboard:specs.detail.deleteTitle")}</DialogTitle>
 						<DialogDescription>
-							Are you sure you want to delete <strong>{spec.name}</strong>? This
-							action cannot be undone. All versions, endpoints, and associated
-							data will be permanently removed.
+							{t("dashboard:specs.detail.deleteDescription", {
+								name: spec.name,
+							})}
 						</DialogDescription>
 					</DialogHeader>
 					<div className="flex justify-end gap-2">
@@ -476,14 +502,16 @@ function SpecDetailPage() {
 							onClick={() => setDeleteConfirmOpen(false)}
 							disabled={deleteSubmitting}
 						>
-							Cancel
+							{t("common:cancel")}
 						</Button>
 						<Button
 							variant="destructive"
 							onClick={handleDeleteSpec}
 							disabled={deleteSubmitting}
 						>
-							{deleteSubmitting ? "Deleting..." : "Delete"}
+							{deleteSubmitting
+								? t("dashboard:specs.detail.deleting")
+								: t("dashboard:specs.detail.delete")}
 						</Button>
 					</div>
 				</DialogContent>
@@ -492,10 +520,11 @@ function SpecDetailPage() {
 			<Dialog open={updateSpecOpen} onOpenChange={setUpdateSpecOpen}>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>Update Specification</DialogTitle>
+						<DialogTitle>
+							{t("dashboard:specs.detail.update.title")}
+						</DialogTitle>
 						<DialogDescription>
-							Import a new version of this API specification to enable drift
-							detection.
+							{t("dashboard:specs.detail.update.description")}
 						</DialogDescription>
 					</DialogHeader>
 					<div className="flex gap-2">
@@ -504,19 +533,21 @@ function SpecDetailPage() {
 							size="sm"
 							onClick={() => setUpdateSpecMethod("paste")}
 						>
-							Paste Content
+							{t("dashboard:specs.detail.update.pasteMethod")}
 						</Button>
 						<Button
 							variant={updateSpecMethod === "url" ? "default" : "outline"}
 							size="sm"
 							onClick={() => setUpdateSpecMethod("url")}
 						>
-							Fetch from URL
+							{t("dashboard:specs.detail.update.urlMethod")}
 						</Button>
 					</div>
 					{updateSpecMethod === "paste" ? (
 						<div className="grid gap-2">
-							<Label htmlFor="spec-content">Spec Content (JSON/YAML)</Label>
+							<Label htmlFor="spec-content">
+								{t("dashboard:specs.detail.update.contentLabel")}
+							</Label>
 							<MonacoEditor
 								value={updateSpecContent}
 								onChange={setUpdateSpecContent}
@@ -526,11 +557,13 @@ function SpecDetailPage() {
 						</div>
 					) : (
 						<div className="grid gap-2">
-							<Label htmlFor="spec-url">Spec URL</Label>
+							<Label htmlFor="spec-url">
+								{t("dashboard:specs.detail.update.urlLabel")}
+							</Label>
 							<Input
 								id="spec-url"
 								type="url"
-								placeholder="https://example.com/openapi.json"
+								placeholder={t("dashboard:specs.detail.update.urlPlaceholder")}
 								value={updateSpecUrl}
 								onChange={(e) => setUpdateSpecUrl(e.target.value)}
 							/>
@@ -538,7 +571,7 @@ function SpecDetailPage() {
 					)}
 					<div className="flex justify-end gap-2">
 						<Button variant="outline" onClick={() => setUpdateSpecOpen(false)}>
-							Cancel
+							{t("common:cancel")}
 						</Button>
 						<Button
 							onClick={handleReimport}
@@ -549,7 +582,9 @@ function SpecDetailPage() {
 									: !updateSpecUrl.trim())
 							}
 						>
-							{updateSpecSubmitting ? "Importing..." : "Import Version"}
+							{updateSpecSubmitting
+								? t("dashboard:specs.detail.update.importing")
+								: t("dashboard:specs.detail.update.importVersion")}
 						</Button>
 					</div>
 				</DialogContent>

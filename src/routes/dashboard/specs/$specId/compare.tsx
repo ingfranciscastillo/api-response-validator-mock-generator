@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AlertTriangle, ArrowLeft, CheckCircle } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
@@ -19,6 +20,7 @@ export const Route = createFileRoute("/dashboard/specs/$specId/compare")({
 });
 
 function SpecComparePage() {
+	const { t } = useTranslation();
 	const { specId } = Route.useParams();
 	const [versions, setVersions] = useState<
 		Awaited<ReturnType<typeof getSpecVersions>>
@@ -83,25 +85,31 @@ function SpecComparePage() {
 					className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
 				>
 					<ArrowLeft className="size-4" />
-					Back to spec
+					{t("dashboard:specs.compare.backToSpec")}
 				</Link>
 			</div>
 
 			<div>
-				<h2 className="text-2xl font-bold">Version Comparison</h2>
+				<h2 className="text-2xl font-bold">
+					{t("dashboard:specs.compare.title")}
+				</h2>
 				<p className="text-muted-foreground mt-1">
-					Compare two spec versions to detect breaking changes
+					{t("dashboard:specs.compare.description")}
 				</p>
 			</div>
 
 			<Card>
 				<CardHeader>
-					<CardTitle className="text-sm">Select Versions</CardTitle>
+					<CardTitle className="text-sm">
+						{t("dashboard:specs.compare.selectVersions")}
+					</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<div className="flex items-end gap-4">
 						<div className="space-y-1">
-							<label className="text-xs font-medium">From (older)</label>
+							<label className="text-xs font-medium">
+								{t("dashboard:specs.compare.fromLabel")}
+							</label>
 							<select
 								className="w-40 rounded-md border border-input bg-background px-3 py-2 text-sm"
 								value={fromId}
@@ -115,7 +123,9 @@ function SpecComparePage() {
 							</select>
 						</div>
 						<div className="space-y-1">
-							<label className="text-xs font-medium">To (newer)</label>
+							<label className="text-xs font-medium">
+								{t("dashboard:specs.compare.toLabel")}
+							</label>
 							<select
 								className="w-40 rounded-md border border-input bg-background px-3 py-2 text-sm"
 								value={toId}
@@ -132,7 +142,9 @@ function SpecComparePage() {
 							onClick={handleCompare}
 							disabled={!fromId || !toId || fromId === toId || comparing}
 						>
-							{comparing ? "Comparing..." : "Compare"}
+							{comparing
+								? t("dashboard:specs.compare.comparing")
+								: t("dashboard:specs.compare.compareButton")}
 						</Button>
 					</div>
 				</CardContent>
@@ -144,13 +156,15 @@ function SpecComparePage() {
 						<div className="flex items-center gap-2 text-sm">
 							<AlertTriangle className="size-4 text-red-500" />
 							<span className="font-medium text-red-600">
-								{comparison.breakingCount} breaking
+								{comparison.breakingCount}{" "}
+								{t("dashboard:specs.compare.breaking")}
 							</span>
 						</div>
 						<div className="flex items-center gap-2 text-sm">
 							<CheckCircle className="size-4 text-green-500" />
 							<span className="font-medium text-green-600">
-								{comparison.nonBreakingCount} non-breaking
+								{comparison.nonBreakingCount}{" "}
+								{t("dashboard:specs.compare.nonBreaking")}
 							</span>
 						</div>
 						<p className="text-sm text-muted-foreground">
@@ -160,12 +174,14 @@ function SpecComparePage() {
 
 					<Card>
 						<CardHeader>
-							<CardTitle className="text-sm">Changes</CardTitle>
+							<CardTitle className="text-sm">
+								{t("dashboard:specs.compare.changes")}
+							</CardTitle>
 						</CardHeader>
 						<CardContent>
 							{comparison.changes.length === 0 ? (
 								<p className="text-sm text-muted-foreground">
-									No differences found
+									{t("dashboard:specs.compare.noDifferences")}
 								</p>
 							) : (
 								<div className="space-y-1">
@@ -189,7 +205,9 @@ function SpecComparePage() {
 													{change.path.join(".")}
 												</p>
 												<p className="text-xs text-muted-foreground mt-0.5">
-													{change.breaking ? "Breaking" : "Non-breaking"}
+													{change.breaking
+														? t("dashboard:specs.compare.breaking")
+														: t("dashboard:specs.compare.nonBreaking")}
 												</p>
 											</div>
 										</div>

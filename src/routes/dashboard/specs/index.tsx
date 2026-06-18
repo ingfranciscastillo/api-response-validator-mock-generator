@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BookUp, ChevronRight, Search } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "#/components/ui/button";
 import { EmptyState } from "#/components/ui/empty-state";
 import { Input } from "#/components/ui/input";
@@ -19,6 +20,7 @@ export const Route = createFileRoute("/dashboard/specs/")({
 });
 
 function SpecsPage() {
+	const { t } = useTranslation();
 	const [specs, setSpecs] = useState<Awaited<ReturnType<typeof getSpecs>>>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -29,9 +31,7 @@ function SpecsPage() {
 		getSpecs({ data: { search: searchTerm || undefined } })
 			.then(setSpecs)
 			.catch((err) =>
-				setError(
-					err instanceof Error ? err.message : "Failed to load specifications",
-				),
+				setError(err instanceof Error ? err.message : t("common:error")),
 			)
 			.finally(() => setLoading(false));
 	};
@@ -44,15 +44,17 @@ function SpecsPage() {
 		<div className="flex flex-col gap-4">
 			<div className="flex items-center justify-between">
 				<div>
-					<h2 className="text-2xl font-bold">Specifications</h2>
+					<h2 className="text-2xl font-bold">
+						{t("dashboard:specs.pageTitle")}
+					</h2>
 					<p className="text-muted-foreground mt-1">
-						Manage your API specifications and OpenAPI documents
+						{t("dashboard:specs.pageDescription")}
 					</p>
 				</div>
 				<Button asChild>
 					<Link to="/dashboard/specs/new">
 						<BookUp className="size-4" />
-						Add Specification
+						{t("dashboard:specs.addSpec")}
 					</Link>
 				</Button>
 			</div>
@@ -60,7 +62,7 @@ function SpecsPage() {
 			<div className="relative max-w-sm">
 				<Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 				<Input
-					placeholder="Search specifications..."
+					placeholder={t("dashboard:specs.searchPlaceholder")}
 					value={search}
 					onChange={(e) => setSearch(e.target.value)}
 					onKeyDown={(e) => {
@@ -89,13 +91,13 @@ function SpecsPage() {
 			) : specs.length === 0 ? (
 				<EmptyState
 					icon={<BookUp className="size-8" />}
-					title="No specifications yet"
-					description="Upload an OpenAPI spec to get started"
+					title={t("dashboard:specs.noSpecs")}
+					description={t("dashboard:specs.noSpecsDescription")}
 					action={
 						<Button asChild>
 							<Link to="/dashboard/specs/new">
 								<BookUp className="size-4" />
-								Add Specification
+								{t("dashboard:specs.addSpec")}
 							</Link>
 						</Button>
 					}
@@ -118,7 +120,8 @@ function SpecsPage() {
 										</p>
 									)}
 									<p className="text-muted-foreground text-xs mt-2">
-										Created {new Date(spec.createdAt).toLocaleDateString()}
+										{t("dashboard:specs.created")}{" "}
+										{new Date(spec.createdAt).toLocaleDateString()}
 									</p>
 								</div>
 								<ChevronRight className="size-4 text-muted-foreground" />

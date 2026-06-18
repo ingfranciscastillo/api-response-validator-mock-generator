@@ -7,6 +7,7 @@ import {
 	TestTubes,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { MockCard } from "#/components/mocks/mock-card";
 import { MockGenerationModal } from "#/components/mocks/mock-generation-modal";
@@ -58,6 +59,7 @@ const methodColors: Record<string, string> = {
 };
 
 function EndpointDetailPage() {
+	const { t } = useTranslation();
 	const { specId, endpointId } = Route.useParams();
 	const { tab } = Route.useSearch();
 	const navigate = useNavigate();
@@ -82,9 +84,7 @@ function EndpointDetailPage() {
 		getMocks({ data: { endpointId } })
 			.then((data) => setMocks(data.mocks))
 			.catch((err) =>
-				setMocksError(
-					err instanceof Error ? err.message : "Failed to load mocks",
-				),
+				setMocksError(err instanceof Error ? err.message : t("common:error")),
 			)
 			.finally(() => setMocksLoading(false));
 	}, [endpointId]);
@@ -128,10 +128,12 @@ function EndpointDetailPage() {
 	if (!endpoint) {
 		return (
 			<div className="flex flex-col items-center gap-4 py-12">
-				<p className="text-muted-foreground">Endpoint not found</p>
+				<p className="text-muted-foreground">
+					{t("dashboard:specs.endpoint.notFound")}
+				</p>
 				<Button asChild>
 					<Link to="/dashboard/specs/$specId" params={{ specId }}>
-						Back to spec
+						{t("dashboard:specs.endpoint.backToSpec")}
 					</Link>
 				</Button>
 			</div>
@@ -183,7 +185,7 @@ function EndpointDetailPage() {
 							</p>
 						)}
 						<span className="text-xs text-muted-foreground">
-							in{" "}
+							{t("dashboard:specs.endpoint.inSpec")}{" "}
 							<Link
 								to="/dashboard/specs/$specId"
 								params={{ specId }}
@@ -205,11 +207,11 @@ function EndpointDetailPage() {
 						}
 					>
 						<Beaker className="size-4" />
-						Test
+						{t("dashboard:specs.endpoint.test")}
 					</Button>
 					<Button variant="outline" onClick={() => setMockModalOpen(true)}>
 						<FlaskConical className="size-4" />
-						Generate Mocks
+						{t("dashboard:specs.endpoint.generateMocks")}
 					</Button>
 				</div>
 			</div>
@@ -219,34 +221,48 @@ function EndpointDetailPage() {
 				onValueChange={(v) => setActiveTab(v as typeof activeTab)}
 			>
 				<TabsList>
-					<TabsTrigger value="request">Request</TabsTrigger>
-					<TabsTrigger value="responses">Responses</TabsTrigger>
-					<TabsTrigger value="mocks">Mocks</TabsTrigger>
-					<TabsTrigger value="history">Validation History</TabsTrigger>
-					<TabsTrigger value="comments">Comments</TabsTrigger>
+					<TabsTrigger value="request">
+						{t("dashboard:specs.endpoint.tabRequest")}
+					</TabsTrigger>
+					<TabsTrigger value="responses">
+						{t("dashboard:specs.endpoint.tabResponses")}
+					</TabsTrigger>
+					<TabsTrigger value="mocks">
+						{t("dashboard:specs.endpoint.tabMocks")}
+					</TabsTrigger>
+					<TabsTrigger value="history">
+						{t("dashboard:specs.endpoint.tabHistory")}
+					</TabsTrigger>
+					<TabsTrigger value="comments">
+						{t("dashboard:specs.endpoint.tabComments")}
+					</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="request">
 					<div className="flex flex-col gap-6">
 						{parameters.length > 0 && (
 							<div>
-								<h4 className="mb-2 text-sm font-medium">Parameters</h4>
+								<h4 className="mb-2 text-sm font-medium">
+									{t("dashboard:specs.endpoint.parameters")}
+								</h4>
 								<div className="overflow-hidden rounded-md border">
 									<table className="w-full text-sm">
 										<thead className="bg-muted/50">
 											<tr>
 												<th className="px-3 py-2 text-left font-medium">
-													Name
-												</th>
-												<th className="px-3 py-2 text-left font-medium">In</th>
-												<th className="px-3 py-2 text-left font-medium">
-													Required
+													{t("dashboard:specs.endpoint.paramName")}
 												</th>
 												<th className="px-3 py-2 text-left font-medium">
-													Type
+													{t("dashboard:specs.endpoint.paramIn")}
 												</th>
 												<th className="px-3 py-2 text-left font-medium">
-													Description
+													{t("dashboard:specs.endpoint.paramRequired")}
+												</th>
+												<th className="px-3 py-2 text-left font-medium">
+													{t("dashboard:specs.endpoint.paramType")}
+												</th>
+												<th className="px-3 py-2 text-left font-medium">
+													{t("dashboard:specs.endpoint.paramDescription")}
 												</th>
 											</tr>
 										</thead>
@@ -260,7 +276,9 @@ function EndpointDetailPage() {
 														{String(param.in ?? "")}
 													</td>
 													<td className="px-3 py-2 text-xs">
-														{param.required ? "Yes" : "No"}
+														{param.required
+															? t("dashboard:specs.endpoint.yes")
+															: t("dashboard:specs.endpoint.no")}
 													</td>
 													<td className="px-3 py-2 font-mono text-xs text-muted-foreground">
 														{String(
@@ -284,13 +302,13 @@ function EndpointDetailPage() {
 						{!!endpoint.requestBody && (
 							<SchemaTreeViewer
 								schema={endpoint.requestBody as Record<string, unknown>}
-								title="Request Body"
+								title={t("dashboard:specs.endpoint.requestBody")}
 							/>
 						)}
 
 						{parameters.length === 0 && !endpoint.requestBody && (
 							<div className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-								No request parameters or body defined
+								{t("dashboard:specs.endpoint.noParams")}
 							</div>
 						)}
 					</div>
@@ -327,7 +345,7 @@ function EndpointDetailPage() {
 										{schema && <SchemaTreeViewer schema={schema} />}
 										{!schema && (
 											<p className="text-xs text-muted-foreground italic">
-												No content schema defined
+												{t("dashboard:specs.endpoint.noContentSchema")}
 											</p>
 										)}
 									</div>
@@ -336,7 +354,7 @@ function EndpointDetailPage() {
 						</div>
 					) : (
 						<div className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-							No responses defined
+							{t("dashboard:specs.endpoint.noResponses")}
 						</div>
 					)}
 				</TabsContent>
@@ -344,14 +362,16 @@ function EndpointDetailPage() {
 				<TabsContent value="mocks">
 					<div className="flex flex-col gap-4">
 						<div className="flex items-center justify-between">
-							<h4 className="text-sm font-medium">Generated Mocks</h4>
+							<h4 className="text-sm font-medium">
+								{t("dashboard:specs.endpoint.generatedMocks")}
+							</h4>
 							<Button
 								variant="outline"
 								size="sm"
 								onClick={() => setMockModalOpen(true)}
 							>
 								<FlaskConical className="size-3" />
-								Generate Mock
+								{t("dashboard:specs.endpoint.generateMock")}
 							</Button>
 						</div>
 
@@ -373,8 +393,8 @@ function EndpointDetailPage() {
 						) : mocks.length === 0 ? (
 							<EmptyState
 								icon={<TestTubes className="size-8" />}
-								title="No mocks generated yet"
-								description="Generate mock responses from this endpoint's response schemas"
+								title={t("dashboard:specs.endpoint.noMocksTitle")}
+								description={t("dashboard:specs.endpoint.noMocksDescription")}
 							/>
 						) : (
 							<div className="grid gap-3">
@@ -389,9 +409,11 @@ function EndpointDetailPage() {
 				<TabsContent value="history">
 					<Card>
 						<CardHeader>
-							<CardTitle className="text-base">Validation History</CardTitle>
+							<CardTitle className="text-base">
+								{t("dashboard:specs.endpoint.validationHistory")}
+							</CardTitle>
 							<CardDescription>
-								Past validation runs and response diffs for this endpoint.
+								{t("dashboard:specs.endpoint.validationHistoryDescription")}
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
@@ -401,8 +423,7 @@ function EndpointDetailPage() {
 								</div>
 							) : history.length === 0 ? (
 								<p className="text-sm text-muted-foreground">
-									No validation runs yet. Use the Test button to send a request
-									to this endpoint.
+									{t("dashboard:specs.endpoint.noHistory")}
 								</p>
 							) : (
 								<div className="space-y-2">
@@ -440,7 +461,7 @@ function EndpointDetailPage() {
 													to="/dashboard/validation/runs/$runId"
 													params={{ runId: entry.runId }}
 												>
-													View Run
+													{t("dashboard:specs.endpoint.viewRun")}
 												</Link>
 											</Button>
 										</div>
