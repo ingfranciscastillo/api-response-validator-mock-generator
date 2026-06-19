@@ -88,8 +88,8 @@ function NewSpecPage() {
 				</p>
 			</div>
 
-			<form onSubmit={handleSubmit} className="flex flex-col gap-4">
-				<div className="flex flex-col gap-2">
+			<form onSubmit={handleSubmit} className="space-y-4">
+				<div className="space-y-2">
 					<label htmlFor="name" className="text-sm font-medium">
 						{t("common:name")}
 					</label>
@@ -102,7 +102,7 @@ function NewSpecPage() {
 					/>
 				</div>
 
-				<div className="flex flex-col gap-2">
+				<div className="space-y-2">
 					<label htmlFor="description" className="text-sm font-medium">
 						{t("common:description")} ({t("common:optional")})
 					</label>
@@ -115,7 +115,7 @@ function NewSpecPage() {
 					/>
 				</div>
 
-				<div className="flex flex-col gap-2">
+				<div className="space-y-2">
 					<label className="text-sm font-medium">
 						{t("dashboard:specs.import.importMethod")}
 					</label>
@@ -138,7 +138,7 @@ function NewSpecPage() {
 				</div>
 
 				{importMethod === "paste" && (
-					<div className="flex flex-col gap-2">
+					<div className="space-y-2">
 						<label htmlFor="spec" className="text-sm font-medium">
 							{t("dashboard:specs.import.contentLabel")}
 						</label>
@@ -153,7 +153,7 @@ function NewSpecPage() {
 				)}
 
 				{importMethod === "file" && (
-					<div className="flex flex-col gap-2">
+					<div className="space-y-2">
 						<label htmlFor="file" className="text-sm font-medium">
 							{t("dashboard:specs.import.fileLabel")}
 						</label>
@@ -167,7 +167,7 @@ function NewSpecPage() {
 				)}
 
 				{importMethod === "url" && (
-					<div className="flex flex-col gap-2">
+					<div className="space-y-2">
 						<label htmlFor="url" className="text-sm font-medium">
 							{t("dashboard:specs.import.urlLabel")}
 						</label>

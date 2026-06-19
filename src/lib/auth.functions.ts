@@ -27,6 +27,21 @@ export const ensureSession = createServerFn({ method: "GET" }).handler(
 	},
 );
 
+export const viewBackupCodes = createServerFn({ method: "POST" }).handler(
+	async () => {
+		const headers = getRequestHeaders();
+		const authSession = await auth.api.getSession({ headers });
+		if (!authSession?.user?.id) throw new Error("Unauthorized");
+
+		const result = await auth.api.viewBackupCodes({
+			body: { userId: authSession.user.id },
+			headers,
+		});
+
+		return result;
+	},
+);
+
 export const listUserSessions = createServerFn({ method: "GET" }).handler(
 	async () => {
 		const headers = getRequestHeaders();

@@ -167,7 +167,7 @@ function MembersPage() {
 				<Card>
 					<CardContent className="pt-4">
 						<div className="flex items-end gap-3">
-							<div className="flex-1 space-y-1">
+							<div className="flex-1 space-y-2">
 								<label className="text-xs font-medium">
 									{t("dashboard:team.inviteEmail")}
 								</label>
@@ -180,7 +180,7 @@ function MembersPage() {
 									}}
 								/>
 							</div>
-							<div className="space-y-1">
+							<div className="space-y-2">
 								<label className="text-xs font-medium">
 									{t("dashboard:team.inviteRole")}
 								</label>
@@ -226,7 +226,7 @@ function MembersPage() {
 								count: pendingInvitations.length,
 							})}
 						</p>
-						<div className="space-y-1">
+						<div className="space-y-2">
 							{pendingInvitations.map((inv) => (
 								<div
 									key={inv.id}
@@ -266,7 +266,7 @@ function MembersPage() {
 						<Card key={i}>
 							<CardContent className="flex items-center gap-3 py-3">
 								<Skeleton className="size-8 rounded-full" />
-								<div className="flex-1 space-y-1.5">
+								<div className="flex-1 space-y-2.5">
 									<Skeleton className="h-4 w-32" />
 									<Skeleton className="h-3 w-48" />
 								</div>

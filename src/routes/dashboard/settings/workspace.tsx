@@ -80,11 +80,11 @@ function WorkspacePage() {
 					</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					<div className="space-y-1">
+					<div className="space-y-2">
 						<Label>{t("common:name")}</Label>
 						<Input value={name} onChange={(e) => setName(e.target.value)} />
 					</div>
-					<div className="space-y-1">
+					<div className="space-y-2">
 						<Label>{t("dashboard:settings.workspaceSlug")}</Label>
 						<Input value={slug} onChange={(e) => setSlug(e.target.value)} />
 					</div>

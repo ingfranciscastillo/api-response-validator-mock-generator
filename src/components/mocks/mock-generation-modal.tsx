@@ -186,7 +186,7 @@ export function MockGenerationModal({
 					</SheetDescription>
 				</SheetHeader>
 
-				<div className="space-y-4 py-4">
+				<div className="space-y-4 px-4 py-4">
 					<div className="space-y-2">
 						<Label>Specification</Label>
 						<Select value={selectedSpecId} onValueChange={setSelectedSpecId}>
@@ -280,7 +280,7 @@ export function MockGenerationModal({
 				</div>
 
 				{error && (
-					<div className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+					<div className="rounded-md border border-destructive/50 bg-destructive/10 mx-4 px-3 py-2 text-sm text-destructive">
 						{error}
 					</div>
 				)}

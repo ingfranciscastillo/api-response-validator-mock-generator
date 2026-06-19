@@ -20,6 +20,7 @@ import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
+	DialogFooter,
 	DialogHeader,
 	DialogTitle,
 } from "#/components/ui/dialog";
@@ -527,49 +528,53 @@ function SpecDetailPage() {
 							{t("dashboard:specs.detail.update.description")}
 						</DialogDescription>
 					</DialogHeader>
-					<div className="flex gap-2">
-						<Button
-							variant={updateSpecMethod === "paste" ? "default" : "outline"}
-							size="sm"
-							onClick={() => setUpdateSpecMethod("paste")}
-						>
-							{t("dashboard:specs.detail.update.pasteMethod")}
-						</Button>
-						<Button
-							variant={updateSpecMethod === "url" ? "default" : "outline"}
-							size="sm"
-							onClick={() => setUpdateSpecMethod("url")}
-						>
-							{t("dashboard:specs.detail.update.urlMethod")}
-						</Button>
+					<div className="space-y-3">
+						<div className="flex gap-2">
+							<Button
+								variant={updateSpecMethod === "paste" ? "default" : "outline"}
+								size="sm"
+								onClick={() => setUpdateSpecMethod("paste")}
+							>
+								{t("dashboard:specs.detail.update.pasteMethod")}
+							</Button>
+							<Button
+								variant={updateSpecMethod === "url" ? "default" : "outline"}
+								size="sm"
+								onClick={() => setUpdateSpecMethod("url")}
+							>
+								{t("dashboard:specs.detail.update.urlMethod")}
+							</Button>
+						</div>
+						{updateSpecMethod === "paste" ? (
+							<div className="space-y-2">
+								<Label htmlFor="spec-content">
+									{t("dashboard:specs.detail.update.contentLabel")}
+								</Label>
+								<MonacoEditor
+									value={updateSpecContent}
+									onChange={setUpdateSpecContent}
+									language="json"
+									height="300px"
+								/>
+							</div>
+						) : (
+							<div className="space-y-2">
+								<Label htmlFor="spec-url">
+									{t("dashboard:specs.detail.update.urlLabel")}
+								</Label>
+								<Input
+									id="spec-url"
+									type="url"
+									placeholder={t(
+										"dashboard:specs.detail.update.urlPlaceholder",
+									)}
+									value={updateSpecUrl}
+									onChange={(e) => setUpdateSpecUrl(e.target.value)}
+								/>
+							</div>
+						)}
 					</div>
-					{updateSpecMethod === "paste" ? (
-						<div className="grid gap-2">
-							<Label htmlFor="spec-content">
-								{t("dashboard:specs.detail.update.contentLabel")}
-							</Label>
-							<MonacoEditor
-								value={updateSpecContent}
-								onChange={setUpdateSpecContent}
-								language="json"
-								height="300px"
-							/>
-						</div>
-					) : (
-						<div className="grid gap-2">
-							<Label htmlFor="spec-url">
-								{t("dashboard:specs.detail.update.urlLabel")}
-							</Label>
-							<Input
-								id="spec-url"
-								type="url"
-								placeholder={t("dashboard:specs.detail.update.urlPlaceholder")}
-								value={updateSpecUrl}
-								onChange={(e) => setUpdateSpecUrl(e.target.value)}
-							/>
-						</div>
-					)}
-					<div className="flex justify-end gap-2">
+					<DialogFooter>
 						<Button variant="outline" onClick={() => setUpdateSpecOpen(false)}>
 							{t("common:cancel")}
 						</Button>
@@ -586,7 +591,7 @@ function SpecDetailPage() {
 								? t("dashboard:specs.detail.update.importing")
 								: t("dashboard:specs.detail.update.importVersion")}
 						</Button>
-					</div>
+					</DialogFooter>
 				</DialogContent>
 			</Dialog>
 		</div>

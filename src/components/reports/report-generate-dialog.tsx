@@ -52,7 +52,7 @@ export function ReportGenerateDialog({
 					<DialogTitle>Generate Report</DialogTitle>
 				</DialogHeader>
 				<div className="space-y-4">
-					<div className="space-y-1">
+					<div className="space-y-2">
 						<Label>Report Name</Label>
 						<Input
 							placeholder="e.g., Weekly Validation Summary"
@@ -60,7 +60,7 @@ export function ReportGenerateDialog({
 							onChange={(e) => setName(e.target.value)}
 						/>
 					</div>
-					<div className="space-y-1">
+					<div className="space-y-2">
 						<Label>Description (optional)</Label>
 						<Textarea
 							placeholder="Brief description of this report"
@@ -69,7 +69,7 @@ export function ReportGenerateDialog({
 							onChange={(e) => setDescription(e.target.value)}
 						/>
 					</div>
-					<div className="space-y-1">
+					<div className="space-y-2">
 						<Label>Date Range (days)</Label>
 						<Select
 							value={String(days)}

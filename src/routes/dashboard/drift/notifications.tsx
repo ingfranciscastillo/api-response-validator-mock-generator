@@ -143,7 +143,7 @@ function NotificationsPage() {
 							</DialogDescription>
 						</DialogHeader>
 						<div className="space-y-4 py-2">
-							<div className="space-y-1">
+							<div className="space-y-2">
 								<Label>{t("dashboard:drift.channelName")}</Label>
 								<Input
 									placeholder={t("dashboard:drift.channelNamePlaceholder")}
@@ -151,7 +151,7 @@ function NotificationsPage() {
 									onChange={(e) => setFormName(e.target.value)}
 								/>
 							</div>
-							<div className="space-y-1">
+							<div className="space-y-2">
 								<Label>{t("dashboard:drift.channelType")}</Label>
 								<Select value={formType} onValueChange={setFormType}>
 									<SelectTrigger>
@@ -168,7 +168,7 @@ function NotificationsPage() {
 								</Select>
 							</div>
 							{formType === "webhook" ? (
-								<div className="space-y-1">
+								<div className="space-y-2">
 									<Label>{t("dashboard:drift.webhookUrl")}</Label>
 									<Input
 										placeholder={t("dashboard:drift.webhookUrlPlaceholder")}
@@ -177,10 +177,12 @@ function NotificationsPage() {
 									/>
 								</div>
 							) : (
-								<div className="space-y-1">
+								<div className="space-y-2">
 									<Label>{t("dashboard:drift.typeEmail")}</Label>
 									<Input
 										type="email"
+										value={formEmail}
+										onChange={(e) => setFormEmail(e.target.value)}
 										placeholder={t("dashboard:drift.emailPlaceholder")}
 									/>
 								</div>
@@ -210,7 +212,7 @@ function NotificationsPage() {
 						<Card key={i}>
 							<CardContent className="flex items-center gap-3 py-3">
 								<Skeleton className="size-5 rounded-full" />
-								<div className="flex-1 space-y-1.5">
+								<div className="flex-1 space-y-2.5">
 									<Skeleton className="h-4 w-32" />
 									<Skeleton className="h-3 w-48" />
 								</div>

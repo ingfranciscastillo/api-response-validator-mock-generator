@@ -18,7 +18,7 @@ import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
 import { Separator } from "#/components/ui/separator";
 import { Skeleton } from "#/components/ui/skeleton";
-import { listUserSessions } from "#/lib/auth.functions";
+import { listUserSessions, viewBackupCodes } from "#/lib/auth.functions";
 import { authClient } from "#/lib/auth-client";
 
 export const Route = createFileRoute("/dashboard/settings/security")({
@@ -100,7 +100,7 @@ function ChangePasswordCard() {
 				</CardTitle>
 			</CardHeader>
 			<CardContent className="space-y-4">
-				<div className="space-y-1.5">
+				<div className="space-y-2">
 					<Label>{t("dashboard:settings.currentPasswordLabel")}</Label>
 					<Input
 						type="password"
@@ -108,7 +108,7 @@ function ChangePasswordCard() {
 						onChange={(e) => setCurrentPassword(e.target.value)}
 					/>
 				</div>
-				<div className="space-y-1.5">
+				<div className="space-y-2">
 					<Label>{t("dashboard:settings.newPasswordLabel")}</Label>
 					<Input
 						type="password"
@@ -116,7 +116,7 @@ function ChangePasswordCard() {
 						onChange={(e) => setNewPassword(e.target.value)}
 					/>
 				</div>
-				<div className="space-y-1.5">
+				<div className="space-y-2">
 					<Label>{t("dashboard:settings.confirmNewPasswordLabel")}</Label>
 					<Input
 						type="password"
@@ -137,6 +137,78 @@ function ChangePasswordCard() {
 	);
 }
 
+function BackupCodesDisplay({
+	codes,
+	onClose,
+}: {
+	codes: string[];
+	onClose?: () => void;
+}) {
+	const { t } = useTranslation();
+	const [copied, setCopied] = useState(false);
+
+	const handleCopy = async () => {
+		await navigator.clipboard.writeText(codes.join("\n"));
+		setCopied(true);
+		setTimeout(() => setCopied(false), 2000);
+	};
+
+	const handleDownload = () => {
+		const blob = new Blob([codes.join("\n")], { type: "text/plain" });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = "backup-codes.txt";
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		URL.revokeObjectURL(url);
+	};
+
+	return (
+		<div className="space-y-4">
+			<div className="rounded-md border border-amber-200 bg-amber-50 dark:bg-amber-950/20 px-3 py-2">
+				<p className="text-xs font-medium text-amber-800 dark:text-amber-200 mb-2">
+					{t("dashboard:settings.saveBackupCodes")}
+				</p>
+				<div className="grid grid-cols-2 gap-1">
+					{codes.map((code, i) => (
+						<code
+							key={i}
+							className="text-xs font-mono text-amber-700 dark:text-amber-300"
+						>
+							{code}
+						</code>
+					))}
+				</div>
+			</div>
+			<div className="flex gap-2">
+				<Button
+					variant="outline"
+					size="sm"
+					onClick={handleCopy}
+					className="flex-1"
+				>
+					{copied ? t("common:copied") : t("common:copyAll")}
+				</Button>
+				<Button
+					variant="outline"
+					size="sm"
+					onClick={handleDownload}
+					className="flex-1"
+				>
+					{t("common:downloadTxt")}
+				</Button>
+			</div>
+			{onClose && (
+				<Button onClick={onClose} className="w-full">
+					{t("common:done")}
+				</Button>
+			)}
+		</div>
+	);
+}
+
 function TwoFactorCard() {
 	const { t } = useTranslation();
 	const { data: session } = authClient.useSession();
@@ -151,8 +223,15 @@ function TwoFactorCard() {
 	const [showSetup, setShowSetup] = useState(false);
 	const [showDisable, setShowDisable] = useState(false);
 	const [showBackupCodes, setShowBackupCodes] = useState(false);
-	const [backupCodes, setBackupCodes] = useState<string[]>([]);
 	const [operating, setOperating] = useState(false);
+
+	const [showEnableCodes, setShowEnableCodes] = useState(false);
+	const [enableCodes, setEnableCodes] = useState<string[]>([]);
+
+	const [backupViewState, setBackupViewState] = useState<
+		"menu" | "view" | "generate"
+	>("menu");
+	const [backupViewCodes, setBackupViewCodes] = useState<string[]>([]);
 
 	useEffect(() => {
 		if (session?.user) {
@@ -197,7 +276,9 @@ function TwoFactorCard() {
 			if (verifyError)
 				throw new Error(verifyError.message ?? "Failed to verify");
 			setTwoFactorEnabled(true);
+			setEnableCodes(setupData?.backupCodes ?? []);
 			setShowSetup(false);
+			setShowEnableCodes(true);
 			setPassword("");
 			setTotpCode("");
 			setSetupData(null);
@@ -226,23 +307,46 @@ function TwoFactorCard() {
 		}
 	};
 
-	const handleRegenerateBackupCodes = async () => {
+	const handleViewBackupCodes = () => {
+		setPassword("");
+		setError(null);
+		setBackupViewState("menu");
+		setBackupViewCodes([]);
+		setShowBackupCodes(true);
+	};
+
+	const handleViewCurrentCodes = async () => {
 		setOperating(true);
+		setError(null);
 		try {
-			const { data, error: regenError } =
-				await authClient.twoFactor.generateBackupCodes({
-					password,
-				});
-			if (regenError)
-				throw new Error(regenError.message ?? "Failed to regenerate codes");
+			const result = await viewBackupCodes();
+			setBackupViewCodes(result.backupCodes);
+			setBackupViewState("view");
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Failed to view codes");
+		} finally {
+			setOperating(false);
+		}
+	};
+
+	const handleGenerateCodes = async () => {
+		if (!password) {
+			setError(t("dashboard:settings.passwordRequiredFor2FA"));
+			return;
+		}
+		setOperating(true);
+		setError(null);
+		try {
+			const { data, error: genError } =
+				await authClient.twoFactor.generateBackupCodes({ password });
+			if (genError)
+				throw new Error(genError.message ?? "Failed to generate codes");
 			if (data) {
-				setBackupCodes(data.backupCodes);
-				setShowBackupCodes(true);
+				setBackupViewCodes(data.backupCodes);
+				setBackupViewState("view");
 			}
 		} catch (err) {
-			setError(
-				err instanceof Error ? err.message : "Failed to regenerate codes",
-			);
+			setError(err instanceof Error ? err.message : "Failed to generate codes");
 		} finally {
 			setOperating(false);
 		}
@@ -287,14 +391,7 @@ function TwoFactorCard() {
 
 				{twoFactorEnabled && (
 					<div className="flex gap-2">
-						<Button
-							variant="ghost"
-							size="sm"
-							onClick={() => {
-								setShowBackupCodes(true);
-								setPassword("");
-							}}
-						>
+						<Button variant="ghost" size="sm" onClick={handleViewBackupCodes}>
 							{t("dashboard:settings.viewBackupCodes")}
 						</Button>
 					</div>
@@ -316,7 +413,7 @@ function TwoFactorCard() {
 
 					{!setupData ? (
 						<div className="space-y-3">
-							<div className="space-y-1">
+							<div className="space-y-2">
 								<Label>{t("dashboard:settings.confirmPasswordLabel")}</Label>
 								<Input
 									type="password"
@@ -337,7 +434,7 @@ function TwoFactorCard() {
 							<div className="flex justify-center">
 								<QRCode value={setupData.totpURI} size={200} />
 							</div>
-							<div className="space-y-1">
+							<div className="space-y-2">
 								<Label>{t("dashboard:settings.verifyTotpCode")}</Label>
 								<Input
 									value={totpCode}
@@ -348,21 +445,6 @@ function TwoFactorCard() {
 									maxLength={6}
 									className="text-center text-lg tracking-widest font-mono"
 								/>
-							</div>
-							<div className="rounded-md border border-amber-200 bg-amber-50 dark:bg-amber-950/20 px-3 py-2">
-								<p className="text-xs font-medium text-amber-800 dark:text-amber-200">
-									{t("dashboard:settings.saveBackupCodes")}
-								</p>
-								<div className="mt-1 grid grid-cols-2 gap-1">
-									{setupData.backupCodes.map((code, i) => (
-										<code
-											key={i}
-											className="text-xs font-mono text-amber-700 dark:text-amber-300"
-										>
-											{code}
-										</code>
-									))}
-								</div>
 							</div>
 							{error && <p className="text-xs text-destructive">{error}</p>}
 							<Button
@@ -378,6 +460,23 @@ function TwoFactorCard() {
 				</DialogContent>
 			</Dialog>
 
+			<Dialog open={showEnableCodes} onOpenChange={setShowEnableCodes}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							{t("dashboard:settings.backupCodesTitle")}
+						</DialogTitle>
+						<DialogDescription>
+							{t("dashboard:settings.backupCodesDescription")}
+						</DialogDescription>
+					</DialogHeader>
+					<BackupCodesDisplay
+						codes={enableCodes}
+						onClose={() => setShowEnableCodes(false)}
+					/>
+				</DialogContent>
+			</Dialog>
+
 			<Dialog open={showDisable} onOpenChange={setShowDisable}>
 				<DialogContent>
 					<DialogHeader>
@@ -388,7 +487,7 @@ function TwoFactorCard() {
 							{t("dashboard:settings.disableTwoFactorDescription")}
 						</DialogDescription>
 					</DialogHeader>
-					<div className="space-y-1">
+					<div className="space-y-2">
 						<Label>{t("common:password")}</Label>
 						<Input
 							type="password"
@@ -425,56 +524,90 @@ function TwoFactorCard() {
 							{t("dashboard:settings.backupCodesDescription")}
 						</DialogDescription>
 					</DialogHeader>
-					{backupCodes.length > 0 ? (
-						<div className="grid grid-cols-2 gap-2">
-							{backupCodes.map((code, i) => (
-								<code
-									key={i}
-									className="text-sm font-mono bg-muted px-2 py-1 rounded"
-								>
-									{code}
-								</code>
-							))}
-						</div>
-					) : (
-						<div className="space-y-1">
-							<Label>{t("dashboard:settings.confirmPasswordLabel")}</Label>
-							<Input
-								type="password"
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-								placeholder={t("auth:passwordPlaceholder")}
-							/>
-						</div>
-					)}
-					{error && <p className="text-xs text-destructive">{error}</p>}
-					<DialogFooter>
-						{backupCodes.length > 0 ? (
-							<Button
-								variant="outline"
-								onClick={() => setShowBackupCodes(false)}
-							>
-								{t("common:close")}
-							</Button>
-						) : (
-							<>
+
+					{backupViewState === "menu" && (
+						<div className="space-y-3">
+							{error && <p className="text-xs text-destructive">{error}</p>}
+							<div className="flex gap-2">
 								<Button
 									variant="outline"
+									className="flex-1"
+									onClick={handleViewCurrentCodes}
+									disabled={operating}
+								>
+									{operating
+										? t("common:loading")
+										: t("dashboard:settings.viewCurrentCodes")}
+								</Button>
+								<Button
+									className="flex-1"
+									onClick={() => {
+										setError(null);
+										setBackupViewState("generate");
+									}}
+									disabled={operating}
+								>
+									{t("dashboard:settings.generateNewCodes")}
+								</Button>
+							</div>
+							<div className="flex justify-end">
+								<Button
+									variant="ghost"
+									size="sm"
 									onClick={() => setShowBackupCodes(false)}
 								>
 									{t("common:cancel")}
 								</Button>
+							</div>
+						</div>
+					)}
+
+					{backupViewState === "generate" && (
+						<div className="space-y-3">
+							<div className="space-y-2">
+								<Label>{t("dashboard:settings.confirmPasswordLabel")}</Label>
+								<Input
+									type="password"
+									value={password}
+									onChange={(e) => setPassword(e.target.value)}
+									placeholder={t("auth:passwordPlaceholder")}
+								/>
+							</div>
+							{error && <p className="text-xs text-destructive">{error}</p>}
+							<Button
+								className="w-full"
+								onClick={handleGenerateCodes}
+								disabled={operating || !password}
+							>
+								{operating
+									? t("dashboard:settings.generatingCodes")
+									: t("dashboard:settings.generateNewCodes")}
+							</Button>
+							<div className="flex justify-end">
 								<Button
-									onClick={handleRegenerateBackupCodes}
-									disabled={operating || !password}
+									variant="ghost"
+									size="sm"
+									onClick={() => {
+										setBackupViewState("menu");
+										setPassword("");
+										setError(null);
+									}}
 								>
-									{operating
-										? t("dashboard:settings.generatingCodes")
-										: t("dashboard:settings.generateNewCodes")}
+									{t("common:back")}
 								</Button>
-							</>
-						)}
-					</DialogFooter>
+							</div>
+						</div>
+					)}
+
+					{backupViewState === "view" && (
+						<BackupCodesDisplay
+							codes={backupViewCodes}
+							onClose={() => {
+								setShowBackupCodes(false);
+								setPassword("");
+							}}
+						/>
+					)}
 				</DialogContent>
 			</Dialog>
 		</Card>

@@ -50,11 +50,11 @@ function AccountPage() {
 					</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					<div className="space-y-1">
+					<div className="space-y-2">
 						<Label>{t("common:email")}</Label>
 						<Input value={session?.user.email ?? ""} disabled />
 					</div>
-					<div className="space-y-1">
+					<div className="space-y-2">
 						<Label>{t("common:name")}</Label>
 						<Input value={name} onChange={(e) => setName(e.target.value)} />
 					</div>

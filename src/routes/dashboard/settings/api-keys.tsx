@@ -147,7 +147,7 @@ function ApiKeysPage() {
 							</div>
 						) : (
 							<div className="space-y-3">
-								<div className="space-y-1">
+								<div className="space-y-2">
 									<Label>{t("common:name")}</Label>
 									<Input
 										placeholder={t("dashboard:settings.keyNamePlaceholderAlt")}
@@ -155,7 +155,7 @@ function ApiKeysPage() {
 										onChange={(e) => setNewName(e.target.value)}
 									/>
 								</div>
-								<div className="space-y-1">
+								<div className="space-y-2">
 									<Label>{t("dashboard:settings.scopes")}</Label>
 									<div className="grid grid-cols-2 gap-2">
 										{ALL_SCOPES.map((scope) => (
@@ -174,7 +174,7 @@ function ApiKeysPage() {
 										))}
 									</div>
 								</div>
-								<div className="space-y-1">
+								<div className="space-y-2">
 									<Label>{t("dashboard:settings.expiryOptional")}</Label>
 									<Input
 										type="date"
@@ -198,7 +198,7 @@ function ApiKeysPage() {
 					{Array.from({ length: 2 }).map((_, i) => (
 						<Card key={i}>
 							<CardContent className="py-3">
-								<div className="space-y-1.5">
+								<div className="space-y-2.5">
 									<Skeleton className="h-4 w-32" />
 									<Skeleton className="h-3 w-48" />
 								</div>
