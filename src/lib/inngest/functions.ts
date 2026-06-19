@@ -21,40 +21,68 @@ export const scheduledDriftCheck = inngest.createFunction(
 		});
 
 		for (const check of enabledChecks) {
-			await step.run(`check-spec-${check.specId}`, async () => {
-				const versions = await db
-					.select()
-					.from(specificationVersion)
-					.where(eq(specificationVersion.specId, check.specId))
-					.orderBy(desc(specificationVersion.version));
+			const alertsToSend = await step.run(
+				`check-spec-${check.specId}`,
+				async () => {
+					const versions = await db
+						.select()
+						.from(specificationVersion)
+						.where(eq(specificationVersion.specId, check.specId))
+						.orderBy(desc(specificationVersion.version));
 
-				if (versions.length < 2) return;
+					if (versions.length < 2) return [];
 
-				const comparison = await compareSpecificationVersions(
-					versions[1].id,
-					versions[0].id,
-				);
-				const breakingChanges = comparison.changes.filter((c) => c.breaking);
+					const comparison = await compareSpecificationVersions(
+						versions[1].id,
+						versions[0].id,
+					);
+					const breakingChanges = comparison.changes.filter((c) => c.breaking);
 
-				for (const change of breakingChanges) {
-					await db.insert(driftAlert).values({
-						id: crypto.randomUUID(),
-						workspaceId: check.workspaceId,
-						specId: check.specId,
-						fromVersionId: versions[1].id,
-						toVersionId: versions[0].id,
-						type: "drift",
-						severity: "medium",
-						summary: change.description,
-						changes: [change] as unknown as Record<string, unknown>[],
-						status: "open",
+					const created: {
+						alertId: string;
+						specId: string;
+						workspaceId: string;
+					}[] = [];
+
+					for (const change of breakingChanges) {
+						const alertId = crypto.randomUUID();
+
+						await db.insert(driftAlert).values({
+							id: alertId,
+							workspaceId: check.workspaceId,
+							specId: check.specId,
+							fromVersionId: versions[1].id,
+							toVersionId: versions[0].id,
+							type: "drift",
+							severity: change.severity, // antes: "medium"
+							summary: change.description,
+							changes: [change] as unknown as Record<string, unknown>[],
+							status: "open",
+						});
+
+						created.push({
+							alertId,
+							specId: check.specId,
+							workspaceId: check.workspaceId,
+						});
+					}
+
+					await db
+						.update(driftCheck)
+						.set({ lastRunAt: new Date() })
+						.where(eq(driftCheck.id, check.id));
+
+					return created;
+				},
+			);
+
+			await step.run(`send-alerts-${check.specId}`, async () => {
+				for (const { alertId, specId, workspaceId } of alertsToSend) {
+					await inngest.send({
+						name: "drift/breaking-change-detected",
+						data: { specId, workspaceId, alertId },
 					});
 				}
-
-				await db
-					.update(driftCheck)
-					.set({ lastRunAt: new Date() })
-					.where(eq(driftCheck.id, check.id));
 			});
 		}
 

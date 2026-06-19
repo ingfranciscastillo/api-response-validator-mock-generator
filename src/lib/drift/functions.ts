@@ -122,12 +122,12 @@ export const checkSpecForDrift = createServerFn({ method: "POST" })
 				fromVersionId: previous.id,
 				toVersionId: latest.id,
 				type: "breaking",
-				severity: "high",
+				severity: change.severity, // antes: "high"
 				summary: change.description,
 				changes: [change] as unknown as Record<string, unknown>[],
 				status: "open",
 			});
-			createdAlerts.push({ id, severity: "high" });
+			createdAlerts.push({ id, severity: change.severity });
 			alertsCreated++;
 		}
 

@@ -3,13 +3,13 @@ import diff from "microdiff";
 import { downloadFromR2, isR2Configured } from "#/lib/storage";
 import { db } from "@/db";
 import { specificationVersion } from "@/db/schema";
-
 export interface SpecChange {
 	type: "REMOVE" | "CHANGE" | "CREATE";
 	path: string[];
 	value?: unknown;
 	newValue?: unknown;
 	breaking: boolean;
+	severity: "high" | "medium" | "low";
 	description: string;
 }
 
@@ -20,6 +20,24 @@ export interface SpecComparison {
 	breakingCount: number;
 	nonBreakingCount: number;
 	summary: string;
+}
+
+function getSeverity(change: SpecChange): "high" | "medium" | "low" {
+	if (!change.breaking) return "low";
+
+	const path = change.path.join(".");
+
+	// Eliminar un endpoint completo (todos sus métodos) o un método HTTP = high
+	const removedWholePath =
+		change.type === "REMOVE" && /^paths\.[^.]+$/.test(path);
+	const removedMethod =
+		change.type === "REMOVE" &&
+		/^paths\.[^.]+\.(get|put|post|delete|patch|options|head)$/.test(path);
+
+	if (removedWholePath || removedMethod) return "high";
+
+	// required/enum removidos o cambios de tipo = medium
+	return "medium";
 }
 
 async function resolveSpecContent(
@@ -120,10 +138,12 @@ export async function compareSpecificationVersions(
 			value,
 			newValue,
 			breaking: false,
+			severity: "low",
 			description,
 		};
 
 		change.breaking = isBreakingChange(change);
+		change.severity = getSeverity(change);
 		return change;
 	});
 
