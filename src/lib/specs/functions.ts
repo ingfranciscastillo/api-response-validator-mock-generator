@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { and, desc, eq, ilike } from "drizzle-orm";
+import yaml from "js-yaml";
 import {
 	buildStorageKey,
 	deleteFromR2,
@@ -13,6 +14,14 @@ import { writeAuditLog } from "@/lib/audit/functions";
 import { requireOrg } from "@/lib/auth/org";
 import { compareSpecificationVersions } from "./compare";
 import { buildSummary, parseSpec, parseSpecFromUrl } from "./parser";
+
+function parseRawDocument(specContent: string): Record<string, unknown> {
+	const trimmed = specContent.trim();
+	if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+		return JSON.parse(trimmed);
+	}
+	return yaml.load(trimmed) as Record<string, unknown>;
+}
 
 export const importSpec = createServerFn({ method: "POST" })
 	.validator(
@@ -35,18 +44,20 @@ export const importSpec = createServerFn({ method: "POST" })
 
 		const summary = buildSummary(parsed.endpoints, parsed.tags);
 
-		const rawStr = data.specContent ?? JSON.stringify(parsed);
+		// El documento "crudo" real es el spec original, no `parsed`
+		const rawDocument: Record<string, unknown> | null = data.specContent
+			? parseRawDocument(data.specContent)
+			: null; // si vino por URL, decide si lo quieres fetch+guardar también
+
+		const rawStr = JSON.stringify(rawDocument ?? parsed);
 		let storageKey: string | null = null;
-		let finalRawDocument: Record<string, unknown> | null =
-			parsed as unknown as Record<string, unknown>;
-		let finalDereferencedSchema: Record<string, unknown> | null = null;
+		let finalRawDocument: Record<string, unknown> | null = rawDocument;
 
 		if (isR2Configured() && Buffer.byteLength(rawStr) > 200 * 1024) {
 			const key = buildStorageKey(orgId, "specs", specId, "v1/document.json");
 			await uploadToR2(key, rawStr, "application/json");
 			storageKey = key;
 			finalRawDocument = null;
-			finalDereferencedSchema = null;
 		}
 
 		await db.insert(specification).values({
@@ -60,7 +71,7 @@ export const importSpec = createServerFn({ method: "POST" })
 			id: versionId,
 			specId,
 			version: 1,
-			openapiSpec: finalRawDocument ?? finalDereferencedSchema,
+			openapiSpec: finalRawDocument,
 			storageKey,
 			summary,
 		});
@@ -132,11 +143,15 @@ export const reimportSpec = createServerFn({ method: "POST" })
 		const versionId = crypto.randomUUID();
 		const summary = buildSummary(parsed.endpoints, parsed.tags);
 
-		const rawStr = data.specContent ?? JSON.stringify(parsed);
+		// El documento "crudo" real es el spec original (lo que el usuario pegó/editó),
+		// no `parsed` (que ya es la forma transformada ParsedSpec).
+		const rawDocument: Record<string, unknown> | null = data.specContent
+			? parseRawDocument(data.specContent)
+			: null;
+
+		const rawStr = JSON.stringify(rawDocument ?? parsed);
 		let storageKey: string | null = null;
-		let finalRawDocument: Record<string, unknown> | null =
-			parsed as unknown as Record<string, unknown>;
-		let finalDereferencedSchema: Record<string, unknown> | null = null;
+		let finalRawDocument: Record<string, unknown> | null = rawDocument;
 
 		if (isR2Configured() && Buffer.byteLength(rawStr) > 200 * 1024) {
 			const key = buildStorageKey(
@@ -148,14 +163,13 @@ export const reimportSpec = createServerFn({ method: "POST" })
 			await uploadToR2(key, rawStr, "application/json");
 			storageKey = key;
 			finalRawDocument = null;
-			finalDereferencedSchema = null;
 		}
 
 		await db.insert(specificationVersion).values({
 			id: versionId,
 			specId: data.specId,
 			version: newVersionNumber,
-			openapiSpec: finalRawDocument ?? finalDereferencedSchema,
+			openapiSpec: finalRawDocument,
 			storageKey,
 			summary,
 		});

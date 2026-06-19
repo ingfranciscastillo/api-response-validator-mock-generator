@@ -16,6 +16,7 @@ export interface ParsedSpec {
 	version: string;
 	description: string | null;
 	endpoints: ParsedEndpoint[];
+	webhookEndpoints: ParsedEndpoint[];
 	tags: string[];
 	serverUrl: string | null;
 }
@@ -30,35 +31,67 @@ function normalizeMethod(method: string): string {
 	return method.toLowerCase();
 }
 
+const HTTP_METHODS = [
+	"get",
+	"post",
+	"put",
+	"patch",
+	"delete",
+	"options",
+	"head",
+	"trace",
+];
+
 function extractEndpoints(
 	paths: Record<string, Record<string, unknown>> | undefined,
 ): ParsedEndpoint[] {
 	if (!paths) return [];
 
 	const endpoints: ParsedEndpoint[] = [];
-	const httpMethods = [
-		"get",
-		"post",
-		"put",
-		"patch",
-		"delete",
-		"options",
-		"head",
-		"trace",
-	];
 
 	for (const [path, pathItem] of Object.entries(paths)) {
 		if (!pathItem || typeof pathItem !== "object") continue;
 
 		for (const [method, operation] of Object.entries(pathItem)) {
 			const normalized = normalizeMethod(method);
-			if (!httpMethods.includes(normalized)) continue;
+			if (!HTTP_METHODS.includes(normalized)) continue;
 			if (!operation || typeof operation !== "object") continue;
 
 			const op = operation as Record<string, unknown>;
 			endpoints.push({
 				method: normalized.toUpperCase(),
 				path,
+				summary: (op.summary as string | null) ?? null,
+				operationId: (op.operationId as string | null) ?? null,
+				parameters: op.parameters ?? null,
+				requestBody: op.requestBody ?? null,
+				responses: op.responses ?? null,
+			});
+		}
+	}
+
+	return endpoints;
+}
+
+function extractWebhookEndpoints(
+	webhooks: Record<string, Record<string, unknown>> | undefined,
+): ParsedEndpoint[] {
+	if (!webhooks) return [];
+
+	const endpoints: ParsedEndpoint[] = [];
+
+	for (const [webhookName, pathItem] of Object.entries(webhooks)) {
+		if (!pathItem || typeof pathItem !== "object") continue;
+
+		for (const [method, operation] of Object.entries(pathItem)) {
+			const normalized = normalizeMethod(method);
+			if (!HTTP_METHODS.includes(normalized)) continue;
+			if (!operation || typeof operation !== "object") continue;
+
+			const op = operation as Record<string, unknown>;
+			endpoints.push({
+				method: normalized.toUpperCase(),
+				path: webhookName,
 				summary: (op.summary as string | null) ?? null,
 				operationId: (op.operationId as string | null) ?? null,
 				parameters: op.parameters ?? null,
@@ -153,35 +186,99 @@ function extractServerUrl(spec: Record<string, unknown>): string | null {
 	return null;
 }
 
-export async function parseSpec(
-	input: string | Record<string, unknown>,
-): Promise<ParsedSpec> {
-	const spec = typeof input === "string" ? tryParseJsonOrYaml(input) : input;
-
-	const dereferenced = await SwaggerParser.dereference(
-		structuredClone(spec) as unknown as string,
-	);
-
-	const d = dereferenced as unknown as Record<string, unknown>;
-	const info = d.info as Record<string, unknown> | undefined;
-	const paths = d.paths as Record<string, Record<string, unknown>> | undefined;
-
-	const endpoints = extractEndpoints(paths);
-	const tags = extractTags(paths);
-
-	const serverUrl = extractServerUrl(d);
+function extractFromDocument(doc: Record<string, unknown>): ParsedSpec {
+	const info = doc.info as Record<string, unknown> | undefined;
+	const paths = doc.paths as
+		| Record<string, Record<string, unknown>>
+		| undefined;
+	const webhooks = doc.webhooks as
+		| Record<string, Record<string, unknown>>
+		| undefined;
 
 	return {
 		title: (info?.title as string) ?? "Untitled Spec",
 		version: (info?.version as string) ?? "1.0.0",
 		description: (info?.description as string | null) ?? null,
-		endpoints,
-		tags,
-		serverUrl,
+		endpoints: extractEndpoints(paths),
+		webhookEndpoints: extractWebhookEndpoints(webhooks),
+		tags: extractTags(paths),
+		serverUrl: extractServerUrl(doc),
 	};
 }
 
+/**
+ * Normaliza un spec OpenAPI para evitar errores de validación del parser
+ * cuando faltan campos opcionales.
+ *
+ * - OpenAPI 3.1: `paths` es opcional si existe `webhooks` o `components`
+ * - OpenAPI 3.0 / Swagger 2.0: `paths` es requerido pero `{}` es válido
+ */
+function normalizeSpec(spec: Record<string, unknown>): Record<string, unknown> {
+	const version = (spec.openapi as string) ?? (spec.swagger as string);
+	const isV31 = typeof version === "string" && version.startsWith("3.1");
+
+	const isOpenApi =
+		typeof spec.openapi === "string" || typeof spec.swagger === "string";
+
+	if (isOpenApi && spec.paths === undefined) {
+		if (isV31 && spec.webhooks !== undefined) {
+			console.warn(
+				"[parser] OpenAPI 3.1 spec without 'paths' (webhooks only) — normalized with paths: {}",
+			);
+		} else {
+			console.warn("[parser] Spec without 'paths' — normalized with paths: {}");
+		}
+		spec.paths = {};
+	}
+
+	return spec;
+}
+
+export async function parseSpec(
+	input: string | Record<string, unknown>,
+): Promise<ParsedSpec> {
+	const spec = typeof input === "string" ? tryParseJsonOrYaml(input) : input;
+	const normalized = normalizeSpec(structuredClone(spec));
+
+	let dereferenced: Record<string, unknown>;
+	try {
+		dereferenced = await (
+			SwaggerParser.dereference as unknown as (
+				api: Record<string, unknown>,
+			) => Promise<Record<string, unknown>>
+		)(normalized);
+	} catch (err) {
+		const originalMessage = err instanceof Error ? err.message : String(err);
+
+		if (originalMessage.includes("[object Object]")) {
+			throw new Error(
+				"El spec OpenAPI no tiene la estructura esperada. " +
+					"Asegúrate de que incluya 'openapi'/'swagger', 'info' y 'paths' o 'webhooks'.",
+			);
+		}
+
+		throw new Error(`Error al procesar el spec OpenAPI: ${originalMessage}`, {
+			cause: err,
+		});
+	}
+
+	return extractFromDocument(dereferenced);
+}
+
 export async function parseSpecFromUrl(url: string): Promise<ParsedSpec> {
-	const dereferenced = await SwaggerParser.dereference(url);
-	return parseSpec(dereferenced as unknown as Record<string, unknown>);
+	let dereferenced: Record<string, unknown>;
+	try {
+		dereferenced = await (
+			SwaggerParser.dereference as unknown as (
+				api: string,
+			) => Promise<Record<string, unknown>>
+		)(url);
+	} catch (err) {
+		throw new Error(
+			`Error al descargar o procesar el spec desde la URL: ${err instanceof Error ? err.message : String(err)}`,
+			{ cause: err },
+		);
+	}
+
+	return extractFromDocument(dereferenced);
 }
