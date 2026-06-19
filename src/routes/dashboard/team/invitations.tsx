@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Building2, Check, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
@@ -34,6 +35,7 @@ type Invitation = Awaited<
 >[number];
 
 function InvitationsPage() {
+	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const { data: session, isPending: sessionLoading } = authClient.useSession();
 	const [invitations, setInvitations] = useState<Invitation[]>([]);
@@ -115,8 +117,8 @@ function InvitationsPage() {
 					<CardContent className="pt-6">
 						<EmptyState
 							icon={<Building2 className="size-8" />}
-							title="No pending invitations"
-							description="You don't have any pending workspace invitations"
+							title={t("dashboard:team.noPendingInvitations")}
+							description={t("dashboard:team.noPendingDescription")}
 						/>
 					</CardContent>
 				</Card>
@@ -129,15 +131,20 @@ function InvitationsPage() {
 								{inv.organizationName}
 							</CardTitle>
 							<CardDescription>
-								You've been invited to join as{" "}
+								{t("dashboard:team.invitedToJoin")}{" "}
 								<Badge variant="secondary" className="text-xs">
-									{inv.role}
+									{inv.role === "admin"
+										? t("dashboard:team.roleAdmin")
+										: inv.role === "member"
+											? t("dashboard:team.roleMember")
+											: t("dashboard:team.roleViewer")}
 								</Badge>
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="flex items-center justify-between">
 							<p className="text-xs text-muted-foreground">
-								Expires {new Date(inv.expiresAt).toLocaleDateString()}
+								{t("dashboard:team.expires")}{" "}
+								{new Date(inv.expiresAt).toLocaleDateString()}
 							</p>
 							<div className="flex gap-2">
 								<Button
@@ -147,7 +154,9 @@ function InvitationsPage() {
 									disabled={acceptingId === inv.id || decliningId === inv.id}
 								>
 									<X className="size-3.5" />
-									{decliningId === inv.id ? "Declining..." : "Decline"}
+									{decliningId === inv.id
+										? t("dashboard:team.declining")
+										: t("dashboard:team.decline")}
 								</Button>
 								<Button
 									size="sm"
@@ -156,7 +165,9 @@ function InvitationsPage() {
 									className="gap-1"
 								>
 									<Check className="size-3.5" />
-									{acceptingId === inv.id ? "Accepting..." : "Accept"}
+									{acceptingId === inv.id
+										? t("dashboard:team.accepting")
+										: t("dashboard:team.accept")}
 								</Button>
 							</div>
 						</CardContent>
@@ -167,7 +178,7 @@ function InvitationsPage() {
 			{session?.user && invitations.length === 0 && (
 				<div className="text-center">
 					<Button variant="outline" asChild>
-						<Link to="/onboarding">Create a workspace</Link>
+						<Link to="/onboarding">{t("dashboard:team.createWorkspace")}</Link>
 					</Button>
 				</div>
 			)}

@@ -4,12 +4,14 @@ import {
 	Outlet,
 	useLocation,
 } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/dashboard/team")({
 	component: TeamLayout,
 });
 
 function TeamLayout() {
+	const { t } = useTranslation();
 	const location = useLocation();
 	const currentTab = location.pathname.endsWith("/audit-log")
 		? "audit-log"
@@ -20,9 +22,9 @@ function TeamLayout() {
 	return (
 		<div className="flex flex-col gap-4">
 			<div>
-				<h2 className="text-2xl font-bold">Team</h2>
+				<h2 className="text-2xl font-bold">{t("dashboard:team.title")}</h2>
 				<p className="text-text-secondary mt-1">
-					Manage your team members and permissions
+					{t("dashboard:team.description")}
 				</p>
 			</div>
 			<div className="flex gap-4 border-b border-border">
@@ -34,7 +36,7 @@ function TeamLayout() {
 							: "border-transparent text-text-tertiary hover:text-foreground"
 					}`}
 				>
-					Members
+					{t("dashboard:team.members")}
 				</Link>
 				<Link
 					to="/dashboard/team/audit-log"
@@ -44,7 +46,7 @@ function TeamLayout() {
 							: "border-transparent text-text-tertiary hover:text-foreground"
 					}`}
 				>
-					Audit Log
+					{t("dashboard:team.auditLog")}
 				</Link>
 				<Link
 					to="/dashboard/team/invitations"
@@ -54,7 +56,7 @@ function TeamLayout() {
 							: "border-transparent text-text-tertiary hover:text-foreground"
 					}`}
 				>
-					Invitations
+					{t("dashboard:team.invitations")}
 				</Link>
 			</div>
 			<Outlet />

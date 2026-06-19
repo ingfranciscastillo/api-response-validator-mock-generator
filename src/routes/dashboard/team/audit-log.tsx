@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Ban, History } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback } from "#/components/ui/avatar";
 import { Badge } from "#/components/ui/badge";
 import { Card, CardContent } from "#/components/ui/card";
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/dashboard/team/audit-log")({
 });
 
 function AuditLogPage() {
+	const { t } = useTranslation();
 	const [entries, setEntries] = useState<{
 		rows: Array<{
 			id: string;
@@ -82,13 +84,13 @@ function AuditLogPage() {
 		<div className="flex flex-col gap-4">
 			<div className="flex flex-wrap items-center gap-2">
 				<Input
-					placeholder="Filter by action..."
+					placeholder={t("dashboard:team.filterAction")}
 					className="max-w-xs"
 					value={actionFilter}
 					onChange={(e) => setActionFilter(e.target.value)}
 				/>
 				<Input
-					placeholder="Filter by entity type..."
+					placeholder={t("dashboard:team.filterEntityType")}
 					className="max-w-xs"
 					value={entityTypeFilter}
 					onChange={(e) => setEntityTypeFilter(e.target.value)}
@@ -98,14 +100,14 @@ function AuditLogPage() {
 					value={dateFrom}
 					onChange={(e) => setDateFrom(e.target.value)}
 					className="w-[150px]"
-					placeholder="From date"
+					placeholder={t("dashboard:team.fromDate")}
 				/>
 				<Input
 					type="date"
 					value={dateTo}
 					onChange={(e) => setDateTo(e.target.value)}
 					className="w-[150px]"
-					placeholder="To date"
+					placeholder={t("dashboard:team.toDate")}
 				/>
 			</div>
 
@@ -115,7 +117,7 @@ function AuditLogPage() {
 						<Ban className="size-5 text-red-500" />
 						<div>
 							<p className="text-sm font-medium text-red-600">
-								Permission Denied
+								{t("dashboard:team.permissionDenied")}
 							</p>
 							<p className="text-xs text-muted-foreground mt-0.5">{error}</p>
 						</div>
@@ -140,8 +142,8 @@ function AuditLogPage() {
 			) : error ? null : entries.rows.length === 0 ? (
 				<EmptyState
 					icon={<History className="size-8" />}
-					title="No audit log entries"
-					description="Actions performed by team members will appear here"
+					title={t("dashboard:team.noAuditEvents")}
+					description={t("dashboard:team.noAuditEventsDescription")}
 				/>
 			) : (
 				<>

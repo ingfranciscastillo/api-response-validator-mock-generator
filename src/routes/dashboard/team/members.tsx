@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Mail, UserMinus, UserPlus, Users } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback } from "#/components/ui/avatar";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
@@ -39,6 +40,7 @@ export const Route = createFileRoute("/dashboard/team/members")({
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function MembersPage() {
+	const { t } = useTranslation();
 	const queryClient = useQueryClient();
 
 	const [showInvite, setShowInvite] = useState(false);
@@ -71,7 +73,7 @@ function MembersPage() {
 		setInviteError(null);
 
 		if (!emailRegex.test(inviteEmail)) {
-			setInviteError("Please enter a valid email address");
+			setInviteError(t("dashboard:team.invalidEmail"));
 			return;
 		}
 
@@ -153,11 +155,11 @@ function MembersPage() {
 		<div className="flex flex-col gap-4">
 			<div className="flex items-center justify-between">
 				<p className="text-sm text-text-secondary">
-					{members.length} member{members.length !== 1 ? "s" : ""}
+					{t("dashboard:team.memberCount", { count: members.length })}
 				</p>
 				<Button size="sm" onClick={() => setShowInvite(!showInvite)}>
 					<UserPlus className="size-4 mr-1" />
-					Invite Member
+					{t("dashboard:team.inviteMember")}
 				</Button>
 			</div>
 
@@ -166,9 +168,11 @@ function MembersPage() {
 					<CardContent className="pt-4">
 						<div className="flex items-end gap-3">
 							<div className="flex-1 space-y-1">
-								<label className="text-xs font-medium">Email</label>
+								<label className="text-xs font-medium">
+									{t("dashboard:team.inviteEmail")}
+								</label>
 								<Input
-									placeholder="colleague@example.com"
+									placeholder={t("dashboard:team.inviteEmailPlaceholder")}
 									value={inviteEmail}
 									onChange={(e) => {
 										setInviteEmail(e.target.value);
@@ -177,15 +181,23 @@ function MembersPage() {
 								/>
 							</div>
 							<div className="space-y-1">
-								<label className="text-xs font-medium">Role</label>
+								<label className="text-xs font-medium">
+									{t("dashboard:team.inviteRole")}
+								</label>
 								<Select value={inviteRole} onValueChange={setInviteRole}>
 									<SelectTrigger className="w-28">
 										<SelectValue />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="member">Member</SelectItem>
-										<SelectItem value="admin">Admin</SelectItem>
-										<SelectItem value="viewer">Viewer</SelectItem>
+										<SelectItem value="member">
+											{t("dashboard:team.roleMember")}
+										</SelectItem>
+										<SelectItem value="admin">
+											{t("dashboard:team.roleAdmin")}
+										</SelectItem>
+										<SelectItem value="viewer">
+											{t("dashboard:team.roleViewer")}
+										</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>
@@ -193,7 +205,9 @@ function MembersPage() {
 								onClick={handleInvite}
 								disabled={!inviteEmail || inviting}
 							>
-								{inviting ? "Sending..." : "Send Invite"}
+								{inviting
+									? t("dashboard:team.sending")
+									: t("dashboard:team.sendInvite")}
 							</Button>
 						</div>
 						{inviteError && (
@@ -208,7 +222,9 @@ function MembersPage() {
 					<CardContent className="pt-4">
 						<p className="text-sm font-medium mb-2 flex items-center gap-1.5">
 							<Mail className="size-4" />
-							Pending Invitations ({pendingInvitations.length})
+							{t("dashboard:team.pendingInvitationsCount", {
+								count: pendingInvitations.length,
+							})}
 						</p>
 						<div className="space-y-1">
 							{pendingInvitations.map((inv) => (
@@ -222,12 +238,15 @@ function MembersPage() {
 											{inv.role}
 										</Badge>
 										<span className="text-text-tertiary">
-											Expires {new Date(inv.expiresAt).toLocaleDateString()}
+											{t("dashboard:team.expires")}{" "}
+											{new Date(inv.expiresAt).toLocaleDateString()}
 										</span>
 										<Button
 											variant="ghost"
 											size="icon-xs"
-											aria-label={`Cancel invitation for ${inv.email}`}
+											aria-label={t("dashboard:team.cancelInviteLabel", {
+												email: inv.email,
+											})}
 											onClick={() => handleCancelInvite(inv.id)}
 											disabled={cancellingId === inv.id}
 										>
@@ -258,8 +277,8 @@ function MembersPage() {
 			) : members.length === 0 ? (
 				<EmptyState
 					icon={<Users className="size-8" />}
-					title="No team members"
-					description="Invite members to collaborate on your workspace"
+					title={t("dashboard:team.noMembers")}
+					description={t("dashboard:team.noMembersDescription")}
 				/>
 			) : (
 				<div className="space-y-2">
@@ -290,7 +309,13 @@ function MembersPage() {
 													: "outline"
 										}
 									>
-										{member.role}
+										{member.role === "owner"
+											? t("dashboard:team.roleOwner")
+											: member.role === "admin"
+												? t("dashboard:team.roleAdmin")
+												: member.role === "member"
+													? t("dashboard:team.roleMember")
+													: t("dashboard:team.roleViewer")}
 									</Badge>
 									{member.role !== "owner" && (
 										<>
@@ -303,15 +328,23 @@ function MembersPage() {
 													<SelectValue />
 												</SelectTrigger>
 												<SelectContent>
-													<SelectItem value="admin">Admin</SelectItem>
-													<SelectItem value="member">Member</SelectItem>
-													<SelectItem value="viewer">Viewer</SelectItem>
+													<SelectItem value="admin">
+														{t("dashboard:team.roleAdmin")}
+													</SelectItem>
+													<SelectItem value="member">
+														{t("dashboard:team.roleMember")}
+													</SelectItem>
+													<SelectItem value="viewer">
+														{t("dashboard:team.roleViewer")}
+													</SelectItem>
 												</SelectContent>
 											</Select>
 											<Button
 												variant="ghost"
 												size="icon-xs"
-												aria-label={`Remove ${member.name ?? member.email}`}
+												aria-label={t("dashboard:team.removeMember", {
+													name: member.name ?? member.email,
+												})}
 												onClick={() => handleRemove(member.id)}
 												disabled={actionLoading[member.id]}
 											>
