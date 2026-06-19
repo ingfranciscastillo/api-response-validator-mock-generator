@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "#/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
 import { Input } from "#/components/ui/input";
@@ -19,6 +20,7 @@ export const Route = createFileRoute("/dashboard/settings/account")({
 });
 
 function AccountPage() {
+	const { t } = useTranslation();
 	const { data: session } = authClient.useSession();
 	const [name, setName] = useState("");
 	const [saving, setSaving] = useState(false);
@@ -43,19 +45,25 @@ function AccountPage() {
 		<div className="flex flex-col gap-4 max-w-lg">
 			<Card>
 				<CardHeader>
-					<CardTitle className="text-sm">Profile</CardTitle>
+					<CardTitle className="text-sm">
+						{t("dashboard:settings.profileSection")}
+					</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4">
 					<div className="space-y-1">
-						<Label>Email</Label>
+						<Label>{t("common:email")}</Label>
 						<Input value={session?.user.email ?? ""} disabled />
 					</div>
 					<div className="space-y-1">
-						<Label>Name</Label>
+						<Label>{t("common:name")}</Label>
 						<Input value={name} onChange={(e) => setName(e.target.value)} />
 					</div>
 					<Button onClick={handleSave} disabled={saving}>
-						{saved ? "Saved!" : saving ? "Saving..." : "Save"}
+						{saved
+							? t("common:saved")
+							: saving
+								? t("common:saving")
+								: t("common:save")}
 					</Button>
 				</CardContent>
 			</Card>
@@ -64,7 +72,9 @@ function AccountPage() {
 
 			<Card>
 				<CardHeader>
-					<CardTitle className="text-sm">Sessions</CardTitle>
+					<CardTitle className="text-sm">
+						{t("dashboard:settings.sessionsCardTitle")}
+					</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<Button
@@ -72,7 +82,7 @@ function AccountPage() {
 						size="sm"
 						onClick={() => authClient.revokeSessions()}
 					>
-						Sign out all sessions
+						{t("dashboard:settings.signOutAllSessions")}
 					</Button>
 				</CardContent>
 			</Card>

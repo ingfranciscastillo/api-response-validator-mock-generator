@@ -1,6 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "#/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
 import {
@@ -32,6 +33,7 @@ export const Route = createFileRoute("/dashboard/settings/workspace")({
 type Org = { id: string; name: string; slug: string; logo: string | null };
 
 function WorkspacePage() {
+	const { t } = useTranslation();
 	const router = useRouter();
 	const { data: session } = authClient.useSession();
 	const sessionOrg = session?.session?.activeOrganizationId;
@@ -73,19 +75,25 @@ function WorkspacePage() {
 		<div className="flex flex-col gap-4 max-w-lg">
 			<Card>
 				<CardHeader>
-					<CardTitle className="text-sm">Workspace Settings</CardTitle>
+					<CardTitle className="text-sm">
+						{t("dashboard:settings.workspaceSettings")}
+					</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4">
 					<div className="space-y-1">
-						<Label>Name</Label>
+						<Label>{t("common:name")}</Label>
 						<Input value={name} onChange={(e) => setName(e.target.value)} />
 					</div>
 					<div className="space-y-1">
-						<Label>Slug</Label>
+						<Label>{t("dashboard:settings.workspaceSlug")}</Label>
 						<Input value={slug} onChange={(e) => setSlug(e.target.value)} />
 					</div>
 					<Button onClick={handleSave} disabled={saving}>
-						{saved ? "Saved!" : saving ? "Saving..." : "Save"}
+						{saved
+							? t("common:saved")
+							: saving
+								? t("common:saving")
+								: t("common:save")}
 					</Button>
 				</CardContent>
 			</Card>
@@ -94,26 +102,28 @@ function WorkspacePage() {
 
 			<Card className="border-red-200">
 				<CardHeader>
-					<CardTitle className="text-sm text-red-600">Danger Zone</CardTitle>
+					<CardTitle className="text-sm text-red-600">
+						{t("dashboard:settings.dangerZone")}
+					</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<p className="text-sm text-text-secondary mb-3">
-						Permanently delete this workspace and all its data.
+						{t("dashboard:settings.deleteWorkspaceDescription")}
 					</p>
 					<Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
 						<DialogTrigger asChild>
 							<Button variant="destructive" size="sm">
 								<Trash2 className="size-4 mr-1" />
-								Delete Workspace
+								{t("dashboard:settings.deleteWorkspace")}
 							</Button>
 						</DialogTrigger>
 						<DialogContent>
 							<DialogHeader>
-								<DialogTitle>Delete Workspace</DialogTitle>
+								<DialogTitle>
+									{t("dashboard:settings.deleteWorkspace")}
+								</DialogTitle>
 								<DialogDescription>
-									This action is irreversible. All data including
-									specifications, validation runs, mocks, and team members will
-									be permanently deleted.
+									{t("dashboard:settings.deleteWorkspaceConfirmDescription")}
 								</DialogDescription>
 							</DialogHeader>
 							<DialogFooter>
@@ -122,7 +132,7 @@ function WorkspacePage() {
 									onClick={() => setDeleteDialogOpen(false)}
 									disabled={deleting}
 								>
-									Cancel
+									{t("common:cancel")}
 								</Button>
 								<Button
 									variant="destructive"
@@ -141,7 +151,9 @@ function WorkspacePage() {
 										}
 									}}
 								>
-									{deleting ? "Deleting..." : "Delete Forever"}
+									{deleting
+										? t("dashboard:settings.deletingWorkspace")
+										: t("dashboard:settings.deleteForever")}
 								</Button>
 							</DialogFooter>
 						</DialogContent>

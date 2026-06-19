@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Copy, Key, KeyRound, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
@@ -35,6 +36,7 @@ const ALL_SCOPES = [
 ] as const;
 
 function ApiKeysPage() {
+	const { t } = useTranslation();
 	const [keys, setKeys] = useState<Awaited<ReturnType<typeof listApiKeys>>>([]);
 	const [loading, setLoading] = useState(true);
 	const [showCreate, setShowCreate] = useState(false);
@@ -103,23 +105,25 @@ function ApiKeysPage() {
 		<div className="flex flex-col gap-4 max-w-lg">
 			<div className="flex items-center justify-between">
 				<p className="text-sm text-text-secondary">
-					{keys.length} key{keys.length !== 1 ? "s" : ""}
+					{t("dashboard:settings.keyCount", { count: keys.length })}
 				</p>
 				<Button size="sm" onClick={() => setShowCreate(!showCreate)}>
 					<Key className="size-4 mr-1" />
-					Create Key
+					{t("dashboard:settings.createKey")}
 				</Button>
 			</div>
 
 			{showCreate && (
 				<Card>
 					<CardHeader>
-						<CardTitle className="text-sm">New API Key</CardTitle>
+						<CardTitle className="text-sm">
+							{t("dashboard:settings.newApiKey")}
+						</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-3">
 						{newKeyRaw ? (
 							<div className="space-y-2">
-								<Label>Your API Key (copy now — won't be shown again)</Label>
+								<Label>{t("dashboard:settings.apiKeyCopyMessage")}</Label>
 								<div className="flex gap-2">
 									<Input value={newKeyRaw} readOnly />
 									<Button
@@ -138,21 +142,21 @@ function ApiKeysPage() {
 										setShowCreate(false);
 									}}
 								>
-									Done
+									{t("common:done")}
 								</Button>
 							</div>
 						) : (
 							<div className="space-y-3">
 								<div className="space-y-1">
-									<Label>Name</Label>
+									<Label>{t("common:name")}</Label>
 									<Input
-										placeholder="e.g. CI Pipeline"
+										placeholder={t("dashboard:settings.keyNamePlaceholderAlt")}
 										value={newName}
 										onChange={(e) => setNewName(e.target.value)}
 									/>
 								</div>
 								<div className="space-y-1">
-									<Label>Scopes</Label>
+									<Label>{t("dashboard:settings.scopes")}</Label>
 									<div className="grid grid-cols-2 gap-2">
 										{ALL_SCOPES.map((scope) => (
 											<label
@@ -171,7 +175,7 @@ function ApiKeysPage() {
 									</div>
 								</div>
 								<div className="space-y-1">
-									<Label>Expiry (optional)</Label>
+									<Label>{t("dashboard:settings.expiryOptional")}</Label>
 									<Input
 										type="date"
 										value={expiryDate}
@@ -179,7 +183,9 @@ function ApiKeysPage() {
 									/>
 								</div>
 								<Button onClick={handleCreate} disabled={!newName || creating}>
-									{creating ? "Creating..." : "Generate Key"}
+									{creating
+										? t("dashboard:settings.generatingKey")
+										: t("dashboard:settings.generateKey")}
 								</Button>
 							</div>
 						)}
@@ -203,8 +209,8 @@ function ApiKeysPage() {
 			) : keys.length === 0 ? (
 				<EmptyState
 					icon={<KeyRound className="size-8" />}
-					title="No API keys"
-					description="Create an API key to integrate with external tools"
+					title={t("dashboard:settings.emptyApiKeys")}
+					description={t("dashboard:settings.emptyApiKeysDescription")}
 				/>
 			) : (
 				<div className="space-y-2">
@@ -225,13 +231,14 @@ function ApiKeysPage() {
 											))}
 										{key.lastUsedAt && (
 											<span className="text-xs text-text-tertiary">
-												Last used:{" "}
+												{t("dashboard:settings.lastUsedLabel")}{" "}
 												{new Date(key.lastUsedAt).toLocaleDateString()}
 											</span>
 										)}
 										{key.expiresAt && (
 											<span className="text-xs text-text-tertiary">
-												Expires: {new Date(key.expiresAt).toLocaleDateString()}
+												{t("dashboard:settings.expiresLabel")}{" "}
+												{new Date(key.expiresAt).toLocaleDateString()}
 											</span>
 										)}
 									</div>

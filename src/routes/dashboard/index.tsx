@@ -9,6 +9,7 @@ import {
 	ShieldCheck,
 } from "lucide-react";
 import { lazy, Suspense } from "react";
+import { useTranslation } from "react-i18next";
 import { RecentRunsTable } from "#/components/dashboard/recent-runs-table";
 import { StatCard } from "#/components/dashboard/stat-card";
 import { Button } from "#/components/ui/button";
@@ -31,6 +32,7 @@ export const Route = createFileRoute("/dashboard/")({
 });
 
 function DashboardIndexPage() {
+	const { t } = useTranslation();
 	const { data: overview } = useSuspenseQuery({
 		queryKey: ["dashboard", "overview"],
 		queryFn: getDashboardOverview,
@@ -46,9 +48,11 @@ function DashboardIndexPage() {
 			<div className="flex flex-col items-center justify-center gap-4 py-16">
 				<AlertTriangle className="size-10 text-red-500" />
 				<div className="text-center">
-					<p className="text-lg font-medium">Failed to load dashboard</p>
+					<p className="text-lg font-medium">
+						{t("dashboard:errorStateTitle")}
+					</p>
 					<p className="text-sm text-muted-foreground mt-1">
-						No data available
+						{t("common:noData")}
 					</p>
 				</div>
 				<Button
@@ -57,7 +61,7 @@ function DashboardIndexPage() {
 					onClick={() => window.location.reload()}
 				>
 					<RefreshCw className="size-4 mr-1" />
-					Retry
+					{t("common:retry")}
 				</Button>
 			</div>
 		);
@@ -66,30 +70,30 @@ function DashboardIndexPage() {
 	return (
 		<div className="flex flex-col gap-6">
 			<div>
-				<h2 className="text-2xl font-bold">Dashboard</h2>
+				<h2 className="text-2xl font-bold">{t("dashboard:title")}</h2>
 				<p className="text-muted-foreground mt-1">
-					Overview of your API specifications and validation activity
+					{t("dashboard:overviewDescription")}
 				</p>
 			</div>
 
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<StatCard
-					title="Specifications"
+					title={t("dashboard:statSpecifications")}
 					value={overview.totalSpecs}
 					icon={<FileText className="size-4" />}
 				/>
 				<StatCard
-					title="Endpoints"
+					title={t("dashboard:statEndpoints")}
 					value={overview.totalEndpoints}
 					icon={<RouteIcon className="size-4" />}
 				/>
 				<StatCard
-					title="Mock Datasets"
+					title={t("dashboard:statMockDatasets")}
 					value={overview.totalMocks}
 					icon={<FlaskConical className="size-4" />}
 				/>
 				<StatCard
-					title="Validation Runs"
+					title={t("dashboard:statValidationRuns")}
 					value={overview.totalRuns}
 					icon={<ShieldCheck className="size-4" />}
 				/>
@@ -97,19 +101,19 @@ function DashboardIndexPage() {
 
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 				<StatCard
-					title="Pass Rate"
+					title={t("dashboard:stats.passRate")}
 					value={`${overview.passRate}%`}
-					description="Of all validation checks"
+					description={t("dashboard:ofAllChecks")}
 				/>
 				<StatCard
-					title="Warning Rate"
+					title={t("dashboard:warningRate")}
 					value={`${overview.warningRate}%`}
-					description="Of all validation checks"
+					description={t("dashboard:ofAllChecks")}
 				/>
 				<StatCard
-					title="Fail Rate"
+					title={t("dashboard:failRate")}
 					value={`${overview.failRate}%`}
-					description="Of all validation checks"
+					description={t("dashboard:ofAllChecks")}
 				/>
 			</div>
 

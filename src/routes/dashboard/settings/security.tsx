@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Key, Lock, Shield, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import QRCode from "react-qr-code";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
@@ -46,6 +47,7 @@ function SecurityPage() {
 }
 
 function ChangePasswordCard() {
+	const { t } = useTranslation();
 	const [currentPassword, setCurrentPassword] = useState("");
 	const [newPassword, setNewPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
@@ -56,15 +58,15 @@ function ChangePasswordCard() {
 	const handleChangePassword = async () => {
 		setError(null);
 		if (!currentPassword || !newPassword) {
-			setError("All fields are required");
+			setError(t("dashboard:settings.allFieldsRequired"));
 			return;
 		}
 		if (newPassword.length < 8) {
-			setError("Password must be at least 8 characters");
+			setError(t("auth:passwordRequirements"));
 			return;
 		}
 		if (newPassword !== confirmPassword) {
-			setError("Passwords do not match");
+			setError(t("dashboard:settings.passwordsDoNotMatch"));
 			return;
 		}
 
@@ -76,16 +78,14 @@ function ChangePasswordCard() {
 				revokeOtherSessions: true,
 			});
 			if (changeError)
-				throw new Error(changeError.message ?? "Failed to change password");
+				throw new Error(changeError.message ?? t("common:error"));
 			setSaved(true);
 			setCurrentPassword("");
 			setNewPassword("");
 			setConfirmPassword("");
 			setTimeout(() => setSaved(false), 2000);
 		} catch (err) {
-			setError(
-				err instanceof Error ? err.message : "Failed to change password",
-			);
+			setError(err instanceof Error ? err.message : t("common:error"));
 		} finally {
 			setSaving(false);
 		}
@@ -96,12 +96,12 @@ function ChangePasswordCard() {
 			<CardHeader>
 				<CardTitle className="text-sm flex items-center gap-2">
 					<Lock className="size-4" />
-					Change Password
+					{t("dashboard:settings.changePassword")}
 				</CardTitle>
 			</CardHeader>
 			<CardContent className="space-y-4">
 				<div className="space-y-1.5">
-					<Label>Current Password</Label>
+					<Label>{t("dashboard:settings.currentPasswordLabel")}</Label>
 					<Input
 						type="password"
 						value={currentPassword}
@@ -109,7 +109,7 @@ function ChangePasswordCard() {
 					/>
 				</div>
 				<div className="space-y-1.5">
-					<Label>New Password</Label>
+					<Label>{t("dashboard:settings.newPasswordLabel")}</Label>
 					<Input
 						type="password"
 						value={newPassword}
@@ -117,7 +117,7 @@ function ChangePasswordCard() {
 					/>
 				</div>
 				<div className="space-y-1.5">
-					<Label>Confirm New Password</Label>
+					<Label>{t("dashboard:settings.confirmNewPasswordLabel")}</Label>
 					<Input
 						type="password"
 						value={confirmPassword}
@@ -126,7 +126,11 @@ function ChangePasswordCard() {
 				</div>
 				{error && <p className="text-xs text-destructive">{error}</p>}
 				<Button onClick={handleChangePassword} disabled={saving}>
-					{saved ? "Saved!" : saving ? "Saving..." : "Update Password"}
+					{saved
+						? t("common:saved")
+						: saving
+							? t("common:saving")
+							: t("dashboard:settings.updatePassword")}
 				</Button>
 			</CardContent>
 		</Card>
@@ -134,6 +138,7 @@ function ChangePasswordCard() {
 }
 
 function TwoFactorCard() {
+	const { t } = useTranslation();
 	const { data: session } = authClient.useSession();
 	const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
 	const [password, setPassword] = useState("");
@@ -160,7 +165,7 @@ function TwoFactorCard() {
 
 	const handleEnable = async () => {
 		if (!password) {
-			setError("Password is required to enable 2FA");
+			setError(t("dashboard:settings.passwordRequiredFor2FA"));
 			return;
 		}
 		setOperating(true);
@@ -248,19 +253,21 @@ function TwoFactorCard() {
 			<CardHeader>
 				<CardTitle className="text-sm flex items-center gap-2">
 					<Smartphone className="size-4" />
-					Two-Factor Authentication
+					{t("dashboard:settings.twoFactorAuth")}
 				</CardTitle>
 			</CardHeader>
 			<CardContent className="space-y-3">
 				<div className="flex items-center justify-between">
 					<div>
 						<p className="text-sm">
-							{twoFactorEnabled ? "2FA is enabled" : "2FA is disabled"}
+							{twoFactorEnabled
+								? t("dashboard:settings.twoFactorIsEnabled")
+								: t("dashboard:settings.twoFactorIsDisabled")}
 						</p>
 						<p className="text-xs text-text-tertiary mt-0.5">
 							{twoFactorEnabled
-								? "Your account is protected with an authenticator app"
-								: "Add an extra layer of security to your account"}
+								? t("dashboard:settings.protectedWithAuthenticator")
+								: t("dashboard:settings.twoFactorDescription")}
 						</p>
 					</div>
 					{twoFactorEnabled ? (
@@ -269,11 +276,11 @@ function TwoFactorCard() {
 							size="sm"
 							onClick={() => setShowDisable(true)}
 						>
-							Disable
+							{t("common:disable")}
 						</Button>
 					) : (
 						<Button size="sm" onClick={() => setShowSetup(true)}>
-							Enable
+							{t("common:enable")}
 						</Button>
 					)}
 				</div>
@@ -288,7 +295,7 @@ function TwoFactorCard() {
 								setPassword("");
 							}}
 						>
-							View Backup Codes
+							{t("dashboard:settings.viewBackupCodes")}
 						</Button>
 					</div>
 				)}
@@ -299,27 +306,30 @@ function TwoFactorCard() {
 			<Dialog open={showSetup} onOpenChange={setShowSetup}>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>Enable Two-Factor Authentication</DialogTitle>
+						<DialogTitle>
+							{t("dashboard:settings.enableTwoFactorTitle")}
+						</DialogTitle>
 						<DialogDescription>
-							Scan the QR code with your authenticator app (e.g. Google
-							Authenticator, Authy)
+							{t("dashboard:settings.enableTwoFactorDescription")}
 						</DialogDescription>
 					</DialogHeader>
 
 					{!setupData ? (
 						<div className="space-y-3">
 							<div className="space-y-1">
-								<Label>Confirm your password</Label>
+								<Label>{t("dashboard:settings.confirmPasswordLabel")}</Label>
 								<Input
 									type="password"
 									value={password}
 									onChange={(e) => setPassword(e.target.value)}
-									placeholder="Enter your password"
+									placeholder={t("auth:passwordPlaceholder")}
 								/>
 							</div>
 							{error && <p className="text-xs text-destructive">{error}</p>}
 							<Button onClick={handleEnable} disabled={operating || !password}>
-								{operating ? "Setting up..." : "Continue"}
+								{operating
+									? t("dashboard:settings.setupInProgress")
+									: t("common:continue")}
 							</Button>
 						</div>
 					) : (
@@ -328,20 +338,20 @@ function TwoFactorCard() {
 								<QRCode value={setupData.totpURI} size={200} />
 							</div>
 							<div className="space-y-1">
-								<Label>Verify TOTP Code</Label>
+								<Label>{t("dashboard:settings.verifyTotpCode")}</Label>
 								<Input
 									value={totpCode}
 									onChange={(e) =>
 										setTotpCode(e.target.value.replace(/\D/g, "").slice(0, 6))
 									}
-									placeholder="Enter 6-digit code"
+									placeholder={t("dashboard:settings.totpPlaceholder")}
 									maxLength={6}
 									className="text-center text-lg tracking-widest font-mono"
 								/>
 							</div>
 							<div className="rounded-md border border-amber-200 bg-amber-50 dark:bg-amber-950/20 px-3 py-2">
 								<p className="text-xs font-medium text-amber-800 dark:text-amber-200">
-									Save your backup codes
+									{t("dashboard:settings.saveBackupCodes")}
 								</p>
 								<div className="mt-1 grid grid-cols-2 gap-1">
 									{setupData.backupCodes.map((code, i) => (
@@ -359,7 +369,9 @@ function TwoFactorCard() {
 								onClick={handleVerifyTotp}
 								disabled={operating || totpCode.length < 6}
 							>
-								{operating ? "Verifying..." : "Verify & Enable"}
+								{operating
+									? t("common:verifying")
+									: t("dashboard:settings.verifyAndEnable")}
 							</Button>
 						</div>
 					)}
@@ -369,32 +381,35 @@ function TwoFactorCard() {
 			<Dialog open={showDisable} onOpenChange={setShowDisable}>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>Disable Two-Factor Authentication</DialogTitle>
+						<DialogTitle>
+							{t("dashboard:settings.disableTwoFactorTitle")}
+						</DialogTitle>
 						<DialogDescription>
-							This will make your account less secure. Confirm your password to
-							proceed.
+							{t("dashboard:settings.disableTwoFactorDescription")}
 						</DialogDescription>
 					</DialogHeader>
 					<div className="space-y-1">
-						<Label>Password</Label>
+						<Label>{t("common:password")}</Label>
 						<Input
 							type="password"
 							value={password}
 							onChange={(e) => setPassword(e.target.value)}
-							placeholder="Enter your password"
+							placeholder={t("auth:passwordPlaceholder")}
 						/>
 					</div>
 					{error && <p className="text-xs text-destructive">{error}</p>}
 					<DialogFooter>
 						<Button variant="outline" onClick={() => setShowDisable(false)}>
-							Cancel
+							{t("common:cancel")}
 						</Button>
 						<Button
 							variant="destructive"
 							onClick={handleDisable}
 							disabled={operating || !password}
 						>
-							{operating ? "Disabling..." : "Disable 2FA"}
+							{operating
+								? t("dashboard:settings.disableInProgress")
+								: t("dashboard:settings.disableTwoFactor")}
 						</Button>
 					</DialogFooter>
 				</DialogContent>
@@ -403,10 +418,11 @@ function TwoFactorCard() {
 			<Dialog open={showBackupCodes} onOpenChange={setShowBackupCodes}>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>Backup Codes</DialogTitle>
+						<DialogTitle>
+							{t("dashboard:settings.backupCodesTitle")}
+						</DialogTitle>
 						<DialogDescription>
-							Use these codes to sign in if you lose access to your
-							authenticator app
+							{t("dashboard:settings.backupCodesDescription")}
 						</DialogDescription>
 					</DialogHeader>
 					{backupCodes.length > 0 ? (
@@ -422,12 +438,12 @@ function TwoFactorCard() {
 						</div>
 					) : (
 						<div className="space-y-1">
-							<Label>Confirm your password to view codes</Label>
+							<Label>{t("dashboard:settings.confirmPasswordLabel")}</Label>
 							<Input
 								type="password"
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
-								placeholder="Enter your password"
+								placeholder={t("auth:passwordPlaceholder")}
 							/>
 						</div>
 					)}
@@ -438,7 +454,7 @@ function TwoFactorCard() {
 								variant="outline"
 								onClick={() => setShowBackupCodes(false)}
 							>
-								Close
+								{t("common:close")}
 							</Button>
 						) : (
 							<>
@@ -446,13 +462,15 @@ function TwoFactorCard() {
 									variant="outline"
 									onClick={() => setShowBackupCodes(false)}
 								>
-									Cancel
+									{t("common:cancel")}
 								</Button>
 								<Button
 									onClick={handleRegenerateBackupCodes}
 									disabled={operating || !password}
 								>
-									{operating ? "Generating..." : "Generate New Codes"}
+									{operating
+										? t("dashboard:settings.generatingCodes")
+										: t("dashboard:settings.generateNewCodes")}
 								</Button>
 							</>
 						)}
@@ -464,6 +482,7 @@ function TwoFactorCard() {
 }
 
 function ActiveSessionsCard() {
+	const { t } = useTranslation();
 	const [sessions, setSessions] = useState<
 		{
 			id: string;
@@ -497,7 +516,7 @@ function ActiveSessionsCard() {
 	};
 
 	const formatUserAgent = (ua: string | null) => {
-		if (!ua) return "Unknown device";
+		if (!ua) return t("dashboard:settings.unknownDevice");
 		if (ua.includes("Chrome")) return "Chrome";
 		if (ua.includes("Firefox")) return "Firefox";
 		if (ua.includes("Safari") && !ua.includes("Chrome")) return "Safari";
@@ -511,7 +530,7 @@ function ActiveSessionsCard() {
 			<CardHeader>
 				<CardTitle className="text-sm flex items-center gap-2">
 					<Shield className="size-4" />
-					Active Sessions
+					{t("dashboard:settings.sessions")}
 				</CardTitle>
 			</CardHeader>
 			<CardContent className="space-y-3">
@@ -522,7 +541,9 @@ function ActiveSessionsCard() {
 						<Skeleton className="h-4 w-2/3" />
 					</div>
 				) : sessions.length === 0 ? (
-					<p className="text-sm text-text-tertiary">No active sessions</p>
+					<p className="text-sm text-text-tertiary">
+						{t("dashboard:settings.noActiveSessions")}
+					</p>
 				) : (
 					<div className="space-y-2">
 						{sessions.map((s) => (
@@ -535,7 +556,7 @@ function ActiveSessionsCard() {
 										{formatUserAgent(s.userAgent)}
 									</p>
 									<p className="text-xs text-text-tertiary">
-										{s.ipAddress ?? "Unknown IP"} &middot;{" "}
+										{s.ipAddress ?? t("dashboard:settings.unknownIP")} &middot;{" "}
 										{s.createdAt
 											? new Date(s.createdAt).toLocaleDateString(undefined, {
 													month: "short",
@@ -543,11 +564,11 @@ function ActiveSessionsCard() {
 													hour: "2-digit",
 													minute: "2-digit",
 												})
-											: "Unknown date"}
+											: t("dashboard:settings.unknownDate")}
 									</p>
 								</div>
 								<Badge variant="outline" className="text-[10px] ml-2 shrink-0">
-									Current
+									{t("dashboard:settings.currentBadge")}
 								</Badge>
 							</div>
 						))}
@@ -559,7 +580,9 @@ function ActiveSessionsCard() {
 					onClick={handleRevokeAll}
 					disabled={revoking || loading || sessions.length === 0}
 				>
-					{revoking ? "Signing out..." : "Sign out all sessions"}
+					{revoking
+						? t("dashboard:settings.signingOutSessions")
+						: t("dashboard:settings.signOutAllSessions")}
 				</Button>
 			</CardContent>
 		</Card>
@@ -567,6 +590,7 @@ function ActiveSessionsCard() {
 }
 
 function LoginHistoryCard() {
+	const { t } = useTranslation();
 	const [sessions, setSessions] = useState<
 		{
 			id: string;
@@ -584,7 +608,7 @@ function LoginHistoryCard() {
 	}, []);
 
 	const formatDevice = (ua: string | null) => {
-		if (!ua) return "Unknown device";
+		if (!ua) return t("dashboard:settings.unknownDevice");
 		const isMobile =
 			ua.includes("Mobile") || ua.includes("Android") || ua.includes("iPhone");
 		if (ua.includes("Chrome")) return isMobile ? "Chrome (Mobile)" : "Chrome";
@@ -601,7 +625,7 @@ function LoginHistoryCard() {
 			<CardHeader>
 				<CardTitle className="text-sm flex items-center gap-2">
 					<Key className="size-4" />
-					Recent Login Activity
+					{t("dashboard:settings.recentLoginActivity")}
 				</CardTitle>
 			</CardHeader>
 			<CardContent>
@@ -612,7 +636,7 @@ function LoginHistoryCard() {
 					</div>
 				) : sessions.length === 0 ? (
 					<p className="text-sm text-text-tertiary">
-						No login history available
+						{t("dashboard:settings.noLoginHistory")}
 					</p>
 				) : (
 					<div className="space-y-2">
@@ -624,7 +648,7 @@ function LoginHistoryCard() {
 								<div className="flex-1 min-w-0">
 									<p className="truncate">{formatDevice(s.userAgent)}</p>
 									<p className="text-xs text-text-tertiary">
-										{s.ipAddress ?? "Unknown IP"}
+										{s.ipAddress ?? t("dashboard:settings.unknownIP")}
 									</p>
 								</div>
 								<span className="text-xs text-text-tertiary shrink-0 ml-2">
