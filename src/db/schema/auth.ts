@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
 	boolean,
 	index,
@@ -17,8 +18,6 @@ export const user = pgTable(
 		emailVerified: boolean("email_verified").notNull().default(false),
 		image: text("image"),
 		twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
-		twoFactorSecret: text("two_factor_secret"),
-		backupCodes: text("backup_codes"),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 		updatedAt: timestamp("updated_at").notNull().defaultNow(),
 	},
@@ -155,4 +154,29 @@ export type Session = typeof session.$inferSelect;
 export type Account = typeof account.$inferSelect;
 export type Organization = typeof organization.$inferSelect;
 export type OrganizationMember = typeof organizationMember.$inferSelect;
+export const twoFactor = pgTable(
+	"two_factor",
+	{
+		id: text("id").primaryKey(),
+		secret: text("secret").notNull(),
+		backupCodes: text("backup_codes").notNull(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		verified: boolean("verified").default(true),
+	},
+	(table) => [
+		index("two_factor_secret_idx").on(table.secret),
+		index("two_factor_user_id_idx").on(table.userId),
+	],
+);
+
+export const twoFactorRelations = relations(twoFactor, ({ one }) => ({
+	user: one(user, {
+		fields: [twoFactor.userId],
+		references: [user.id],
+	}),
+}));
+
 export type OrganizationInvitation = typeof organizationInvitation.$inferSelect;
+export type TwoFactor = typeof twoFactor.$inferSelect;

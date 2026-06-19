@@ -48,6 +48,7 @@ export const auth = betterAuth({
 			organization: schema.organization,
 			member: schema.organizationMember,
 			invitation: schema.organizationInvitation,
+			twoFactor: schema.twoFactor,
 		},
 	}),
 

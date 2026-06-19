@@ -1,5 +1,5 @@
 {
-  "id": "5391b362-9d75-4112-acef-915b008a935f",
+  "id": "60987177-6e9e-4f4c-b007-c1ca5a086038",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -2305,6 +2305,25 @@
         },
         "image": {
           "name": "image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "two_factor_enabled": {
+          "name": "two_factor_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "two_factor_secret": {
+          "name": "two_factor_secret",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "backup_codes": {
+          "name": "backup_codes",
           "type": "text",
           "primaryKey": false,
           "notNull": false

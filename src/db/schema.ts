@@ -7,6 +7,7 @@ export {
 	organizationInvitation,
 	organizationMember,
 	session,
+	twoFactor,
 	user,
 	verification,
 } from "./schema/auth";
