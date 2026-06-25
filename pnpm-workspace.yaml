@@ -4,9 +4,7 @@ blockExoticSubdeps: true
 trustPolicy: no-downgrade
 
 trustPolicyExclude:
-  - undici-types
   - semver
-  - reselect
 
 onlyBuiltDependencies:
   - esbuild
@@ -15,3 +13,6 @@ onlyBuiltDependencies:
 
 overrides:
   "esbuild": "0.28.1"
+  "dompurify": "3.4.11"
+  "@types/node": "26.0.0"
+  "undici-types": "8.3.0"
