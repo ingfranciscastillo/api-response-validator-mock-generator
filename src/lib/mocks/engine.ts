@@ -18,6 +18,8 @@ export interface GenerationRule {
 	regex?: string;
 }
 
+const PROTO_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+
 export interface GenerationRules {
 	fieldOverrides?: Record<string, GenerationRule>;
 	locale?: string;
@@ -42,6 +44,7 @@ function setDeep(
 			if (arr.length === 0) arr.push({});
 			current = arr[0];
 		} else {
+			if (PROTO_KEYS.has(part)) continue;
 			if (!current[part] || typeof current[part] !== "object") {
 				current[part] = {};
 			}
@@ -49,7 +52,9 @@ function setDeep(
 		}
 	}
 	const lastPart = parts[parts.length - 1];
-	current[lastPart] = value;
+	if (!PROTO_KEYS.has(lastPart)) {
+		current[lastPart] = value;
+	}
 }
 
 function applyFieldOverrides(
@@ -71,9 +76,11 @@ function applyFieldOverrides(
 						unknown
 					>;
 					for (const segment of methodPath.slice(0, -1)) {
+						if (PROTO_KEYS.has(segment)) break;
 						fakerModule = fakerModule[segment] as Record<string, unknown>;
 					}
 					const methodName = methodPath[methodPath.length - 1];
+					if (PROTO_KEYS.has(methodName)) break;
 					const fn = fakerModule[methodName] as () => unknown;
 					if (typeof fn === "function") {
 						setDeep(payload, path, fn());

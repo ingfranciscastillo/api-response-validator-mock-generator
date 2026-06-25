@@ -150,7 +150,7 @@ export const auth = betterAuth({
 				after: async (session, ctx) => {
 					const ip = ctx?.request?.headers.get("x-forwarded-for");
 					const userAgent = ctx?.request?.headers.get("user-agent");
-					console.log(`[Auth] Session created for user ${session.userId}`, {
+					console.log("[Auth] Session created for user", session.userId, {
 						ip,
 						userAgent,
 					});

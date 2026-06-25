@@ -143,13 +143,18 @@ export const breakingChangeAlert = inngest.createFunction(
 						});
 					} else if (channel.type === "email" && config.email) {
 						console.log(
-							`[email] To: ${config.email}, Subject: Breaking Change Alert - ${alert.summary}`,
+							"[email] To:",
+							config.email,
+							"Subject: Breaking Change Alert -",
+							alert.summary,
 							payload,
 						);
 					}
 				} catch (e) {
 					console.error(
-						`Failed to dispatch to channel ${channel.id} (${channel.type}):`,
+						"Failed to dispatch to channel",
+						channel.id,
+						`(${channel.type}):`,
 						e,
 					);
 				}

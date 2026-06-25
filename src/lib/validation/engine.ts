@@ -29,7 +29,10 @@ let _ajv: Ajv | null = null;
 
 function getAjv(): Ajv {
 	if (!_ajv) {
-		_ajv = new Ajv({ strict: false, allErrors: true });
+		_ajv = new Ajv({
+			strict: false,
+			allErrors: process.env.NODE_ENV !== "production",
+		});
 		addFormats(_ajv);
 		AjvErrors(_ajv);
 	}
@@ -41,8 +44,10 @@ function resolveSchemaByPath(
 	path: string,
 ): Record<string, unknown> | null {
 	const parts = path.replace(/^#?\//, "").split("/").filter(Boolean);
+	const PROTO_KEYS = new Set(["__proto__", "constructor", "prototype"]);
 	let current: unknown = schema;
 	for (const part of parts) {
+		if (PROTO_KEYS.has(part)) return null;
 		if (current && typeof current === "object" && !Array.isArray(current)) {
 			current = (current as Record<string, unknown>)[part];
 		} else {
